@@ -5,11 +5,13 @@ increment, tick it and add the next. This is guidance, not the stop condition �
 ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 
 ## Now
-- [ ] **Harvest a check from a real Stage-C proposal (honest flywheel end-to-end)** — run a
-      scenario whose builds trip a recurring subjective Stage-B defect, let Stage C surface the
-      `ProposedAdjustment`, then author the deterministic check keyed to that proposal's
-      signature (good/bad fixtures + certification). Prove the harvested check id matches what
-      Stage C proposed — the full unattended taste→gate loop, not a hand-picked check.
+- [ ] **Surface Stage-C proposals on the dashboard** — proposals are persisted to the
+      `RunStore` (`stage_c_proposals`) and printed by the autopilot, but the read-only
+      dashboard/heartbeat HTML doesn't show them. Render the current proposals (id, signature,
+      occurrences) so an operator watching the dashboard sees the flywheel's pending
+      taste→gate suggestions without reading the console.
+- [ ] **Quality hardening pass** — targeted correctness review of `harness/` + `control/`
+      seams with regression tests (high-confidence only; don't invent fixes).
 
 ## Candidate increments (pick by value, not order)
 - [ ] Extend One Pond through the harness: a 4th mechanic, more tickets, a new
@@ -42,3 +44,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] Visual gate wired into live Stage B: `OnePondVisualReviewer` renders each config and runs
       the CV scorer as the mechanical floor beneath the subjective reviewer; autopilot + e2e use
       it, so every acceptance is visually gated; blocks unreadable ponds first (101 tests)
+- [x] Honest flywheel end-to-end: recurring subjective `cohesion` defect → Stage C proposes
+      `auto_cohesion_check` → `CohesionCheck` authored with that exact id, certified, now gates
+      scattered layouts a bare Stage A passed; test asserts proposed-id == authored-id (102 tests)

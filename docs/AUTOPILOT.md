@@ -84,6 +84,13 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       autopilot and the e2e run now use it, so every One Pond acceptance is visually gated end
       to end. Still 5/5 at autonomy 1.0. Real Godot render is the drop-in behind the same
       `ScreenshotWorker` seam.
+- [x] Honest flywheel end-to-end — a Stage-C proposal *became* the check that closes it.
+      Reviewers repeatedly reject scattered ponds with a subjective `cohesion` defect; the live
+      pipeline harvests those decision logs (Stage C) into a `ProposedAdjustment` whose
+      `suggested_check_id` is `auto_cohesion_check`; a deterministic `CohesionCheck` authored to
+      that exact id certifies (good/bad fixtures) and now gates a scattered layout in Stage A
+      that a bare Stage A waved through. The test asserts the join: the id Stage C *proposed*
+      equals the id of the check *authored*. One Pond still 5/5 at autonomy 1.0.
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
@@ -94,7 +101,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of the visual gate in Stage B: `python -m pytest tests/ -q` → 101 passed.
+As of the honest-flywheel harvest: `python -m pytest tests/ -q` → 102 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.
