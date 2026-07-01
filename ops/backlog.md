@@ -57,3 +57,5 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] Proposal `kind` surfaced on the dashboard table + autopilot summary (108 tests)
 - [x] Acted on a `tighten_rubric` signal: `CohesionCheck` compactness gate tightened 0.25→0.5;
       previously-passing 0.33 layout now rejected, all tickets (≥0.7) still pass, cert green (109)
+- [x] Ops entrypoint e2e test: runs `run_onepond_autopilot.main` in a throwaway workspace to a
+      0 exit code (5/5, clean audit); covers the glue the unit tests miss (111 tests)
