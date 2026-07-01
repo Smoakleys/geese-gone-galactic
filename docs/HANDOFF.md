@@ -7,7 +7,7 @@ you to wait for me for anything. Keep going." Neither you nor Icarus may ask him
 
 ## First actions on resume
 1. `cd C:\Users\bhump\geese-gone-galactic`
-2. `python -m pytest tests/ -q` → expect **89 passed**. If red, fixing that is job #1.
+2. `python -m pytest tests/ -q` → expect **94 passed**. If red, fixing that is job #1.
 3. Read `docs/AUTOPILOT.md` (the phase state + loop) and your memory index `MEMORY.md`
    (`ggg-autonomous-mandate`, `ggg-progress`).
 
@@ -25,8 +25,13 @@ via the GitHub API using stored git creds — `gh` CLI is NOT installed).
   `AutonomousRunner.harvest_stage_c` mines the builder decision logs left in the staging trees
   for recurring subjective defects and persists `ProposedAdjustment`s to the `RunStore`
   (`stage_c_proposals` snapshot field); the autopilot summary prints them. Off the critical
-  path — it never gates a commit. Next: close a full flywheel turn by authoring a check from a
-  surfaced proposal.
+  path — it never gates a commit.
+- **First full flywheel turn done:** the subjective "lifeless pond" Stage-B defect is now a
+  mechanical Stage-A gate (`onepond_liveliness` in `game/onepond/checks.py`, certified against
+  good/bad fixtures, scoped to ponds with a granary; mints `onepond_geese_hatched` floor).
+  Tests prove a lifeless pond slips past the pre-flywheel gates but is rejected once the check
+  is registered. One Pond still accepts 4/4 at autonomy 1.0. Next: drive the liveliness gate
+  through a real One Pond ticket to acceptance (see `ops/backlog.md`).
 - The harness runs unattended: `python scripts/run_onepond_autopilot.py` (add `--serve` for the
   dashboard). Verified to make real Gatekeeper commits at 100% autonomy.
 
