@@ -92,6 +92,15 @@ def main(argv: list[str] | None = None) -> int:
           f"autonomy_rate: {store.autonomy_rate()*100:.0f}%  "
           f"blocked: {store.blocked() or 'none'}")
 
+    proposals = store.proposals()
+    print("\n=== stage C: recurring subjective defects -> proposed checks ===")
+    if proposals:
+        for p in proposals:
+            print(f"  {p['suggested_check_id']:24} x{p['occurrences']}  "
+                  f"({p['signature']})")
+    else:
+        print("  none above threshold")
+
     if args.serve:
         from control.dashboard import serve
         print(f"\nserving dashboard on http://{args.host}:{args.port}/  (Ctrl-C to stop)")

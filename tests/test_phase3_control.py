@@ -151,6 +151,73 @@ def test_runner_respects_pause_and_resumes(git_repo, registry, gatekeeper, tmp_p
     assert len(recs) == 2 and all(r.committed for r in recs)
 
 
+# --- stage C flywheel (decision-log harvest through the runner) -----------------------
+
+
+class _RejectFirstPerTicket:
+    """Reviewer that rejects the first review of each ticket with a fixed defect, then passes.
+
+    Every ticket therefore records one identical subjective defect in its (staging-only)
+    decision log, so across enough tickets Stage C sees a recurring signature.
+    """
+
+    id = "reject-first-per-ticket"
+
+    def __init__(self):
+        self._seen: set[str] = set()
+
+    def review(self, packet, ticket):
+        from harness.models import CriterionVerdict, Defect, Result, Stage, Verdict
+        first = ticket.id not in self._seen
+        self._seen.add(ticket.id)
+        if first:
+            per = [CriterionVerdict(id=c.id, result=Result.FAIL, evidence="")
+                   for c in packet.criteria]
+            defects = [Defect(criterion="AC2", severity="blocking",
+                              detail="reads as a generic box not a bakery", repro="n/a")]
+            return Verdict.build(ticket=ticket, stage=Stage.B, reviewer_id="r-fail",
+                                 per_criterion=per, defects=defects)
+        per = [CriterionVerdict(id=c.id, result=Result.PASS, evidence=f"{c.id} met")
+               for c in packet.criteria]
+        return Verdict.build(ticket=ticket, stage=Stage.B, reviewer_id="r-pass",
+                             per_criterion=per)
+
+
+def test_runner_stage_c_surfaces_recurring_defect_proposal(git_repo, registry, gatekeeper, tmp_path):
+    store = RunStore(tmp_path / "state.json")
+    icarus = LLMBuilder(ScriptedGenerationClient(lambda p: {"artifact.txt": "a bakery"}))
+    runner = AutonomousRunner(
+        store=store, repo_root=git_repo, registry=registry, gatekeeper=gatekeeper,
+        reviewer=_RejectFirstPerTicket(), icarus_builder=icarus,
+        staging_root=tmp_path / "staging", plateau_window=5, max_rounds=5,
+        stage_c_threshold=3,
+    )
+    for tid in ("T-1", "T-2", "T-3"):
+        runner.submit(make_ticket(tid))
+    recs = runner.run_pending()
+
+    assert all(r.committed for r in recs)          # each accepted on its 2nd round
+    proposals = store.proposals()                  # persisted end-to-end, no manual harvest
+    assert proposals, "a subjective defect recurring across tickets must yield a proposal"
+    p = proposals[0]
+    assert p["kind"] == "new_check"
+    assert p["occurrences"] >= 3 and "AC2" in p["signature"]
+    assert store.snapshot()["stage_c_proposals"]   # surfaced in the dashboard snapshot too
+
+
+def test_runner_stage_c_no_proposal_below_threshold(git_repo, registry, gatekeeper, tmp_path):
+    store = RunStore(tmp_path / "state.json")
+    icarus = LLMBuilder(ScriptedGenerationClient(lambda p: {"artifact.txt": "a bakery"}))
+    runner = AutonomousRunner(
+        store=store, repo_root=git_repo, registry=registry, gatekeeper=gatekeeper,
+        reviewer=StubReviewer(lambda r: True), icarus_builder=icarus,
+        staging_root=tmp_path / "staging", stage_c_threshold=3,
+    )
+    runner.submit(make_ticket("T-1"))
+    runner.run_pending()
+    assert store.proposals() == []  # clean acceptances leave no recurring defect to harvest
+
+
 # --- dashboard ------------------------------------------------------------------------
 
 

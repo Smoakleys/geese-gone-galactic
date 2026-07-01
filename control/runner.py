@@ -22,6 +22,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
+from dataclasses import asdict
+
 from control.store import RunRecord, RunStore, ControlMode
 from harness.checks.registry import Registry
 from harness.gatekeeper import Gatekeeper
@@ -29,6 +31,11 @@ from harness.icarus.builder import Builder
 from harness.loop import Loop
 from harness.models import Ticket
 from harness.review.base import Reviewer
+from harness.review.decision_log_review import (
+    DecisionLogReview,
+    ProposedAdjustment,
+    load_defect_records,
+)
 from harness.states import State
 
 
@@ -46,6 +53,7 @@ class AutonomousRunner:
         staging_root: Optional[Path] = None,
         max_rounds: int = 3,
         plateau_window: int = 3,
+        stage_c_threshold: int = 3,
     ):
         self.store = store
         self.repo_root = Path(repo_root)
@@ -57,6 +65,7 @@ class AutonomousRunner:
         self.staging_root = Path(staging_root or (self.repo_root / "run" / "staging"))
         self.max_rounds = max_rounds
         self.plateau_window = plateau_window
+        self.stage_c_threshold = stage_c_threshold
         self._queue: list[Ticket] = []
 
     def submit(self, ticket: Ticket) -> None:
@@ -87,7 +96,29 @@ class AutonomousRunner:
             rec = self._run_one(ticket)
             self.store.record(rec)
             processed.append(rec)
+        # Stage C runs off the critical path, after the tickets are done: mine the builder
+        # decision logs left in staging for subjective defects that recur often enough to be
+        # worth turning into a deterministic Stage-A check. It never blocks or gates a commit.
+        self.harvest_stage_c()
         return processed
+
+    def harvest_stage_c(self) -> list[ProposedAdjustment]:
+        """Harvest builder decision logs from the staging trees and surface check proposals.
+
+        The decision logs live under ``staging_root/<ticket_id>/decision_log.jsonl`` and are in
+        ``FORBIDDEN_ARTIFACT_NAMES`` — so they never entered ``game/accepted`` and Stage B never
+        saw them. Here, post-acceptance, we read the reviewer defects the builder recorded,
+        cluster the recurring ones, and persist any ``ProposedAdjustment``s to the store so the
+        dashboard/summary can show them. This does not author checks (a guarded self-mod); it
+        only proposes.
+        """
+        records = []
+        if self.staging_root.exists():
+            for log in sorted(self.staging_root.glob("*/decision_log.jsonl")):
+                records.extend(load_defect_records(log, log.parent.name))
+        proposals = DecisionLogReview(threshold=self.stage_c_threshold).analyze(records)
+        self.store.record_proposals([asdict(p) for p in proposals])
+        return proposals
 
     def _run_one(self, ticket: Ticket) -> RunRecord:
         result = self._loop_with(self.icarus_builder).run_ticket(ticket)

@@ -7,7 +7,7 @@ you to wait for me for anything. Keep going." Neither you nor Icarus may ask him
 
 ## First actions on resume
 1. `cd C:\Users\bhump\geese-gone-galactic`
-2. `python -m pytest tests/ -q` → expect **87 passed**. If red, fixing that is job #1.
+2. `python -m pytest tests/ -q` → expect **89 passed**. If red, fixing that is job #1.
 3. Read `docs/AUTOPILOT.md` (the phase state + loop) and your memory index `MEMORY.md`
    (`ggg-autonomous-mandate`, `ggg-progress`).
 
@@ -20,7 +20,13 @@ via the GitHub API using stored git creds — `gh` CLI is NOT installed).
   `onepond_launch_viable` check minting an `onepond_launched` ratchet floor, ticket T-POND-04
   driven to acceptance at autonomy 1.0), and harness-mod-5 (the ratchet **floor gate**:
   `Gatekeeper.try_commit` now refuses any candidate that regresses below an established floor —
-  `check_floors` was previously dead code). PRs #1–#9 merged. 87 tests green.
+  `check_floors` was previously dead code). PRs #1–#9 merged. 89 tests green.
+- **Stage C is now wired into the live pipeline** (was test-only): after `run_pending`,
+  `AutonomousRunner.harvest_stage_c` mines the builder decision logs left in the staging trees
+  for recurring subjective defects and persists `ProposedAdjustment`s to the `RunStore`
+  (`stage_c_proposals` snapshot field); the autopilot summary prints them. Off the critical
+  path — it never gates a commit. Next: close a full flywheel turn by authoring a check from a
+  surfaced proposal.
 - The harness runs unattended: `python scripts/run_onepond_autopilot.py` (add `--serve` for the
   dashboard). Verified to make real Gatekeeper commits at 100% autonomy.
 

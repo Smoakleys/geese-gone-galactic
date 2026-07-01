@@ -42,6 +42,14 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       refuses any candidate whose measured metric falls below an established floor (no promotion,
       no commit, floor/artifact untouched), closing the "Ratchet holds" verification item.
       Dogfooded through the self-mod validator (PR #9).
+- [x] Stage C in the live pipeline — `DecisionLogReview`/`load_defect_records` were test-only.
+      `AutonomousRunner.run_pending` now, after the tickets are done, harvests the builder
+      decision logs from the staging trees (`staging_root/<ticket>/decision_log.jsonl`, always
+      in `FORBIDDEN_ARTIFACT_NAMES` so never in `game/accepted`), clusters recurring subjective
+      defects, and persists `ProposedAdjustment`s to the `RunStore` (`stage_c_proposals`, a new
+      snapshot field — existing shape preserved) which the autopilot summary prints. Off the
+      critical path; never gates a commit. E2e test proves a defect recurring across tickets
+      (>= threshold) yields a proposal through the runner.
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
@@ -52,7 +60,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of harness-mod-5: `python -m pytest tests/ -q` → 87 passed.
+As of Stage-C wiring: `python -m pytest tests/ -q` → 89 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.
