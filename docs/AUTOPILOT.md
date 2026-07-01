@@ -110,6 +110,13 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       corrupts its committed bytes behind the harness's back, accepts a second ticket, and shows
       the real `cold_audit` (no injected seam) catches the first ticket's hash regression on the
       next in-loop audit and STOPs the runner. The tooth is verified, not just wired.
+- [x] harness-mod-6 — Stage C tells "no gate" from "gate too lax". `DecisionLogReview.analyze`
+      takes optional `existing_check_ids`: a recurring defect whose criterion is already a
+      certified check yields a `tighten_rubric` proposal (the gate exists but is too lax) instead
+      of a redundant `new_check`; novel criteria still yield `new_check`. `harvest_stage_c` passes
+      the registry's certified ids so the live pipeline makes the call automatically. Dogfooded:
+      the self-mod validator approves the change (changelog present, certification + regression
+      green).
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
@@ -120,7 +127,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of the real-audit corruption proof: `python -m pytest tests/ -q` → 106 passed.
+As of harness-mod-6 (Stage C tighten vs new): `python -m pytest tests/ -q` → 108 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.

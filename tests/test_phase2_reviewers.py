@@ -240,6 +240,23 @@ def test_decision_log_review_ignores_one_off():
     assert DecisionLogReview(threshold=3).analyze(recs) == []
 
 
+def test_decision_log_review_tightens_when_a_check_already_gates_the_defect():
+    # Reviewers keep rejecting on 'onepond_liveliness' — a check that already exists. The gate is
+    # too lax, so Stage C should propose tightening it, not a redundant new check.
+    recs = [DefectRecord(f"T{i}", "onepond_liveliness", "flock feels sparse") for i in range(3)]
+    props = DecisionLogReview(threshold=3).analyze(recs, existing_check_ids={"onepond_liveliness"})
+    assert props and props[0].kind == "tighten_rubric"
+    assert props[0].suggested_check_id == "onepond_liveliness"
+
+
+def test_decision_log_review_proposes_new_check_for_ungated_criterion():
+    # Same machinery, but the criterion has no existing gate -> propose a brand-new check.
+    recs = [DefectRecord(f"T{i}", "cohesion", "buildings scattered") for i in range(3)]
+    props = DecisionLogReview(threshold=3).analyze(recs, existing_check_ids={"onepond_liveliness"})
+    assert props and props[0].kind == "new_check"
+    assert props[0].suggested_check_id == "auto_cohesion_check"
+
+
 def test_load_defect_records_from_log(tmp_path):
     log = tmp_path / "decision_log.jsonl"
     log.write_text(

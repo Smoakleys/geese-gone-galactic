@@ -94,3 +94,16 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   are ticket-scoped so tickets never cross-block each other.
 - Rationale: make the monotonic ratchet a real *gate*, not just a storage invariant — closing
   verification item "Ratchet holds" (`docs/PLAN.md`). See tests in `test_walking_skeleton.py`.
+
+## harness-mod-6 — Stage C distinguishes "no gate" from "gate too lax"
+- `DecisionLogReview.analyze` gained an optional `existing_check_ids` argument. A recurring
+  subjective defect whose `criterion` is *already a certified check* now yields a
+  `tighten_rubric` proposal (the mechanical gate exists yet reviewers still reject it, so it is
+  too lax) instead of a redundant `new_check`; novel criteria still yield `new_check`. Without
+  the argument, behaviour is unchanged (all `new_check`), so existing callers are unaffected.
+- `AutonomousRunner.harvest_stage_c` passes `registry.certified_checks()` ids in, so the live
+  pipeline makes the distinction automatically.
+- Rationale: the flywheel's job is to spend expensive judgement only on genuinely new questions;
+  proposing a brand-new check for a defect a check already covers is noise. Telling "write the
+  missing gate" apart from "tighten the existing gate" makes the taste→gate suggestions
+  actionable. No checks/floors/fixtures touched. See `tests/test_phase2_reviewers.py`.

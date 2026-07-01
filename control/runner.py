@@ -145,7 +145,10 @@ class AutonomousRunner:
         if self.staging_root.exists():
             for log in sorted(self.staging_root.glob("*/decision_log.jsonl")):
                 records.extend(load_defect_records(log, log.parent.name))
-        proposals = DecisionLogReview(threshold=self.stage_c_threshold).analyze(records)
+        # Pass the certified check ids so Stage C can tell "no gate exists yet" (propose a new
+        # check) apart from "the gate exists but is too lax" (propose tightening it).
+        existing = [c.id for c in self.registry.certified_checks()]
+        proposals = DecisionLogReview(threshold=self.stage_c_threshold).analyze(records, existing)
         self.store.record_proposals([asdict(p) for p in proposals])
         return proposals
 
