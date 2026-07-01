@@ -1,0 +1,5 @@
+# Harness runtime + dev dependencies.
+# The harness *core* (models, states, checks, gatekeeper, loop) is stdlib-only so it imports
+# anywhere. These are for fixtures/config parsing and the test suite.
+PyYAML>=6.0        # ticket.yaml parsing (Phase 1+)
+pytest>=8.0        # governance test suite
