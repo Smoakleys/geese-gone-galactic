@@ -21,3 +21,7 @@ Thumbs.db
 
 # Harness scratch (staging is gitignored; builders write only here)
 /run/
+
+# Autonomous-mode sentinels (runtime state, never committed)
+ops/AUTOPILOT_ON
+ops/STOP
