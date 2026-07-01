@@ -77,3 +77,7 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
       each gates, metric→floor) + the Stage-C flywheel; linked from CLAUDE.md; verified vs registry
 - [x] `scripts/lint_onepond.py` — dry-run a pond config through the certified Stage-A registry
       (per-check PASS/FAIL/SKIP + evidence, exit 0/1/2); operator/debug tool, no build (119 tests)
+- [x] Full production-shaped Stage B composed on One Pond: visual CV floor now wraps a multi-model
+      `ConsensusReviewer` (`--consensus N`, scripted offline). Test proves agreeing models pass but
+      a split vote is rejected fail-closed even with the visual gate passing; 6/6 with `--consensus 3`
+      (120 tests)
