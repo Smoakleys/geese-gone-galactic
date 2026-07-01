@@ -117,7 +117,14 @@ class Loop:
                     references=list(ticket.references),
                     defects=defects,
                 )
-                self.builder.build(packet)  # status is a claim; we ignore it
+                try:
+                    self.builder.build(packet)  # status is a claim; we ignore it
+                except Exception:
+                    # Fail-closed (harness-mod-10, completing the check/reviewer set): a builder
+                    # that errors mid-generation — a model/network failure — must not crash the
+                    # run. Discard any partial output so Stage A judges an empty build and rejects
+                    # it; the round then reworks/escalates like any other failure. Never a pass.
+                    _reset_dir(staging_dir)
 
                 # Tamper tripwire: a builder that mutated the frozen criteria mid-iteration
                 # (goalpost-moving) is caught here before any review can be argued against a

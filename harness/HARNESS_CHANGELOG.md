@@ -147,3 +147,16 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   escape-hatch escalation), never the run.
 - Rationale: the standing order is "run unattended"; a network blip mid-review must not be able to
   take the build down. Structural resilience over hope. See `tests/test_phase3_control.py`.
+
+## harness-mod-10 — the builder call is fail-closed too (completing the trio)
+- The loop called `self.builder.build(packet)` unguarded, so an exception from the builder — a
+  generation-client model/network failure, an I/O error — propagated out and crashed the ticket.
+  Completing the set with harness-mod-8 (checks) and harness-mod-9 (reviewers), the loop now
+  catches it, discards any partial staging output (`_reset_dir`), and lets Stage A judge the
+  resulting empty build: `non_empty_artifact` FAILs, so the round reworks/escalates like any other
+  rejection. No single actor in the loop — builder, check, or reviewer — can crash the unattended
+  run.
+- Fail-closed: a build error yields no acceptable artifact, never a commit. Partial/garbled output
+  is thrown away rather than judged, so a mid-write crash can't accidentally pass Stage A.
+- Rationale: "run unattended" means the three moving parts of every round must each degrade to a
+  rejection, not a crash. See `tests/test_phase3_control.py`.
