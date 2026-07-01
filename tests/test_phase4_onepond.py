@@ -20,6 +20,7 @@ from game.onepond.checks import (
     LaunchViabilityCheck,
     PlacementValidCheck,
     PredatorSafetyCheck,
+    WaterAccessCheck,
     build_onepond_registry,
 )
 from game.onepond.tickets import onepond_generation_client, onepond_tickets
@@ -122,6 +123,7 @@ def test_game_checks_certify():
     assert certify(EconomySolvencyCheck()).certified
     assert certify(LaunchViabilityCheck()).certified
     assert certify(PredatorSafetyCheck()).certified
+    assert certify(WaterAccessCheck()).certified
 
 
 def test_launch_check_fails_dead_launchpad(tmp_path):
@@ -214,6 +216,27 @@ def test_predator_safety_check_certifies_and_gates(tmp_path):
         {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0},
         {"type": "fence", "x": 2, "y": 0}, {"type": "fence", "x": 3, "y": 0}]})
     assert ok.result == Result.PASS and ok.metrics["onepond_geese_protected"] > 0
+
+
+def test_water_access_check_certifies_and_gates(tmp_path):
+    from game.onepond.checks import WaterAccessCheck
+    assert certify(WaterAccessCheck()).certified
+
+    def _run(config):
+        art = tmp_path / "art"; art.mkdir(exist_ok=True)
+        (art / "onepond_config.json").write_text(json.dumps(config))
+        return WaterAccessCheck().run(art, make_ticket())
+
+    # No well -> out of scope -> SKIP (the earlier tickets are unaffected).
+    assert _run({"buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0}]}).result == Result.SKIP
+    # Well present but a hatchery is stranded far from it -> FAIL.
+    assert _run({"buildings": [
+        {"type": "hatchery", "x": 0, "y": 0}, {"type": "well", "x": 7, "y": 7}]}).result == Result.FAIL
+    # Hatchery within reach of a well -> PASS + watered floor.
+    ok = _run({"buildings": [
+        {"type": "hatchery", "x": 0, "y": 0}, {"type": "well", "x": 1, "y": 1}]})
+    assert ok.result == Result.PASS and ok.metrics["onepond_watered_hatcheries"] == 1
 
 
 # --- render / visual gate on the game -------------------------------------------------
@@ -331,6 +354,7 @@ def test_harness_builds_one_pond_end_to_end(git_repo, tmp_path):
     assert any(k.endswith(".onepond_launched") for k in floors)
     assert any(k.endswith(".onepond_geese_hatched") for k in floors)   # liveliness ran as a live gate
     assert any(k.endswith(".onepond_geese_protected") for k in floors)  # predator safety ran too
+    assert any(k.endswith(".onepond_watered_hatcheries") for k in floors)  # water access ran too
     assert run_regression_suite(gatekeeper, registry) == []
 
     # Cold audit (acceptance is not forever): re-verify the committed tree mechanically AND with
@@ -382,8 +406,8 @@ def test_liveliness_gate_forces_rework_in_the_loop(git_repo, tmp_path):
 
 
 def test_full_one_pond_has_all_building_types():
-    # The final ticket assembles the complete galactic sanctuary: producer + consumer + storage
-    # + launchpad + fence (against the predators it invites).
+    # The final ticket assembles the whole pond: every building type at once — producer,
+    # consumer, storage, launchpad, fence (predators) and well (water).
     from game.onepond.tickets import POND_CONFIGS
-    types = {b["type"] for b in POND_CONFIGS["T-POND-05"]["buildings"]}
+    types = {b["type"] for b in POND_CONFIGS["T-POND-06"]["buildings"]}
     assert types == set(BUILDING_TYPES)

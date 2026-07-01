@@ -296,6 +296,53 @@ class CohesionCheck(Check):
                            metrics={"onepond_cohesion": float(compactness)})
 
 
+class WaterAccessCheck(Check):
+    """Every hatchery must be within reach of a well — geese need water.
+
+    A new *spatial* failure mode, distinct from cohesion (which is about overall compactness):
+    this is pairwise proximity between two building *types*. Opt-in like the predator mechanic —
+    it applies only to ponds that build a ``well`` — so the earlier tickets (no well) are out of
+    scope and SKIP. For a pond that does invest in wells, any hatchery not within
+    ``WATER_RADIUS`` (Manhattan) of some well is a stranded, dry hatchery: the geese it hatches
+    have no water. It fails such layouts and mints ``onepond_watered_hatcheries`` as a floor.
+    """
+
+    id = "onepond_water_access"
+    targets: list[str] = ["*"]
+    cost = CheckCost.STRUCTURAL
+    WATER_RADIUS = 2
+
+    def __init__(self) -> None:
+        base = _FIXTURES / "water_access"
+        self.good_fixtures = [base / "good"]
+        self.bad_fixtures = [base / "bad"]
+
+    def run(self, artifact_dir: Path, ticket: Ticket) -> CheckResult:
+        cfg_path = _find_config(Path(artifact_dir))
+        if cfg_path is None:
+            return CheckResult(self.id, Result.SKIP, f"no {CONFIG_NAME} in artifact")
+        try:
+            config = json.loads(cfg_path.read_text())
+            buildings = config.get("buildings", [])
+            wells = [(int(b["x"]), int(b["y"])) for b in buildings if b.get("type") == "well"]
+            hatcheries = [(int(b["x"]), int(b["y"])) for b in buildings if b.get("type") == "hatchery"]
+        except (KeyError, ValueError, TypeError) as e:
+            return CheckResult(self.id, Result.FAIL, f"unreadable layout: {e}",
+                               artifacts=[str(cfg_path)])
+        if not wells:
+            return CheckResult(self.id, Result.SKIP, "no well: water access not in scope")
+        dry = [h for h in hatcheries
+               if not any(abs(h[0] - w[0]) + abs(h[1] - w[1]) <= self.WATER_RADIUS for w in wells)]
+        if dry:
+            return CheckResult(self.id, Result.FAIL,
+                               f"{len(dry)} hatchery(ies) stranded from water: none within "
+                               f"{self.WATER_RADIUS} tiles of a well {dry}; move a well closer",
+                               artifacts=[str(cfg_path)])
+        return CheckResult(self.id, Result.PASS,
+                           f"all {len(hatcheries)} hatchery(ies) watered by {len(wells)} well(s)",
+                           metrics={"onepond_watered_hatcheries": float(len(hatcheries))})
+
+
 def build_onepond_registry(lock_dir: Path):
     """A registry with the harness default checks plus the One Pond game checks, certified."""
     from harness.checks.builtin import default_registry
@@ -307,5 +354,6 @@ def build_onepond_registry(lock_dir: Path):
     reg.register(LivelinessCheck())
     reg.register(PredatorSafetyCheck())
     reg.register(CohesionCheck())              # harvested from a Stage-C proposal (auto_cohesion_check)
+    reg.register(WaterAccessCheck())
     reg.certify_all()                          # re-certify the whole set, rewrite the lock
     return reg
