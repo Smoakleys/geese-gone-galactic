@@ -2,4 +2,5 @@
 # The harness *core* (models, states, checks, gatekeeper, loop) is stdlib-only so it imports
 # anywhere. These are for fixtures/config parsing and the test suite.
 PyYAML>=6.0        # ticket.yaml parsing (Phase 1+)
+Pillow>=10.0       # Phase 1 CV checks (image loadable / resolution / not-blank); lazily imported
 pytest>=8.0        # governance test suite

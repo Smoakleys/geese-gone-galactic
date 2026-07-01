@@ -146,6 +146,11 @@ class CheckResult:
     evidence: str = ""
     artifacts: list[str] = field(default_factory=list)
     duration_s: float = 0.0
+    # Real numeric quality signals emitted by the check (e.g. min resolution, pixel
+    # variance). The Gatekeeper mints these as monotonic ratchet floors on acceptance, so
+    # "the art can only get sharper / less blank from here" becomes a structural floor, not
+    # a hope. Only higher-is-better metrics belong here.
+    metrics: dict[str, float] = field(default_factory=dict)
 
     @property
     def passed(self) -> bool:

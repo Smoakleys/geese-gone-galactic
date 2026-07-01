@@ -20,7 +20,7 @@ is therefore a property of the wiring, not of anyone's discipline.
 | `models.py` | Ticket / Verdict / BuildPacket data model; `criteria_hash` freeze; default-FAIL verdicts |
 | `states.py` | State machine; the only edge into `COMMIT_PENDING` is `STAGE_B_PASS` |
 | `loop.py` | Drives the iteration; holds **no** commit authority |
-| `checks/` | Check contract + fixture-based **certification** + `registry.lock`; Stage A runner |
+| `checks/` | Check contract + fixture-based **certification** + `registry.lock`; cost-tiered Stage A runner. Real checks: `code.py` (Python-syntax, JSON), `image.py` (loadable / min-resolution / not-blank, via Pillow) |
 | `gatekeeper.py` | Sole commit authority; tamper checks; ratchet minting |
 | `ratchet.py` | Monotonic quality floors (`floor = max(old, new)`); regression fixtures |
 | `review/` | Reviewer contract, stub reviewer, and the isolation **packet builder** |
@@ -44,8 +44,9 @@ changelog / silently lowers a floor; and the Stage-B review packet never sees th
 
 ## What is intentionally still stubbed
 
-`StubBuilder` and `StubReviewer` stand in for Icarus and the clean Opus reviewer. Phase 1
-replaces the trivial `non_empty_artifact` check with real code/CV checks; Phase 2 replaces the
-stub reviewer with a fresh zero-context Opus reviewer + the visual gate; Phase 3 replaces the
-stub builder with a local model behind the same `Builder` seam. Because those are seams, each
-is a drop-in behind an already-proven control loop.
+`StubBuilder` and `StubReviewer` stand in for Icarus and the clean Opus reviewer. **Phase 1
+is done**: the trivial `non_empty_artifact` check now sits alongside real cost-tiered code/CV
+checks that emit ratchet metrics. Phase 2 replaces the stub reviewer with a fresh zero-context
+Opus reviewer + the visual gate; Phase 3 replaces the stub builder with a local model behind
+the same `Builder` seam. Because those are seams, each is a drop-in behind an already-proven
+control loop.

@@ -10,11 +10,14 @@ the game, is the near-term product.
 - `harness/README.md` — how the structural core fits together.
 
 ## Current status
-- **Phase 0.5 (walking skeleton) is COMPLETE** on branch `harness-walking-skeleton`.
-  It proves the governance thesis with stub builder/reviewer at zero LLM/GPU cost.
-- **20 governance tests pass:** `pip install -r requirements.txt && python -m pytest tests/ -q`.
-- **Not started:** Phase 0 env (Godot + Xvfb screenshot, GPU spike), Phase 1 real CV checks,
-  Phase 2 real Opus reviewer + visual gate, Phase 3 real Icarus + dashboard, Phase 4 One Pond.
+- **Phase 0.5 (walking skeleton) COMPLETE** — governance thesis proven with stub
+  builder/reviewer at zero LLM/GPU cost.
+- **Phase 1 (real deterministic check runner) COMPLETE** — cost-tiered Stage A with real
+  code checks (Python-syntax, JSON) and CV checks (image loadable / min-resolution /
+  not-blank, via Pillow); checks emit metrics minted as ratchet floors.
+- **31 governance tests pass:** `pip install -r requirements.txt && python -m pytest tests/ -q`.
+- **Not started:** Phase 0 env (Godot + Xvfb screenshot, GPU spike), Phase 2 real Opus
+  reviewer + visual gate, Phase 3 real Icarus + dashboard, Phase 4 One Pond.
 
 ## The one invariant to preserve
 Commit authority lives **only** in `harness/gatekeeper.py`. Builders write to gitignored

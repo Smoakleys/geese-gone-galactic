@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Optional
 
-from harness.checks.base import Check
+from harness.checks.base import Check, cost_of
 from harness.models import CheckResult, Result, Ticket
 
 
@@ -101,6 +101,7 @@ class Registry:
         self.lock_dir = Path(lock_dir)
         self.lock_dir.mkdir(parents=True, exist_ok=True)
         self._checks: dict[str, Check] = {}
+        self._order: list[str] = []  # registration order (tie-breaker within a cost tier)
         self._certified: dict[str, CertificationOutcome] = {}
 
     @property
@@ -111,6 +112,7 @@ class Registry:
         if check.id in self._checks:
             raise ValueError(f"duplicate check id {check.id!r}")
         self._checks[check.id] = check
+        self._order.append(check.id)
 
     def certify_all(self) -> list[CertificationOutcome]:
         """Certify every registered check and (re)write the lock file. Returns all outcomes."""
@@ -120,7 +122,11 @@ class Registry:
         return outcomes
 
     def certified_checks(self) -> list[Check]:
-        return [self._checks[cid] for cid in self._certified]
+        """Certified checks in Stage-A run order: cheapest cost tier first, registration
+        order breaking ties (Python's sort is stable)."""
+        certified = [self._checks[cid] for cid in self._order if cid in self._certified]
+        certified.sort(key=cost_of)
+        return certified
 
     def is_certified(self, check_id: str) -> bool:
         return check_id in self._certified
@@ -137,11 +143,12 @@ class Registry:
     # -- Stage A execution -------------------------------------------------------------
 
     def run_stage_a(self, artifact_dir: Path, ticket: Ticket) -> list[CheckResult]:
-        """Run only CERTIFIED checks, cheapest declared first, fail-fast on a blocking FAIL.
+        """Run only CERTIFIED checks, cheapest cost tier first, fail-fast on a blocking FAIL.
 
-        Ordering: registration order is treated as cost order (static → structural →
-        dynamic). The first FAIL short-circuits so an expensive screenshot check never runs
-        after a cheap lint has already condemned the artifact.
+        Ordering comes from each check's declared ``cost`` tier (STATIC → STRUCTURAL →
+        DYNAMIC), registration order breaking ties. The first FAIL short-circuits so an
+        expensive pixel/screenshot check never runs after a cheap lint has already condemned
+        the artifact.
         """
         results: list[CheckResult] = []
         for check in self.certified_checks():
