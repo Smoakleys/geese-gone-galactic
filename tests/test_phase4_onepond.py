@@ -17,6 +17,7 @@ from control.runner import AutonomousRunner
 from control.store import RunStore
 from game.onepond.checks import (
     EconomySolvencyCheck,
+    LaunchViabilityCheck,
     PlacementValidCheck,
     build_onepond_registry,
 )
@@ -77,12 +78,39 @@ def test_solvency_reports_insolvency():
 
 
 def test_save_load_round_trips(tmp_path):
-    w = build_world({"start_bread": 14, "buildings": [
-        {"type": "bakery", "x": 1, "y": 1}, {"type": "hatchery", "x": 2, "y": 1}]})
+    w = build_world({"start_bread": 16, "buildings": [
+        {"type": "bakery", "x": 1, "y": 1}, {"type": "hatchery", "x": 2, "y": 1},
+        {"type": "launchpad", "x": 3, "y": 1}]})
     w.tick(7)
+    assert w.launched > 0                    # the run actually sent geese galactic
     p = tmp_path / "save.json"
     w.save(p)
     assert World.load(p).to_dict() == w.to_dict()
+
+
+def test_launchpad_sends_geese_galactic():
+    # A hatchery feeds a launchpad: every hatched goose is launched, so the flock stays ~0
+    # while the launched score climbs one per tick.
+    w = build_world({"start_bread": 16, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0},
+        {"type": "launchpad", "x": 2, "y": 0}]})
+    w.tick(10)
+    assert w.launched == 10 and w.geese == 0
+    # A launchpad with no hatchery has nothing to launch.
+    idle = build_world({"start_bread": 16, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "launchpad", "x": 1, "y": 0}]})
+    idle.tick(10)
+    assert idle.launched == 0
+
+
+def test_solvency_report_includes_launched():
+    galactic = simulate_solvency({"start_bread": 16, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0},
+        {"type": "launchpad", "x": 2, "y": 0}]})
+    assert galactic["solvent"] and galactic["launched"] == 20
+    grounded = simulate_solvency({"start_bread": 12, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0}]})
+    assert grounded["launched"] == 0
 
 
 # --- game checks ----------------------------------------------------------------------
@@ -91,6 +119,36 @@ def test_save_load_round_trips(tmp_path):
 def test_game_checks_certify():
     assert certify(PlacementValidCheck()).certified
     assert certify(EconomySolvencyCheck()).certified
+    assert certify(LaunchViabilityCheck()).certified
+
+
+def test_launch_check_fails_dead_launchpad(tmp_path):
+    # A launchpad with no hatchery feeding it launches nothing — dead infrastructure, blocked.
+    art = tmp_path / "art"; art.mkdir()
+    (art / "onepond_config.json").write_text(json.dumps({
+        "start_bread": 12, "buildings": [
+            {"type": "bakery", "x": 0, "y": 0}, {"type": "launchpad", "x": 1, "y": 0}]}))
+    res = LaunchViabilityCheck().run(art, make_ticket())
+    assert res.result == Result.FAIL and "space" in res.evidence
+
+
+def test_launch_check_skips_pond_without_launchpad(tmp_path):
+    # The early build-up ponds have no launchpad; launch viability is simply out of scope.
+    art = tmp_path / "art"; art.mkdir()
+    (art / "onepond_config.json").write_text(json.dumps({
+        "start_bread": 12, "buildings": [
+            {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0}]}))
+    assert LaunchViabilityCheck().run(art, make_ticket()).result == Result.SKIP
+
+
+def test_launch_check_passes_and_mints_launched_metric(tmp_path):
+    art = tmp_path / "art"; art.mkdir()
+    (art / "onepond_config.json").write_text(json.dumps({
+        "start_bread": 16, "buildings": [
+            {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0},
+            {"type": "launchpad", "x": 2, "y": 0}]}))
+    res = LaunchViabilityCheck().run(art, make_ticket())
+    assert res.result == Result.PASS and res.metrics["onepond_launched"] > 0
 
 
 def test_economy_check_fails_insolvent_config(tmp_path):
@@ -152,14 +210,20 @@ def test_harness_builds_one_pond_end_to_end(git_repo, tmp_path):
         assert cfg.exists()
         assert simulate_solvency(json.loads(cfg.read_text()))["solvent"]
 
-    # The economy floor was minted to the ratchet, and the suite is regression-green.
+    # The final ticket sent geese galactic — the game's objective, gated end-to-end.
+    final = simulate_solvency(json.loads(
+        (git_repo / "game" / "accepted" / "T-POND-04" / "onepond_config.json").read_text()))
+    assert final["launched"] > 0
+
+    # Both the economy floor and the galactic-score floor were minted; the suite regression-green.
     floors = gatekeeper.ratchet.floors()
     assert any(k.endswith(".onepond_min_bread") for k in floors)
+    assert any(k.endswith(".onepond_launched") for k in floors)
     assert run_regression_suite(gatekeeper, registry) == []
 
 
-def test_full_one_pond_has_all_three_buildings():
-    # The final ticket assembles the complete pond: producer + consumer + storage.
+def test_full_one_pond_has_all_building_types():
+    # The final ticket assembles the complete galactic pond: producer + consumer + storage + launchpad.
     from game.onepond.tickets import POND_CONFIGS
-    types = {b["type"] for b in POND_CONFIGS["T-POND-03"]["buildings"]}
+    types = {b["type"] for b in POND_CONFIGS["T-POND-04"]["buildings"]}
     assert types == set(BUILDING_TYPES)

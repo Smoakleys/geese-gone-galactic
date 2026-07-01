@@ -7,7 +7,7 @@ you to wait for me for anything. Keep going." Neither you nor Icarus may ask him
 
 ## First actions on resume
 1. `cd C:\Users\bhump\geese-gone-galactic`
-2. `python -m pytest tests/ -q` → expect **80 passed**. If red, fixing that is job #1.
+2. `python -m pytest tests/ -q` → expect **85 passed**. If red, fixing that is job #1.
 3. Read `docs/AUTOPILOT.md` (the phase state + loop) and your memory index `MEMORY.md`
    (`ggg-autonomous-mandate`, `ggg-progress`).
 
@@ -15,7 +15,10 @@ you to wait for me for anything. Keep going." Neither you nor Icarus may ask him
 Repo: https://github.com/Smoakleys/geese-gone-galactic (remote `origin` is set; push/PR/merge
 via the GitHub API using stored git creds — `gh` CLI is NOT installed).
 
-- Phases 0.5 → 4 are **COMPLETE**, plus an ops entrypoint. PRs #1–#7 merged. 80 tests green.
+- Phases 0.5 → 4 are **COMPLETE**, plus an ops entrypoint and the first flywheel increment
+  (Phase 4.1: the "Geese Gone Galactic" launch mechanic — `launchpad` building, certified
+  `onepond_launch_viable` check minting an `onepond_launched` ratchet floor, ticket T-POND-04
+  driven to acceptance at autonomy 1.0). PRs #1–#8 merged. 85 tests green.
 - The harness runs unattended: `python scripts/run_onepond_autopilot.py` (add `--serve` for the
   dashboard). Verified to make real Gatekeeper commits at 100% autonomy.
 

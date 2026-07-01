@@ -95,6 +95,50 @@ class EconomySolvencyCheck(Check):
         )
 
 
+class LaunchViabilityCheck(Check):
+    """A launchpad must actually send geese galactic — dead launch infrastructure is a defect.
+
+    A pond can be perfectly legal and perfectly solvent yet ship a launchpad that never launches
+    a single goose (no hatchery feeding it, so the flock is always empty). That is a real, silent
+    failure mode: the galactic gate exists but nothing reaches space. This check is scoped to
+    ponds that *have* a launchpad — for those it makes "the geese reached space" a mechanical
+    Stage-A gate and mints ``onepond_launched`` as a ratchet floor, so once a pond launches N
+    geese the harness can never accept a regression below N. Ponds with no launchpad (the earlier
+    build-up tickets) are out of scope and SKIP.
+    """
+
+    id = "onepond_launch_viable"
+    targets: list[str] = ["*"]
+    cost = CheckCost.DYNAMIC
+
+    def __init__(self) -> None:
+        base = _FIXTURES / "launch_viable"
+        self.good_fixtures = [base / "good"]
+        self.bad_fixtures = [base / "bad"]
+
+    def run(self, artifact_dir: Path, ticket: Ticket) -> CheckResult:
+        cfg_path = _find_config(Path(artifact_dir))
+        if cfg_path is None:
+            return CheckResult(self.id, Result.SKIP, f"no {CONFIG_NAME} in artifact")
+        try:
+            config = json.loads(cfg_path.read_text())
+            report = simulate_solvency(config, horizon=SOLVENCY_HORIZON)
+        except (PlacementError, KeyError, ValueError) as e:
+            return CheckResult(self.id, Result.FAIL, f"config will not simulate: {e}",
+                               artifacts=[str(cfg_path)])
+        if report["launch_capacity"] < 1:
+            return CheckResult(self.id, Result.SKIP, "no launchpad in pond; launch not in scope")
+        if report["launched"] < 1:
+            return CheckResult(self.id, Result.FAIL,
+                               f"launchpad present but no geese reached space over "
+                               f"{SOLVENCY_HORIZON} ticks (feed it with a hatchery)")
+        return CheckResult(
+            self.id, Result.PASS,
+            f"{report['launched']} geese sent galactic over {SOLVENCY_HORIZON} ticks",
+            metrics={"onepond_launched": float(report["launched"])},
+        )
+
+
 def build_onepond_registry(lock_dir: Path):
     """A registry with the harness default checks plus the One Pond game checks, certified."""
     from harness.checks.builtin import default_registry
@@ -102,5 +146,6 @@ def build_onepond_registry(lock_dir: Path):
     reg = default_registry(lock_dir)          # non_empty + code + CV checks (already certified)
     reg.register(PlacementValidCheck())
     reg.register(EconomySolvencyCheck())
+    reg.register(LaunchViabilityCheck())
     reg.certify_all()                          # re-certify the whole set, rewrite the lock
     return reg

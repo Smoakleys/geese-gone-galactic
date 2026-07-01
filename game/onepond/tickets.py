@@ -41,30 +41,50 @@ POND_CONFIGS: dict[str, dict] = {
             {"type": "granary", "x": 4, "y": 1},
         ],
     },
+    "T-POND-04": {
+        "grid": [8, 8], "start_bread": 16,
+        "buildings": [
+            {"type": "bakery", "x": 1, "y": 1},
+            {"type": "bakery", "x": 2, "y": 1},
+            {"type": "hatchery", "x": 3, "y": 1},
+            {"type": "granary", "x": 4, "y": 1},
+            {"type": "launchpad", "x": 5, "y": 1},
+        ],
+    },
 }
 
 _TITLES = {
     "T-POND-01": "Place the first bakery (bread producer)",
     "T-POND-02": "Add a hatchery that hatches geese without bankrupting the pond",
     "T-POND-03": "Add a granary; a complete, solvent One Pond",
+    "T-POND-04": "Add a launchpad; send the geese galactic while staying solvent",
 }
+
+# Tickets that must also send geese to space earn a launch-viability acceptance criterion.
+_LAUNCH_TICKETS = {"T-POND-04"}
 
 
 def _ticket(tid: str) -> Ticket:
+    criteria = [
+        AcceptanceCriterion(
+            id="AC1", text="onepond_config.json places all buildings legally and stays "
+                            "bread-solvent for 20 ticks", stage=Stage.A,
+            check_hint="onepond_economy_solvent"),
+        AcceptanceCriterion(
+            id="AC2", text="reads as a functioning pond: a bread producer feeds the geese "
+                            "economy without going bankrupt", stage=Stage.B,
+            rubric_ref="game/onepond/rubric.md"),
+    ]
+    if tid in _LAUNCH_TICKETS:
+        criteria.append(AcceptanceCriterion(
+            id="AC3", text="the pond sends geese galactic: at least one goose is launched to "
+                            "space within 20 ticks", stage=Stage.A,
+            check_hint="onepond_launch_viable"))
     t = Ticket(
         id=tid,
         title=_TITLES[tid],
         kind=TicketKind.SYSTEM,
-        acceptance_criteria=[
-            AcceptanceCriterion(
-                id="AC1", text="onepond_config.json places all buildings legally and stays "
-                                "bread-solvent for 20 ticks", stage=Stage.A,
-                check_hint="onepond_economy_solvent"),
-            AcceptanceCriterion(
-                id="AC2", text="reads as a functioning pond: a bread producer feeds the geese "
-                                "economy without going bankrupt", stage=Stage.B,
-                rubric_ref="game/onepond/rubric.md"),
-        ],
+        acceptance_criteria=criteria,
         references=["game/onepond/iso_camera.json"],
     )
     t.freeze()
@@ -72,7 +92,7 @@ def _ticket(tid: str) -> Ticket:
 
 
 def onepond_tickets() -> list[Ticket]:
-    return [_ticket(tid) for tid in ("T-POND-01", "T-POND-02", "T-POND-03")]
+    return [_ticket(tid) for tid in ("T-POND-01", "T-POND-02", "T-POND-03", "T-POND-04")]
 
 
 def onepond_generation_client() -> ScriptedGenerationClient:
