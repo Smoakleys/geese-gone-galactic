@@ -135,3 +135,15 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   never wave bad work through. Normal PASS/FAIL/SKIP behaviour is unchanged.
 - Rationale: same anti-complacency thesis as the rest of the harness — structural guarantees over
   discipline. See `tests/test_phase1_checks.py`.
+
+## harness-mod-9 — Stage B is fail-closed against a reviewer that raises
+- The loop called `self.reviewer.review(...)` unguarded: any exception from the reviewer — a
+  production model/network failure, a scripted-client bug — propagated out and crashed the whole
+  ticket. Symmetric to harness-mod-8 (Stage A), the loop now catches it and synthesizes a
+  blocking `review` defect verdict (`reviewer_id="loop-guard"`), so the round takes the normal
+  rework/escalate path instead of dying.
+- Fail-closed: a reviewer error is a rejection, never a pass — no work is committed on the back of
+  a failed review. A transient failure therefore costs a rework round (and, on plateau, an
+  escape-hatch escalation), never the run.
+- Rationale: the standing order is "run unattended"; a network blip mid-review must not be able to
+  take the build down. Structural resilience over hope. See `tests/test_phase3_control.py`.

@@ -194,6 +194,27 @@ def test_runner_periodic_cold_audit_clean_continues(git_repo, registry, gatekeep
     assert store.audit()["count"] == 2 and not store.audit()["blocked"]
 
 
+def test_runner_survives_a_reviewer_that_raises(git_repo, registry, gatekeeper, tmp_path):
+    # harness-mod-9: a reviewer that throws (a model/network failure) must not crash the run.
+    # Fail-closed — the ticket reworks, plateaus, and is blocked; it is never committed.
+    class _BoomReviewer:
+        id = "boom-reviewer"
+        def review(self, packet, ticket):
+            raise RuntimeError("model exploded")
+
+    store = RunStore(tmp_path / "state.json")
+    icarus = LLMBuilder(ScriptedGenerationClient(lambda p: {"artifact.txt": "a bakery"}))
+    runner = AutonomousRunner(
+        store=store, repo_root=git_repo, registry=registry, gatekeeper=gatekeeper,
+        reviewer=_BoomReviewer(), icarus_builder=icarus, staging_root=tmp_path / "staging",
+        plateau_window=2, max_rounds=4)
+    runner.submit(make_ticket("T-1"))
+    recs = runner.run_pending()  # must not raise
+
+    assert not recs[0].committed          # fail-closed: never accepted on a failed review
+    assert "T-1" in store.blocked()
+
+
 def test_runner_respects_pause_and_resumes(git_repo, registry, gatekeeper, tmp_path):
     store = RunStore(tmp_path / "state.json")
     icarus = LLMBuilder(ScriptedGenerationClient(lambda p: {"artifact.txt": "a bakery"}))

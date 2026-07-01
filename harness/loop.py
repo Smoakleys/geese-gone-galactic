@@ -143,7 +143,17 @@ class Loop:
                 # --- Stage B (isolated, fresh reviewer each round) -----------------
                 state = go(state, State.STAGE_B_RUNNING)
                 packet_b = build_review_packet(ticket=ticket, artifact_dir=staging_dir)
-                verdict_b: Verdict = self.reviewer.review(packet_b, ticket)
+                try:
+                    verdict_b: Verdict = self.reviewer.review(packet_b, ticket)
+                except Exception as e:
+                    # Fail-closed (symmetric to Stage A, harness-mod-8/9): a reviewer that errors
+                    # — a model/network failure, a scripted bug — must not crash the run. Treat it
+                    # as a blocking review defect so the round reworks/escalates; never a pass.
+                    verdict_b = Verdict.build(
+                        ticket=ticket, stage=Stage.B, reviewer_id="loop-guard", per_criterion=[],
+                        defects=[Defect(criterion="review", severity="blocking",
+                                        detail=f"reviewer raised {type(e).__name__}: {e}",
+                                        repro="reviewer-error")])
                 if not verdict_b.passed:
                     defects = list(verdict_b.defects)
                     escalated = rework(state, "B:" + (defect_signature(defects) or "reject"),

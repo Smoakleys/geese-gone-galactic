@@ -107,3 +107,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] harness-mod-8: `run_stage_a` is fail-closed against a check that raises — an unexpected
       exception from any certified check becomes a FAIL (never crashes the loop, never PASSes),
       making the total-function guarantee structural at the runner; self-mod approved (128 tests)
+- [x] harness-mod-9: Stage B is fail-closed against a reviewer that raises — a model/network
+      failure becomes a blocking review defect (rework/escalate), never crashes the run and never
+      passes; runner test proves survival + block; self-mod approved (129 tests)
