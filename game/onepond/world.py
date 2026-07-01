@@ -16,14 +16,16 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
-# The three One Pond buildings. Fixed low-poly assets in Godot; here, just their economics.
+# The One Pond buildings. Fixed low-poly assets in Godot; here, just their economics.
 BUILDING_TYPES: dict[str, dict] = {
-    "bakery":   {"cost": 0, "bread_delta": 3, "geese_delta": 0},   # the producer
-    "hatchery": {"cost": 6, "bread_delta": -2, "geese_delta": 1},  # eats bread, hatches geese
-    "granary":  {"cost": 3, "bread_delta": 0, "geese_delta": 0},   # neutral; raises capacity
+    "bakery":    {"cost": 0, "bread_delta": 3, "geese_delta": 0},   # the producer
+    "hatchery":  {"cost": 6, "bread_delta": -2, "geese_delta": 1},  # eats bread, hatches geese
+    "granary":   {"cost": 3, "bread_delta": 0, "geese_delta": 0},   # neutral; raises capacity
+    "launchpad": {"cost": 5, "bread_delta": -1, "geese_delta": 0},  # burns bread as fuel, launches geese
 }
 GRANARY_CAPACITY_BONUS = 20
 BASE_CAPACITY = 20
+LAUNCH_RATE = 1  # geese each launchpad sends galactic per tick, drawn from the on-pond flock
 
 
 class PlacementError(ValueError):
@@ -43,6 +45,7 @@ class World:
     grid_h: int = 8
     bread: int = 10
     geese: int = 0
+    launched: int = 0  # geese sent galactic — the score that makes it Geese Gone Galactic
     tick_count: int = 0
     buildings: list[Building] = field(default_factory=list)
 
@@ -81,10 +84,19 @@ class World:
     def net_bread_delta(self) -> int:
         return sum(BUILDING_TYPES[b.type]["bread_delta"] for b in self.buildings)
 
+    @property
+    def launch_capacity(self) -> int:
+        """Geese that can be sent galactic per tick, across all launchpads."""
+        return sum(1 for b in self.buildings if b.type == "launchpad") * LAUNCH_RATE
+
     def tick(self, n: int = 1) -> None:
         for _ in range(n):
             self.bread = min(self.capacity, self.bread + self.net_bread_delta())
             self.geese += sum(BUILDING_TYPES[b.type]["geese_delta"] for b in self.buildings)
+            # Launch after hatching: each launchpad sends geese galactic, drawn from the flock.
+            launched = min(self.launch_capacity, self.geese)
+            self.geese -= launched
+            self.launched += launched
             self.tick_count += 1
 
     # -- save / load -------------------------------------------------------------------
@@ -94,6 +106,7 @@ class World:
             "grid": [self.grid_w, self.grid_h],
             "bread": self.bread,
             "geese": self.geese,
+            "launched": self.launched,
             "tick_count": self.tick_count,
             "buildings": [{"type": b.type, "x": b.x, "y": b.y} for b in self.buildings],
         }
@@ -102,7 +115,8 @@ class World:
     def from_dict(cls, data: dict) -> "World":
         gw, gh = data.get("grid", [8, 8])
         w = cls(grid_w=int(gw), grid_h=int(gh), bread=int(data.get("bread", 10)),
-                geese=int(data.get("geese", 0)), tick_count=int(data.get("tick_count", 0)))
+                geese=int(data.get("geese", 0)), launched=int(data.get("launched", 0)),
+                tick_count=int(data.get("tick_count", 0)))
         w.buildings = [Building(b["type"], int(b["x"]), int(b["y"]))
                        for b in data.get("buildings", [])]
         return w
@@ -132,9 +146,9 @@ def build_world(config: dict) -> World:
 def simulate_solvency(config: dict, horizon: int = 20) -> dict:
     """Build the world and tick it ``horizon`` times, reporting solvency metrics.
 
-    Returns ``{"solvent": bool, "min_bread": int, "net_delta": int, "geese": int}``. A config
+    Returns ``{"solvent", "min_bread", "net_delta", "geese", "launched", "buildings"}``. A config
     is solvent if bread never goes negative across the horizon (placement costs are charged up
-    front by ``build_world``).
+    front by ``build_world``); ``launched`` is how many geese were sent galactic over the run.
     """
     world = build_world(config)
     min_bread = world.bread
@@ -146,5 +160,7 @@ def simulate_solvency(config: dict, horizon: int = 20) -> dict:
         "min_bread": min_bread,
         "net_delta": world.net_bread_delta(),
         "geese": world.geese,
+        "launched": world.launched,
+        "launch_capacity": world.launch_capacity,
         "buildings": len(world.buildings),
     }

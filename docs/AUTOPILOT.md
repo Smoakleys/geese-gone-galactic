@@ -32,6 +32,11 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       (`game/onepond/`), game checks, ticket set + Icarus client, screenshot seam, and an e2e
       run to full acceptance at autonomy 1.0. Godot/GDScript view is the drop-in behind the
       screenshot seam (PR #6).
+- [x] Phase 4.1 — "Geese Gone Galactic" launch mechanic: a `launchpad` building + `launched`
+      score in the game model, a certified `onepond_launch_viable` Stage-A check (scoped to
+      ponds with a launchpad; catches dead launch infrastructure) that mints an
+      `onepond_launched` ratchet floor, and ticket T-POND-04 driven to acceptance at autonomy
+      1.0 (4/4). The first flywheel increment authored entirely through the harness.
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
@@ -42,7 +47,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of Phase 4: `python -m pytest tests/ -q` → 80 passed.
+As of Phase 4.1: `python -m pytest tests/ -q` → 85 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.

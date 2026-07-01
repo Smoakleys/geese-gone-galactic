@@ -29,6 +29,7 @@ _TILE = {
     "bakery": (210, 180, 140),
     "hatchery": (139, 69, 19),
     "granary": (150, 150, 160),
+    "launchpad": (200, 60, 60),  # red pad — the galactic departure gate
 }
 _POND = (34, 139, 34)
 _GRID_LINE = (24, 100, 24)
