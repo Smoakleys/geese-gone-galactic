@@ -261,6 +261,27 @@ def test_runner_stage_c_surfaces_recurring_defect_proposal(git_repo, registry, g
     assert store.snapshot()["stage_c_proposals"]   # surfaced in the dashboard snapshot too
 
 
+def test_runner_stage_c_ignores_stale_staging_from_prior_runs(git_repo, registry, gatekeeper, tmp_path):
+    # In a persistent workdir, a decision log from an earlier run lingers under staging_root.
+    # Harvest must scope to tickets processed THIS run, or it would re-harvest the stale defects
+    # and invent a proposal for work this run never did.
+    staging = tmp_path / "staging"
+    stale = staging / "T-OLD"; stale.mkdir(parents=True)
+    lines = "\n".join(json.dumps({"defect": {"criterion": "cohesion", "severity": "blocking",
+                                             "detail": "scattered"}}) for _ in range(5))
+    (stale / "decision_log.jsonl").write_text(lines + "\n")
+
+    store = RunStore(tmp_path / "state.json")
+    icarus = LLMBuilder(ScriptedGenerationClient(lambda p: {"artifact.txt": "a bakery"}))
+    runner = AutonomousRunner(
+        store=store, repo_root=git_repo, registry=registry, gatekeeper=gatekeeper,
+        reviewer=StubReviewer(lambda r: True), icarus_builder=icarus,
+        staging_root=staging, stage_c_threshold=3)
+    runner.submit(make_ticket("T-1"))
+    runner.run_pending()
+    assert store.proposals() == []  # stale T-OLD ignored; only the clean T-1 was harvested
+
+
 def test_runner_stage_c_no_proposal_below_threshold(git_repo, registry, gatekeeper, tmp_path):
     store = RunStore(tmp_path / "state.json")
     icarus = LLMBuilder(ScriptedGenerationClient(lambda p: {"artifact.txt": "a bakery"}))

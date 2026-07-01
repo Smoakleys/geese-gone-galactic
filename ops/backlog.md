@@ -65,3 +65,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] Doc-sync: refreshed the stale top-level orientation docs (`CLAUDE.md` current-status,
       `docs/EXECUTION_PLAN.md` status callout) to reflect 112 tests, One Pond 6/6, and the
       wired+verified flywheel/teeth — so the next session isn't misled by "80 tests / phases 0.5-4"
+- [x] Correctness fix: `harvest_stage_c` now scopes to tickets processed this run (not a glob of
+      all staging dirs), so a persistent `--workdir` no longer re-harvests stale prior-run
+      decision logs into phantom proposals; test proves stale staging is ignored (113 tests)
