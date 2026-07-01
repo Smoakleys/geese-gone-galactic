@@ -1,0 +1,84 @@
+"""The One Pond ticket set + the Icarus generation client that satisfies it.
+
+These are the real work items Phase 4 drives through the harness to prove the loop end-to-end:
+each ticket has acceptance criteria frozen before the build, produces a ``onepond_config.json``
+artifact, and must clear Stage A (placement legal + economy solvent + valid JSON) and Stage B
+(reviewer) before the Gatekeeper commits it. The progression bakery → +hatchery → +granary is
+the smallest sequence that exercises a producer, a consumer, and storage while staying solvent.
+
+``onepond_generation_client`` is a scripted stand-in for Icarus that emits a correct config per
+ticket — enough to demonstrate full autonomy. Swapping it for a real ``GenerationClient`` (a
+local model) is the only change needed to make this a real Icarus build.
+"""
+
+from __future__ import annotations
+
+import json
+
+from harness.icarus.llm_builder import ScriptedGenerationClient
+from harness.models import AcceptanceCriterion, Stage, Ticket, TicketKind
+
+# Target pond for each ticket: a strictly-growing, always-solvent layout.
+POND_CONFIGS: dict[str, dict] = {
+    "T-POND-01": {
+        "grid": [8, 8], "start_bread": 12,
+        "buildings": [{"type": "bakery", "x": 1, "y": 1}],
+    },
+    "T-POND-02": {
+        "grid": [8, 8], "start_bread": 12,
+        "buildings": [
+            {"type": "bakery", "x": 1, "y": 1},
+            {"type": "bakery", "x": 2, "y": 1},
+            {"type": "hatchery", "x": 3, "y": 1},
+        ],
+    },
+    "T-POND-03": {
+        "grid": [8, 8], "start_bread": 14,
+        "buildings": [
+            {"type": "bakery", "x": 1, "y": 1},
+            {"type": "bakery", "x": 2, "y": 1},
+            {"type": "hatchery", "x": 3, "y": 1},
+            {"type": "granary", "x": 4, "y": 1},
+        ],
+    },
+}
+
+_TITLES = {
+    "T-POND-01": "Place the first bakery (bread producer)",
+    "T-POND-02": "Add a hatchery that hatches geese without bankrupting the pond",
+    "T-POND-03": "Add a granary; a complete, solvent One Pond",
+}
+
+
+def _ticket(tid: str) -> Ticket:
+    t = Ticket(
+        id=tid,
+        title=_TITLES[tid],
+        kind=TicketKind.SYSTEM,
+        acceptance_criteria=[
+            AcceptanceCriterion(
+                id="AC1", text="onepond_config.json places all buildings legally and stays "
+                                "bread-solvent for 20 ticks", stage=Stage.A,
+                check_hint="onepond_economy_solvent"),
+            AcceptanceCriterion(
+                id="AC2", text="reads as a functioning pond: a bread producer feeds the geese "
+                                "economy without going bankrupt", stage=Stage.B,
+                rubric_ref="game/onepond/rubric.md"),
+        ],
+        references=["game/onepond/iso_camera.json"],
+    )
+    t.freeze()
+    return t
+
+
+def onepond_tickets() -> list[Ticket]:
+    return [_ticket(tid) for tid in ("T-POND-01", "T-POND-02", "T-POND-03")]
+
+
+def onepond_generation_client() -> ScriptedGenerationClient:
+    """Icarus stand-in: emit the target One Pond config for the ticket being built."""
+    def script(packet) -> dict[str, str]:
+        config = POND_CONFIGS.get(packet.ticket.id, POND_CONFIGS["T-POND-01"])
+        return {"onepond_config.json": json.dumps(config, indent=2, sort_keys=True)}
+
+    return ScriptedGenerationClient(script, model_id="icarus-onepond-scripted")
