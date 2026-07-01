@@ -55,3 +55,5 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
       certified check → gate too lax) from `new_check` (novel criterion); runner passes certified
       ids; self-mod validator approves the change (108 tests)
 - [x] Proposal `kind` surfaced on the dashboard table + autopilot summary (108 tests)
+- [x] Acted on a `tighten_rubric` signal: `CohesionCheck` compactness gate tightened 0.25→0.5;
+      previously-passing 0.33 layout now rejected, all tickets (≥0.7) still pass, cert green (109)

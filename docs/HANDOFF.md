@@ -7,7 +7,7 @@ you to wait for me for anything. Keep going." Neither you nor Icarus may ask him
 
 ## First actions on resume
 1. `cd C:\Users\bhump\geese-gone-galactic`
-2. `python -m pytest tests/ -q` → expect **108 passed**. If red, fixing that is job #1.
+2. `python -m pytest tests/ -q` → expect **109 passed**. If red, fixing that is job #1.
 3. Read `docs/AUTOPILOT.md` (the phase state + loop) and your memory index `MEMORY.md`
    (`ggg-autonomous-mandate`, `ggg-progress`).
 
@@ -67,7 +67,9 @@ via the GitHub API using stored git creds — `gh` CLI is NOT installed).
   check → the gate is too lax) from `new_check` (novel criterion), via an optional
   `existing_check_ids` arg that `harvest_stage_c` fills from the registry. Dogfooded — the
   self-mod validator approves it. The proposal `kind` (`new_check`/`tighten_rubric`) is shown on
-  the dashboard table and autopilot summary. Next: extend One Pond further (see `ops/backlog.md`).
+  the dashboard table and autopilot summary. Both halves of the flywheel are now demonstrated:
+  a `new_check` harvested from a proposal (cohesion) AND a `tighten_rubric` acted on (the same
+  cohesion gate tightened 0.25→0.5). Next: extend One Pond further (see `ops/backlog.md`).
 - The harness runs unattended: `python scripts/run_onepond_autopilot.py` (add `--serve` for the
   dashboard). Verified to make real Gatekeeper commits at 100% autonomy.
 

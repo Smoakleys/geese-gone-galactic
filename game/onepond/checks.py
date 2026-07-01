@@ -259,7 +259,10 @@ class CohesionCheck(Check):
     id = "auto_cohesion_check"      # the id Stage C proposed for the recurring 'cohesion' defect
     targets: list[str] = ["*"]
     cost = CheckCost.STRUCTURAL
-    MIN_COMPACTNESS = 0.25
+    # Tightened 0.25 -> 0.5 acting on a Stage-C `tighten_rubric` signal: reviewers kept finding
+    # sub-0.5 layouts sprawly even though the 0.25 gate passed them. All shipped tickets stay
+    # >= 0.7, so this rejects only genuinely sprawly ponds the old gate waved through.
+    MIN_COMPACTNESS = 0.5
 
     def __init__(self) -> None:
         base = _FIXTURES / "cohesion"
