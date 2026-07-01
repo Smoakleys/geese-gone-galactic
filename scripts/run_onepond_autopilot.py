@@ -51,9 +51,15 @@ def _init_repo(path: Path) -> Path:
     return path
 
 
-def _reviewer():
-    """Offline scripted reviewer by default; swap for a real Anthropic reviewer in production."""
-    return StubReviewer(lambda rnd: True)
+def _reviewer(render_dir=None):
+    """Stage B: the visual gate (mechanical CV floor) wrapping an offline scripted reviewer.
+
+    The scripted reviewer supplies the (here, always-pass) subjective judgement; the visual
+    reviewer renders each config and blocks anything that doesn't read as a real pond. Swap the
+    scripted inner reviewer for a real Anthropic reviewer in production — the wiring is unchanged.
+    """
+    from game.onepond.review import OnePondVisualReviewer
+    return OnePondVisualReviewer(StubReviewer(lambda rnd: True), render_dir=render_dir)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -73,7 +79,8 @@ def main(argv: list[str] | None = None) -> int:
 
     runner = AutonomousRunner(
         store=store, repo_root=repo, registry=registry, gatekeeper=gatekeeper,
-        reviewer=_reviewer(), icarus_builder=LLMBuilder(onepond_generation_client()),
+        reviewer=_reviewer(render_dir=harness_dir / "renders"),
+        icarus_builder=LLMBuilder(onepond_generation_client()),
         staging_root=repo / "run" / "staging",
     )
     for ticket in onepond_tickets():

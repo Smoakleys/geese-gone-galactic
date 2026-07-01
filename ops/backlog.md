@@ -5,16 +5,11 @@ increment, tick it and add the next. This is guidance, not the stop condition �
 ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 
 ## Now
-- [ ] **Harvest the predator check from a real Stage-C proposal** — right now the predator
-      subsystem's check was hand-authored. Close the loop the honest way: run tickets whose
-      builds trip a recurring subjective "unsafe pond" Stage-B defect, let Stage C surface the
-      proposal, then author the check against that proposal's signature. (Or: pick the next
-      mechanic and drive its check through Stage C rather than by hand.)
-- [ ] **Wire the screenshot render into the live Stage-B path** — `StubScreenshotWorker` +
-      `ReferenceAnchoredScorer` exist and are tested, but the One Pond loop's Stage B uses the
-      scripted reviewer only; nothing renders the accepted config and runs the visual gate as
-      part of a run. Wire render→visual-gate in behind the reviewer seam so every One Pond
-      acceptance is visually gated end-to-end.
+- [ ] **Harvest a check from a real Stage-C proposal (honest flywheel end-to-end)** — run a
+      scenario whose builds trip a recurring subjective Stage-B defect, let Stage C surface the
+      `ProposedAdjustment`, then author the deterministic check keyed to that proposal's
+      signature (good/bad fixtures + certification). Prove the harvested check id matches what
+      Stage C proposed — the full unattended taste→gate loop, not a hand-picked check.
 
 ## Candidate increments (pick by value, not order)
 - [ ] Extend One Pond through the harness: a 4th mechanic, more tickets, a new
@@ -44,3 +39,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
       foxes while launching, driven to acceptance 5/5 at autonomy 1.0 (98 tests)
 - [x] Sanctuary visual gate: stub renderer draws fences + prowling predators; T-POND-05
       renders and passes `ReferenceAnchoredScorer`; test asserts predator markers appear (99 tests)
+- [x] Visual gate wired into live Stage B: `OnePondVisualReviewer` renders each config and runs
+      the CV scorer as the mechanical floor beneath the subjective reviewer; autopilot + e2e use
+      it, so every acceptance is visually gated; blocks unreadable ponds first (101 tests)
