@@ -63,3 +63,16 @@ without a matching entry. Reverts are one command via the token in `harness/reve
 - Rationale: replace `StubBuilder` with the real builder shape without touching the loop or
   gate. The control surface that drives it lives in the (non-harness) `control/` package. See
   `docs/EXECUTION_PLAN.md` Phase 3.
+
+## harness-mod-4 — Phase 3.5 text-to-3D worker seam
+- `harness/gen3d/`: `MeshGenerator` contract returning an `Asset` (mesh + previewable image);
+  `CuratedPackWorker` (guaranteed offline fallback from a committed low-poly pack),
+  `ProceduralStubWorker` (simulates a GPU model of a given quality), and a lazily-imported
+  `RemoteGpuWorker` real seam.
+- `select_generator`: measures each candidate's preview with the same reference-anchored visual
+  gate as Stage B and picks the first that passes, falling back to the curated pack (and
+  reporting it) when none do — the GPU dependency can never stall or degrade the pipeline.
+- Committed curated pack (`gen3d/curated/{bakery,hut}`) whose previews pass the gate.
+- Rationale: de-risk the biggest external unknown (local text-to-3D needs a GPU we don't have)
+  by making the generator swappable and quality-selected, with a shippable fallback. See
+  `docs/EXECUTION_PLAN.md` Phase 3.5.
