@@ -23,9 +23,11 @@ the game, is the near-term product.
   `GenerationClient` seam; `control/` package with a durable `RunStore`, an `AutonomousRunner`
   (auto escape-hatch on plateau, Pause/Stop-aware), and a stdlib read-only dashboard +
   heartbeat. Runs unattended; intervention optional via Start/Stop/Pause.
-- **63 governance tests pass:** `pip install -r requirements.txt && python -m pytest tests/ -q`.
-- **Not started:** Phase 0 env (Godot + Xvfb screenshot), Phase 3.5 text-to-3D spike (GPU),
-  Phase 4 One Pond. See `docs/AUTOPILOT.md` for the resume point.
+- **Phase 3.5 (text-to-3D worker seam) COMPLETE** — `harness/gen3d/` `MeshGenerator` seam,
+  curated-pack fallback, visual-gate-measured `select_generator`; real GPU worker is a drop-in.
+- **69 governance tests pass:** `pip install -r requirements.txt && python -m pytest tests/ -q`.
+- **Not started:** Phase 0 env (Godot + Xvfb screenshot), Phase 4 One Pond (Godot-gated).
+  See `docs/AUTOPILOT.md` for the resume point.
 
 ## The one invariant to preserve
 Commit authority lives **only** in `harness/gatekeeper.py`. Builders write to gitignored

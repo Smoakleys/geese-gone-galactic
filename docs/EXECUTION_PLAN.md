@@ -111,8 +111,12 @@ tests/    test_walking_skeleton.py
   builder on plateau (never asks a human), and stops cleanly on Pause/Stop; stdlib read-only
   dashboard with `/heartbeat` + Start/Stop/Pause. 63 governance tests green. (Local-model /
   paid-API generation client is a drop-in behind the seam.)
-- **Phase 3.5 — Text-to-3D spike.** Pick a generator (behind the GPU-worker seam) by measured
-  quality against Phase-2 labeled fixtures; fallback to curated packs.
+- **Phase 3.5 — Text-to-3D spike. ✅ DONE (seam + fallback; real GPU worker is a drop-in).**
+  `MeshGenerator` worker seam (`harness/gen3d/`) with a curated-pack fallback, a procedural stub
+  standing in for a GPU model, and a lazily-imported `RemoteGpuWorker`. `select_generator`
+  measures each candidate's preview against the reference-anchored visual gate and picks the
+  best, falling back to curated packs when none pass. 69 governance tests green. (A real
+  TRELLIS/Hunyuan worker on a GPU host slots in behind the seam unchanged.)
 - **Phase 4 — Build "One Pond" through the harness.** Fixed iso camera, 3 AI-generated
   low-poly buildings, bread-economy tick, place-a-building + save. Measure and drive up Icarus
   autonomy rate. The true test.
