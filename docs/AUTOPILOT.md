@@ -91,6 +91,10 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       that exact id certifies (good/bad fixtures) and now gates a scattered layout in Stage A
       that a bare Stage A waved through. The test asserts the join: the id Stage C *proposed*
       equals the id of the check *authored*. One Pond still 5/5 at autonomy 1.0.
+- [x] Stage-C proposals surfaced on the dashboard — the read-only control HTML now shows a
+      "Stage C — taste→gate proposals" table (suggested check id, occurrences, defect
+      signature) plus a KPI count, straight from the `stage_c_proposals` snapshot field, so an
+      operator watching the dashboard sees the flywheel's pending suggestions without the console.
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
@@ -101,7 +105,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of the honest-flywheel harvest: `python -m pytest tests/ -q` → 102 passed.
+As of Stage-C proposals on the dashboard: `python -m pytest tests/ -q` → 103 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.

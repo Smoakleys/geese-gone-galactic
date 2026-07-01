@@ -7,7 +7,7 @@ you to wait for me for anything. Keep going." Neither you nor Icarus may ask him
 
 ## First actions on resume
 1. `cd C:\Users\bhump\geese-gone-galactic`
-2. `python -m pytest tests/ -q` → expect **102 passed**. If red, fixing that is job #1.
+2. `python -m pytest tests/ -q` → expect **103 passed**. If red, fixing that is job #1.
 3. Read `docs/AUTOPILOT.md` (the phase state + loop) and your memory index `MEMORY.md`
    (`ggg-autonomous-mandate`, `ggg-progress`).
 
@@ -50,8 +50,10 @@ via the GitHub API using stored git creds — `gh` CLI is NOT installed).
   harvested by Stage C into a proposal whose `suggested_check_id` is `auto_cohesion_check`; a
   `CohesionCheck` authored with that exact id certifies and now gates scattered layouts a bare
   Stage A passed. The test asserts proposed-id == authored-id — the full unattended taste→gate
-  loop, not a hand-picked check. Next: surface Stage-C proposals on the dashboard, or a quality
-  hardening pass (see `ops/backlog.md`).
+  loop, not a hand-picked check.
+- **Stage-C proposals are visible on the dashboard:** the read-only control HTML shows a
+  "Stage C — taste→gate proposals" table + a KPI count from the `stage_c_proposals` snapshot.
+  Next: a quality-hardening pass, or extend One Pond further (see `ops/backlog.md`).
 - The harness runs unattended: `python scripts/run_onepond_autopilot.py` (add `--serve` for the
   dashboard). Verified to make real Gatekeeper commits at 100% autonomy.
 
