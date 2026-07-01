@@ -90,3 +90,7 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] Refreshed the stale `harness/README.md` (was "Phase 0.5 walking skeleton" claiming Phases
       2–4 were future): current module map (review sub-modules, audit/, gen3d/, control/) + honest
       "what's still external" section
+- [x] Live visual gate is now reference-anchored: committed a canonical pond render; the
+      `OnePondVisualReviewer` scores each render against it (histogram similarity), so off-palette
+      art is caught — not just blank/tiny/noise. Test proves a structured-but-off-palette render
+      is rejected on palette while real ponds pass; still 6/6 (124 tests)

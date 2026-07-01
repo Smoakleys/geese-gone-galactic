@@ -281,6 +281,49 @@ def _review_packet(config: dict, tid: str = "T-0001"):
         artifact_files={"onepond_config.json": json.dumps(config)})
 
 
+def test_visual_reviewer_is_reference_anchored(tmp_path):
+    # The live visual gate scores against the committed canonical pond reference, not in a
+    # vacuum: a real pond passes, but a structurally-fine yet off-palette render is rejected on
+    # palette similarity (a signal the blank/tiny/noise floor alone would miss).
+    pytest.importorskip("PIL")
+    from PIL import Image, ImageDraw
+    from game.onepond.review import _REFERENCE, OnePondVisualReviewer
+    from harness.review.base import StubReviewer
+
+    assert _REFERENCE.exists(), "the canonical reference render must be committed"
+
+    class _OffPaletteWorker:
+        id = "off-palette"
+
+        def render(self, config, out_path):
+            out_path = Path(out_path)
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            im = Image.new("RGB", (128, 128), (20, 20, 140))  # blue bg, off the green palette
+            d = ImageDraw.Draw(im)
+            for i in range(9):
+                x = 8 + i * 13
+                d.line([(x, 8), (x, 120)], fill=(10, 10, 90))
+            d.rectangle([40, 40, 84, 84], fill=(180, 60, 60), outline=(0, 0, 0))
+            im.save(out_path)
+            return out_path
+
+    config = {"grid": [8, 8], "start_bread": 14, "buildings": [
+        {"type": "bakery", "x": 1, "y": 1}, {"type": "hatchery", "x": 3, "y": 2}]}
+
+    # Default stub render of a real pond matches the reference palette -> passes.
+    t, packet = _review_packet(config)
+    assert OnePondVisualReviewer(StubReviewer(lambda r: True),
+                                 render_dir=tmp_path / "r1").review(packet, t).passed
+
+    # Structurally fine but off-palette -> rejected specifically on reference similarity.
+    off = OnePondVisualReviewer(StubReviewer(lambda r: True), worker=_OffPaletteWorker(),
+                                render_dir=tmp_path / "r2")
+    t2, packet2 = _review_packet(config)
+    verdict = off.review(packet2, t2)
+    assert not verdict.passed
+    assert any("off-reference palette" in d.detail for d in verdict.defects)
+
+
 def test_visual_reviewer_does_not_create_render_dir_until_used(tmp_path):
     # Resource hygiene: constructing a reviewer must not create its render dir eagerly.
     from game.onepond.review import OnePondVisualReviewer

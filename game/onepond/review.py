@@ -31,6 +31,11 @@ from harness.review.base import Reviewer
 from harness.review.packet_builder import ReviewPacket
 from harness.review.visual_gate import ReferenceAnchoredScorer
 
+# The canonical pond render every artifact is scored *against* (not judged in a vacuum): a
+# representative complete, solvent pond. Committed so the reference-anchored comparison — off-
+# model palette/composition — is active in the live gate, not just the blank/tiny/noise floor.
+_REFERENCE = Path(__file__).parent / "refs" / "reference_pond.png"
+
 
 class OnePondVisualReviewer(Reviewer):
     """Render the One Pond config, gate it visually, then defer to a base reviewer."""
@@ -39,10 +44,15 @@ class OnePondVisualReviewer(Reviewer):
 
     def __init__(self, base: Reviewer, *, worker: Optional[ScreenshotWorker] = None,
                  scorer: Optional[ReferenceAnchoredScorer] = None,
-                 render_dir: Optional[Path] = None):
+                 render_dir: Optional[Path] = None,
+                 reference: Optional[Path] = None):
         self._base = base
         self._worker = worker or StubScreenshotWorker()
         self._scorer = scorer or ReferenceAnchoredScorer()
+        # Anchor scoring to the canonical reference when available; fall back to the structural
+        # floor only if it's missing (so a stripped checkout still gates, just less strictly).
+        ref = Path(reference) if reference is not None else _REFERENCE
+        self._reference = ref if ref.exists() else None
         # Don't create a temp dir eagerly — a reviewer that's never asked to render (or always
         # given an explicit dir) shouldn't leak one. Resolved lazily on first render instead.
         self._render_dir = Path(render_dir) if render_dir else None
@@ -65,7 +75,7 @@ class OnePondVisualReviewer(Reviewer):
 
         try:
             out = self._worker.render(config, self._renders() / f"{packet.ticket_id}.png")
-            visual = self._scorer.score(out)
+            visual = self._scorer.score(out, self._reference)
         except Exception as e:  # a config that won't even render is itself a visual defect
             return self._fail(ticket, packet, f"config did not render: {e}")
 
