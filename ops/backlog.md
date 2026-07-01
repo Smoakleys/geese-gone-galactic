@@ -75,3 +75,5 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
       `__init__`, leaking a temp dir per instantiation even when unused) (115 tests)
 - [x] `docs/CHECKS.md` — reference catalog of all 13 certified Stage-A checks (tier, scope, what
       each gates, metric→floor) + the Stage-C flywheel; linked from CLAUDE.md; verified vs registry
+- [x] `scripts/lint_onepond.py` — dry-run a pond config through the certified Stage-A registry
+      (per-check PASS/FAIL/SKIP + evidence, exit 0/1/2); operator/debug tool, no build (119 tests)
