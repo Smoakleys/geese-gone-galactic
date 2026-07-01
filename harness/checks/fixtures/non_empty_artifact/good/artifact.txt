@@ -1,0 +1,1 @@
+a real staged artifact file with content
