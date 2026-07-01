@@ -245,16 +245,61 @@ def test_stub_render_of_sanctuary_pond_draws_fences_and_predators(tmp_path):
     assert _PREDATOR in colors, "predator markers must appear in the render"
 
 
+# --- visual reviewer (CV floor wired into Stage B) ------------------------------------
+
+
+def _review_packet(config: dict, tid: str = "T-0001"):
+    from harness.review.packet_builder import ReviewPacket
+    from harness.models import Stage as _Stage
+    t = make_ticket(tid)
+    return t, ReviewPacket(
+        ticket_id=t.id, criteria_hash=t.criteria_hash, stage=_Stage.B,
+        criteria=t.criteria_for_stage(_Stage.B), rubric_text="", reference_paths=[],
+        artifact_files={"onepond_config.json": json.dumps(config)})
+
+
+def test_visual_reviewer_passes_real_pond_and_defers_to_base(tmp_path):
+    pytest.importorskip("PIL")
+    from game.onepond.review import OnePondVisualReviewer
+    from harness.review.base import StubReviewer
+
+    seen = []
+    base = StubReviewer(lambda r: (seen.append(r) or True))
+    reviewer = OnePondVisualReviewer(base, render_dir=tmp_path / "r")
+    t, packet = _review_packet({"grid": [8, 8], "start_bread": 14, "buildings": [
+        {"type": "bakery", "x": 1, "y": 1}, {"type": "hatchery", "x": 3, "y": 2},
+        {"type": "granary", "x": 5, "y": 4}]})
+    verdict = reviewer.review(packet, t)
+    assert verdict.passed and seen, "a real pond passes the CV floor and reaches the base reviewer"
+
+
+def test_visual_reviewer_blocks_unreadable_pond_before_base(tmp_path):
+    pytest.importorskip("PIL")
+    from game.onepond.review import OnePondVisualReviewer
+    from harness.review.base import StubReviewer
+
+    seen = []
+    base = StubReviewer(lambda r: (seen.append(r) or True))  # would pass — must never be consulted
+    reviewer = OnePondVisualReviewer(base, render_dir=tmp_path / "r")
+    # A 1x1 grid renders below the visual gate's minimum resolution: unreadable as a pond.
+    t, packet = _review_packet({"grid": [1, 1], "start_bread": 10, "buildings": []})
+    verdict = reviewer.review(packet, t)
+    assert not verdict.passed and not seen, "the CV floor blocks before the subjective reviewer"
+    assert any("visual gate" in d.detail for d in verdict.defects)
+
+
 # --- end to end: the harness builds One Pond, unattended ------------------------------
 
 
 def test_harness_builds_one_pond_end_to_end(git_repo, tmp_path):
+    pytest.importorskip("PIL")  # the run is visually gated end-to-end
+    from game.onepond.review import OnePondVisualReviewer
     registry = build_onepond_registry(tmp_path / "lock")
     gatekeeper = Gatekeeper(git_repo, ratchet_dir=tmp_path / "ratchet")
     store = RunStore(tmp_path / "state.json")
     runner = AutonomousRunner(
         store=store, repo_root=git_repo, registry=registry, gatekeeper=gatekeeper,
-        reviewer=StubReviewer(lambda r: True),
+        reviewer=OnePondVisualReviewer(StubReviewer(lambda r: True), render_dir=tmp_path / "renders"),
         icarus_builder=LLMBuilder(onepond_generation_client()),
         staging_root=tmp_path / "staging",
     )

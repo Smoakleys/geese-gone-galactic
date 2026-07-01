@@ -77,6 +77,13 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       hazardous. T-POND-05 renders and passes `ReferenceAnchoredScorer` (edge density 0.26,
       within bounds); a test asserts the predator markers actually appear. The Godot+Xvfb
       worker remains the drop-in behind the same seam.
+- [x] Visual gate wired into the live Stage-B path — new `OnePondVisualReviewer` (behind the
+      `Reviewer` seam) renders each config and runs `ReferenceAnchoredScorer` as the mechanical
+      CV floor beneath the subjective reviewer: a config that doesn't read as a real pond is
+      blocked before the subjective reviewer is ever consulted; otherwise it delegates. The
+      autopilot and the e2e run now use it, so every One Pond acceptance is visually gated end
+      to end. Still 5/5 at autonomy 1.0. Real Godot render is the drop-in behind the same
+      `ScreenshotWorker` seam.
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
@@ -87,7 +94,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of the sanctuary visual gate: `python -m pytest tests/ -q` → 99 passed.
+As of the visual gate in Stage B: `python -m pytest tests/ -q` → 101 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.
