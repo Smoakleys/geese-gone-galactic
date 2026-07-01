@@ -1,0 +1,20 @@
+# Godot 4+
+.godot/
+/android/
+export_presets.cfg
+*.translation
+
+# Python (harness)
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.tmp
+
+# Local config / secrets
+*.local.json
+.env
