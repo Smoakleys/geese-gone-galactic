@@ -18,7 +18,7 @@ import json
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Optional
 
 
 @dataclass(frozen=True)
@@ -42,12 +42,24 @@ class DecisionLogReview:
     threshold: int = 3   # a defect must recur this many times to earn a check proposal
     proposals: list[ProposedAdjustment] = field(default_factory=list)
 
-    def analyze(self, defects: Iterable[DefectRecord]) -> list[ProposedAdjustment]:
-        """Propose a deterministic check for every subjective defect that recurs >= threshold.
+    def analyze(self, defects: Iterable[DefectRecord],
+                existing_check_ids: Optional[Iterable[str]] = None) -> list[ProposedAdjustment]:
+        """Propose an adjustment for every subjective defect that recurs >= threshold.
 
         Recurrence is counted by a normalized signature (criterion + first words of the
         detail) so slightly-reworded rejections of the same underlying problem still cluster.
+
+        ``existing_check_ids`` lets the proposal distinguish two very different situations:
+
+        * a recurring defect on a criterion that has **no** deterministic gate -> propose a
+          ``new_check`` (write the gate that's missing);
+        * a recurring defect whose criterion **is already a certified check** -> the mechanical
+          gate exists yet reviewers still reject, so the gate is too lax: propose
+          ``tighten_rubric`` on that same check rather than a redundant new one.
+
+        Without ``existing_check_ids`` every proposal defaults to ``new_check`` (unchanged).
         """
+        existing = set(existing_check_ids or ())
         counts: Counter[str] = Counter()
         examples: dict[str, DefectRecord] = {}
         for d in defects:
@@ -60,15 +72,27 @@ class DecisionLogReview:
             if n < self.threshold:
                 continue
             ex = examples[sig]
-            proposals.append(ProposedAdjustment(
-                kind="new_check",
-                signature=sig,
-                occurrences=n,
-                rationale=(f"Reviewers rejected {n} artifacts for '{ex.detail}' on "
-                           f"criterion {ex.criterion}; fold this into a deterministic check "
-                           f"so Stage A catches it before a reviewer has to."),
-                suggested_check_id=_check_id(sig),
-            ))
+            already_gated = ex.criterion in existing
+            if already_gated:
+                proposals.append(ProposedAdjustment(
+                    kind="tighten_rubric",
+                    signature=sig,
+                    occurrences=n,
+                    rationale=(f"Check {ex.criterion!r} already gates this, yet reviewers still "
+                               f"rejected {n} artifacts for '{ex.detail}' — the gate is too lax; "
+                               f"tighten its rubric/threshold rather than adding a new check."),
+                    suggested_check_id=ex.criterion,
+                ))
+            else:
+                proposals.append(ProposedAdjustment(
+                    kind="new_check",
+                    signature=sig,
+                    occurrences=n,
+                    rationale=(f"Reviewers rejected {n} artifacts for '{ex.detail}' on "
+                               f"criterion {ex.criterion}; fold this into a deterministic check "
+                               f"so Stage A catches it before a reviewer has to."),
+                    suggested_check_id=_check_id(sig),
+                ))
         self.proposals = proposals
         return proposals
 

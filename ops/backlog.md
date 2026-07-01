@@ -51,3 +51,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
       `auditor` seam; autopilot defaults `--audit-every 3` (105 tests)
 - [x] Proved the real cold_audit path (no injected seam) catches a corrupted accepted artifact
       mid-run and STOPs the runner (106 tests)
+- [x] harness-mod-6: Stage C `analyze` distinguishes `tighten_rubric` (criterion already a
+      certified check → gate too lax) from `new_check` (novel criterion); runner passes certified
+      ids; self-mod validator approves the change (108 tests)
