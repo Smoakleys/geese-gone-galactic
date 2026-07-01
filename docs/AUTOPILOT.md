@@ -124,6 +124,12 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       0.25 → 0.5 (the other half of the flywheel: not a new check, an existing one made stricter).
       A layout the old gate passed (compactness 0.33) is now rejected; every shipped ticket
       (≥ 0.7 compact) still passes and the check still certifies. One Pond stays 5/5 at 1.0.
+- [x] Ops entrypoint end-to-end test — `scripts/run_onepond_autopilot.py:main` (the program an
+      operator actually runs) is now covered by a test that runs it in a throwaway workspace and
+      asserts the whole glue holds: arg parsing, certified registry, visual reviewer, run to
+      5/5 acceptance, Stage-C harvest, and the post-build cold audit, all the way to a 0 exit
+      code (plus an `--audit-every 0` variant). Regressions in the wiring, not just the units,
+      are now caught.
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
@@ -134,7 +140,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of the cohesion-gate tightening: `python -m pytest tests/ -q` → 109 passed.
+As of the ops-entrypoint e2e test: `python -m pytest tests/ -q` → 111 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.
