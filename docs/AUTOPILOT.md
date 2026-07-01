@@ -100,6 +100,12 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       every build (mechanical: hashes + certified checks over the committed tree; adversarial: a
       fresh cold visual re-review of the committed bytes) and refuses exit-0 if the audit is
       blocked — a green build with a dirty audit is a failure. The e2e asserts the audit is clean.
+- [x] Periodic in-loop cold audits — `AutonomousRunner` gained `audit_every`: every N committed
+      tickets it runs a cold audit over what's been accepted so far, and a finding **hard-blocks**
+      (STOPs the runner) so nothing is accepted on top of a tree that no longer verifies. Result
+      is persisted to the `RunStore` (`audit` field) and shown on the dashboard. An injectable
+      `auditor` seam makes the block path deterministically testable. The autopilot defaults to
+      `--audit-every 3`.
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
@@ -110,7 +116,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of the cold-audit ops wiring: `python -m pytest tests/ -q` → 103 passed.
+As of periodic in-loop cold audits: `python -m pytest tests/ -q` → 105 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.

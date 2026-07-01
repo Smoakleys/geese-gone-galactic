@@ -138,6 +138,38 @@ def test_runner_marks_blocked_and_moves_on_when_all_fail(git_repo, registry, gat
     assert "T-9001" in store.blocked() and "T-9002" in store.blocked()
 
 
+def test_runner_periodic_cold_audit_hard_blocks(git_repo, registry, gatekeeper, tmp_path):
+    from harness.audit.cold_audit import AuditFinding, AuditReport
+    store = RunStore(tmp_path / "state.json")
+    icarus = LLMBuilder(ScriptedGenerationClient(lambda p: {"artifact.txt": "a bakery"}))
+    dirty = AuditReport(findings=[AuditFinding("T-1", "regression", "bytes changed from baseline")])
+    runner = AutonomousRunner(
+        store=store, repo_root=git_repo, registry=registry, gatekeeper=gatekeeper,
+        reviewer=StubReviewer(lambda r: True), icarus_builder=icarus,
+        staging_root=tmp_path / "staging", audit_every=1, auditor=lambda: dirty)
+    runner.submit(make_ticket("T-1")); runner.submit(make_ticket("T-2"))
+    recs = runner.run_pending()
+    assert len(recs) == 1 and recs[0].committed        # first accepted, then the audit blocked
+    assert runner.pending == 1                          # second ticket never processed
+    assert store.mode is ControlMode.STOPPED            # hard-block: no more acceptances
+    assert store.audit()["blocked"] and store.snapshot()["audit"]["blocked"]
+
+
+def test_runner_periodic_cold_audit_clean_continues(git_repo, registry, gatekeeper, tmp_path):
+    from harness.audit.cold_audit import AuditReport
+    store = RunStore(tmp_path / "state.json")
+    icarus = LLMBuilder(ScriptedGenerationClient(lambda p: {"artifact.txt": "a bakery"}))
+    runner = AutonomousRunner(
+        store=store, repo_root=git_repo, registry=registry, gatekeeper=gatekeeper,
+        reviewer=StubReviewer(lambda r: True), icarus_builder=icarus,
+        staging_root=tmp_path / "staging", audit_every=1, auditor=lambda: AuditReport())
+    runner.submit(make_ticket("T-1")); runner.submit(make_ticket("T-2"))
+    recs = runner.run_pending()
+    assert len(recs) == 2 and all(r.committed for r in recs)
+    assert store.mode is ControlMode.RUNNING
+    assert store.audit()["count"] == 2 and not store.audit()["blocked"]
+
+
 def test_runner_respects_pause_and_resumes(git_repo, registry, gatekeeper, tmp_path):
     store = RunStore(tmp_path / "state.json")
     icarus = LLMBuilder(ScriptedGenerationClient(lambda p: {"artifact.txt": "a bakery"}))

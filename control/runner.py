@@ -23,8 +23,10 @@ from pathlib import Path
 from typing import Optional
 
 from dataclasses import asdict
+from typing import Callable
 
 from control.store import RunRecord, RunStore, ControlMode
+from harness.audit.cold_audit import AuditReport, cold_audit
 from harness.checks.registry import Registry
 from harness.gatekeeper import Gatekeeper
 from harness.icarus.builder import Builder
@@ -54,6 +56,8 @@ class AutonomousRunner:
         max_rounds: int = 3,
         plateau_window: int = 3,
         stage_c_threshold: int = 3,
+        audit_every: int = 0,
+        auditor: Optional[Callable[[], AuditReport]] = None,
     ):
         self.store = store
         self.repo_root = Path(repo_root)
@@ -66,7 +70,11 @@ class AutonomousRunner:
         self.max_rounds = max_rounds
         self.plateau_window = plateau_window
         self.stage_c_threshold = stage_c_threshold
+        self.audit_every = audit_every
+        self._auditor = auditor
         self._queue: list[Ticket] = []
+        self._processed_tickets: dict[str, Ticket] = {}
+        self._committed_since_audit = 0
 
     def submit(self, ticket: Ticket) -> None:
         self._queue.append(ticket)
@@ -96,11 +104,32 @@ class AutonomousRunner:
             rec = self._run_one(ticket)
             self.store.record(rec)
             processed.append(rec)
+            self._processed_tickets[ticket.id] = ticket
+
+            # Periodic cold audit: acceptance is not forever. Every ``audit_every`` committed
+            # tickets, re-verify the committed tree; a finding hard-blocks — STOP the runner so
+            # no further work is accepted on top of a tree that no longer verifies.
+            if self.audit_every and rec.committed:
+                self._committed_since_audit += 1
+                if self._committed_since_audit >= self.audit_every:
+                    self._committed_since_audit = 0
+                    report = self._run_audit()
+                    self.store.record_audit(report.blocked, report.summary())
+                    if report.blocked:
+                        self.store.stop()
+                        break
         # Stage C runs off the critical path, after the tickets are done: mine the builder
         # decision logs left in staging for subjective defects that recur often enough to be
         # worth turning into a deterministic Stage-A check. It never blocks or gates a commit.
         self.harvest_stage_c()
         return processed
+
+    def _run_audit(self) -> AuditReport:
+        """Run a cold audit over what's been accepted so far (injected auditor wins, for tests)."""
+        if self._auditor is not None:
+            return self._auditor()
+        return cold_audit(self.gatekeeper, self.registry, reviewer=self.reviewer,
+                          ticket_provider=self._processed_tickets.get)
 
     def harvest_stage_c(self) -> list[ProposedAdjustment]:
         """Harvest builder decision logs from the staging trees and surface check proposals.
