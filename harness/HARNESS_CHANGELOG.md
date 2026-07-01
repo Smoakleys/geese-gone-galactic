@@ -54,3 +54,12 @@ without a matching entry. Reverts are one command via the token in `harness/reve
 - Rationale: turn the stubbed reviewer into real, adversarial, multi-lens Stage B and stand up
   the anti-coasting teeth. Real LLM/vision calls sit behind seams so the suite stays offline.
   See `docs/EXECUTION_PLAN.md` Phase 2.
+
+## harness-mod-3 — Phase 3 Icarus builder seam
+- `LLMBuilder` (`icarus/llm_builder.py`): real Icarus behind a swappable `GenerationClient`
+  seam (scripted offline; local-model/API drop-in). Writes only to staging, has no commit
+  path, honestly returns `GAVE_UP` on empty output, and records handed-down defects to the
+  decision log to feed the Stage-C flywheel.
+- Rationale: replace `StubBuilder` with the real builder shape without touching the loop or
+  gate. The control surface that drives it lives in the (non-harness) `control/` package. See
+  `docs/EXECUTION_PLAN.md` Phase 3.
