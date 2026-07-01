@@ -33,7 +33,7 @@ from game.onepond.world import (
 )
 from harness.checks.registry import certify
 from harness.gatekeeper import Gatekeeper, run_regression_suite
-from harness.icarus.llm_builder import LLMBuilder
+from harness.icarus.llm_builder import LLMBuilder, ScriptedGenerationClient
 from harness.models import Result
 from harness.review.base import StubReviewer
 
@@ -496,6 +496,40 @@ def test_liveliness_gate_forces_rework_in_the_loop(git_repo, tmp_path):
         (git_repo / "game" / "accepted" / "T-LIVE" / "onepond_config.json").read_text())
     assert any(b["type"] == "hatchery" for b in accepted["buildings"])   # Icarus added the flock
     assert simulate_solvency(accepted)["geese"] > 0                      # the accepted pond is alive
+
+
+def test_escape_hatch_rescues_a_plateaued_one_pond_ticket(git_repo, tmp_path):
+    # The "never block on a human" tooth on real game work: Icarus keeps shipping an insolvent
+    # pond (Stage A economy check fails every round -> plateau), so the runner auto-escalates to
+    # the escape-hatch builder, which ships a solvent pond that's accepted. No human is consulted.
+    from control.runner import AutonomousRunner
+    from control.store import RunStore
+    registry = build_onepond_registry(tmp_path / "lock")
+    gatekeeper = Gatekeeper(git_repo, ratchet_dir=tmp_path / "ratchet")
+    store = RunStore(tmp_path / "state.json")
+
+    insolvent = {"grid": [8, 8], "start_bread": 8, "buildings": [
+        {"type": "hatchery", "x": 0, "y": 0}]}                 # eats bread, no producer
+    solvent = {"grid": [8, 8], "start_bread": 12, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0}]}
+    stubborn = LLMBuilder(ScriptedGenerationClient(
+        lambda p: {"onepond_config.json": json.dumps(insolvent)}))
+    rescue = LLMBuilder(ScriptedGenerationClient(
+        lambda p: {"onepond_config.json": json.dumps(solvent)}))
+
+    runner = AutonomousRunner(
+        store=store, repo_root=git_repo, registry=registry, gatekeeper=gatekeeper,
+        reviewer=StubReviewer(lambda r: True), icarus_builder=stubborn,
+        escape_hatch_builder=rescue, staging_root=tmp_path / "staging",
+        plateau_window=2, max_rounds=5)
+    runner.submit(make_ticket("T-RESCUE"))
+    recs = runner.run_pending()
+
+    assert recs[0].committed and recs[0].escape_hatch  # Icarus plateaued; the hatch rescued it
+    assert store.autonomy_rate() == 0.0                # accepted, but only via the escape hatch
+    accepted = json.loads(
+        (git_repo / "game" / "accepted" / "T-RESCUE" / "onepond_config.json").read_text())
+    assert simulate_solvency(accepted)["solvent"]      # a real, solvent pond was committed
 
 
 def test_full_one_pond_has_all_building_types():

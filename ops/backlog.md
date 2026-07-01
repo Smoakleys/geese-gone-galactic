@@ -97,3 +97,7 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] Guard the load-bearing reference render: test asserts the committed `reference_pond.png` is
       a valid 128x128 non-blank pond image (a bad regeneration is caught, not silently weakening
       the gate) (125 tests)
+- [x] Escape-hatch on real One Pond work: Icarus plateaus on an insolvent config (economy check
+      fails every round) and the runner auto-escalates to the escape-hatch builder, which ships a
+      solvent pond that's accepted — proving "never block on a human" on a real game-quality
+      failure through the actual game registry (126 tests)
