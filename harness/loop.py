@@ -18,6 +18,7 @@ from typing import Optional
 from harness.checks.registry import Registry, stage_a_passed
 from harness.gatekeeper import GateAborted, Gatekeeper
 from harness.icarus.builder import Builder
+from harness.metrics.plateau import PlateauDetector, defect_signature
 from harness.models import (
     BuildPacket,
     CheckResult,
@@ -53,6 +54,7 @@ class Loop:
         gatekeeper: Gatekeeper,
         staging_root: Optional[Path] = None,
         max_rounds: int = 3,
+        plateau_window: int = 3,
     ):
         self.repo_root = Path(repo_root)
         self.builder = builder
@@ -61,6 +63,7 @@ class Loop:
         self.gatekeeper = gatekeeper
         self.staging_root = Path(staging_root or (self.repo_root / "run" / "staging"))
         self.max_rounds = max_rounds
+        self.plateau_window = plateau_window
 
     def run_ticket(self, ticket: Ticket) -> IterationResult:
         history: list[State] = []
@@ -79,6 +82,28 @@ class Loop:
 
         defects: list[Defect] = []
         rounds = 0
+        plateau = PlateauDetector(window=self.plateau_window)
+
+        def rework(src: State, signature: str, stage_label: str) -> Optional[IterationResult]:
+            """Record the round's failure signature and decide: iterate, or escalate.
+
+            Escalation fires on a *plateau* (same defect signature for `plateau_window`
+            rounds — the loop is stuck) or on the hard `max_rounds` ceiling. Either way it
+            hands off to the escape hatch instead of spinning forever."""
+            plateau.record(signature=signature)
+            st = go(src, State.REWORK)
+            if plateau.plateaued():
+                go(st, State.PLATEAU_ESCALATE)
+                return IterationResult(ticket.id, State.PLATEAU_ESCALATE, rounds, False,
+                                       f"plateau: stuck on {stage_label} '{signature}'",
+                                       history=history)
+            if rounds >= self.max_rounds:
+                go(st, State.PLATEAU_ESCALATE)
+                return IterationResult(ticket.id, State.PLATEAU_ESCALATE, rounds, False,
+                                       f"plateau: max rounds ({self.max_rounds}) on {stage_label}",
+                                       history=history)
+            return None
+
         try:
             while True:
                 rounds += 1
@@ -107,11 +132,11 @@ class Loop:
                 a_results: list[CheckResult] = self.registry.run_stage_a(staging_dir, ticket)
                 if not stage_a_passed(a_results):
                     defects = _defects_from_stage_a(a_results)
-                    state = go(state, State.REWORK)
-                    if rounds >= self.max_rounds:
-                        state = go(state, State.PLATEAU_ESCALATE)
-                        return IterationResult(ticket.id, state, rounds, False,
-                                               "plateau: stage A", history=history)
+                    escalated = rework(state, "A:" + (defect_signature(defects) or "reject"),
+                                       "stage A")
+                    if escalated is not None:
+                        return escalated
+                    state = State.REWORK
                     continue
                 state = go(state, State.STAGE_A_PASS)
 
@@ -121,11 +146,11 @@ class Loop:
                 verdict_b: Verdict = self.reviewer.review(packet_b, ticket)
                 if not verdict_b.passed:
                     defects = list(verdict_b.defects)
-                    state = go(state, State.REWORK)
-                    if rounds >= self.max_rounds:
-                        state = go(state, State.PLATEAU_ESCALATE)
-                        return IterationResult(ticket.id, state, rounds, False,
-                                               "plateau: stage B", history=history)
+                    escalated = rework(state, "B:" + (defect_signature(defects) or "reject"),
+                                       "stage B")
+                    if escalated is not None:
+                        return escalated
+                    state = State.REWORK
                     continue
                 state = go(state, State.STAGE_B_PASS)
 
