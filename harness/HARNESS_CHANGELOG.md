@@ -122,3 +122,16 @@ without a matching entry. Reverts are one command via the token in `harness/reve
 - Rationale: a check must be a *total* function of `(artifact_dir, ticket)` — a builder shipping a
   pathological file is a defect to gate, not a way to crash the harness. Keeps the loop robust
   against adversarial/garbled builder output. See `tests/test_phase1_checks.py`.
+
+## harness-mod-8 — Stage A is fail-closed against a check that raises
+- `Registry.run_stage_a` wrapped each `check.run(...)` in a guard: an unexpected exception from
+  any check now becomes a `Result.FAIL` (`"check raised <Type>: ..."`) instead of propagating out
+  of Stage A and crashing the whole ticket. Certification only proves a check against its fixtures,
+  so a check can pass certification yet raise on an unusual/adversarial artifact (exactly the
+  `game/onepond/checks.py` malformed-config crash that was just fixed per-check) — this makes the
+  "a check never crashes the loop" guarantee *structural* at the runner, not a property each check
+  must individually remember to uphold.
+- Fail-closed on purpose: an erroring check is treated as a rejection, never a pass, so a crash can
+  never wave bad work through. Normal PASS/FAIL/SKIP behaviour is unchanged.
+- Rationale: same anti-complacency thesis as the rest of the harness — structural guarantees over
+  discipline. See `tests/test_phase1_checks.py`.

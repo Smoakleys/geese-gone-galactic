@@ -94,6 +94,36 @@ def test_broken_check_is_not_certified(tmp_path):
     assert reg.certified_checks() == []
 
 
+def test_stage_a_is_fail_closed_when_a_check_raises(tmp_path):
+    # harness-mod-8: a certified check that raises on some artifact (a bug it wasn't certified
+    # against) must not crash the loop — Stage A converts it to a fail-closed FAIL.
+    from harness.checks.registry import stage_a_passed
+
+    class Boom(Check):
+        id = "boom"
+        def __init__(self):
+            self.targets = ["*"]
+            self.good_fixtures = [NonEmptyArtifactCheck().good_fixtures[0]]
+            self.bad_fixtures = [NonEmptyArtifactCheck().bad_fixtures[0]]
+        def run(self, artifact_dir, ticket):
+            files = list(Path(artifact_dir).rglob("*"))
+            if any(f.name == "boom.txt" for f in files):
+                raise RuntimeError("kaboom")               # never happens on the fixtures
+            nonempty = [f for f in files if f.is_file() and f.stat().st_size > 0]
+            return CheckResult(self.id, Result.PASS if nonempty else Result.FAIL, "ok")
+
+    reg = Registry(tmp_path / "lock")
+    reg.register(Boom())
+    assert reg.certify_all()[0].certified                  # certifies against its fixtures
+
+    art = tmp_path / "art"; art.mkdir()
+    (art / "boom.txt").write_text("trigger")               # makes the certified check raise
+    results = reg.run_stage_a(art, make_ticket())          # must NOT raise
+    boom = next(r for r in results if r.check_id == "boom")
+    assert boom.result == Result.FAIL and "raised" in boom.evidence
+    assert not stage_a_passed(results)                     # fail-closed: a crash is a rejection
+
+
 # --- item 1 & 2: gate is real; builder can't self-approve -----------------------------
 
 

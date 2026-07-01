@@ -155,7 +155,13 @@ class Registry:
             if not _applies(check, ticket):
                 results.append(CheckResult(check.id, Result.SKIP, "not applicable to ticket kind"))
                 continue
-            res = check.run(Path(artifact_dir), ticket)
+            try:
+                res = check.run(Path(artifact_dir), ticket)
+            except Exception as e:
+                # Defense-in-depth: a check that raises on some artifact (a bug it was never
+                # certified against, or adversarial input) must not crash the whole loop. Treat
+                # it as a fail-closed FAIL — an erroring check never PASSes work through.
+                res = CheckResult(check.id, Result.FAIL, f"check raised {type(e).__name__}: {e}")
             results.append(res)
             if res.result == Result.FAIL:
                 break  # fail-fast
