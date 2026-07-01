@@ -55,13 +55,21 @@ class PythonSyntaxCheck(Check):
             return CheckResult(self.id, Result.SKIP, "no Python files in artifact")
         for f in py:
             try:
-                ast.parse(f.read_text(), filename=str(f))
+                src = f.read_text()
+            except (UnicodeDecodeError, OSError) as e:  # a binary/undecodable ".py" is a defect
+                return CheckResult(self.id, Result.FAIL, f"{f.name}: unreadable as text: {e}",
+                                   artifacts=[str(f)])
+            try:
+                ast.parse(src, filename=str(f))
             except SyntaxError as e:
                 return CheckResult(
                     self.id, Result.FAIL,
                     f"{f.name}: syntax error at line {e.lineno}: {e.msg}",
                     artifacts=[str(f)],
                 )
+            except ValueError as e:  # e.g. source containing null bytes — parse can't, so FAIL
+                return CheckResult(self.id, Result.FAIL, f"{f.name}: not valid Python source: {e}",
+                                   artifacts=[str(f)])
         return CheckResult(
             self.id, Result.PASS, f"{len(py)} Python file(s) parse cleanly",
             artifacts=[str(p) for p in py[:5]], metrics={"python_files": float(len(py))},
@@ -87,7 +95,12 @@ class JsonValidCheck(Check):
             return CheckResult(self.id, Result.SKIP, "no JSON files in artifact")
         for f in docs:
             try:
-                json.loads(f.read_text())
+                text = f.read_text()
+            except (UnicodeDecodeError, OSError) as e:  # a binary/undecodable ".json" is a defect
+                return CheckResult(self.id, Result.FAIL, f"{f.name}: unreadable as text: {e}",
+                                   artifacts=[str(f)])
+            try:
+                json.loads(text)
             except json.JSONDecodeError as e:
                 return CheckResult(
                     self.id, Result.FAIL,
