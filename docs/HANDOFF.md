@@ -53,7 +53,10 @@ via the GitHub API using stored git creds — `gh` CLI is NOT installed).
   loop, not a hand-picked check.
 - **Stage-C proposals are visible on the dashboard:** the read-only control HTML shows a
   "Stage C — taste→gate proposals" table + a KPI count from the `stage_c_proposals` snapshot.
-  Next: a quality-hardening pass, or extend One Pond further (see `ops/backlog.md`).
+- **Cold audit is wired into ops:** the autopilot runs `cold_audit` after every build
+  (mechanical hashes+checks over the committed tree, plus a fresh cold visual re-review) and
+  refuses exit-0 if it's blocked; the e2e asserts a clean audit. Next: extend One Pond further,
+  or schedule *periodic* unannounced cold audits in the control loop (see `ops/backlog.md`).
 - The harness runs unattended: `python scripts/run_onepond_autopilot.py` (add `--serve` for the
   dashboard). Verified to make real Gatekeeper commits at 100% autonomy.
 

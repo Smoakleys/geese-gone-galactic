@@ -95,6 +95,11 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       "Stage C — taste→gate proposals" table (suggested check id, occurrences, defect
       signature) plus a KPI count, straight from the `stage_c_proposals` snapshot field, so an
       operator watching the dashboard sees the flywheel's pending suggestions without the console.
+- [x] Cold audit wired into the live ops path — the "acceptance is not forever" tooth existed
+      and was unit-tested but nothing ran it in ops. The autopilot now runs `cold_audit` after
+      every build (mechanical: hashes + certified checks over the committed tree; adversarial: a
+      fresh cold visual re-review of the committed bytes) and refuses exit-0 if the audit is
+      blocked — a green build with a dirty audit is a failure. The e2e asserts the audit is clean.
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
@@ -105,7 +110,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of Stage-C proposals on the dashboard: `python -m pytest tests/ -q` → 103 passed.
+As of the cold-audit ops wiring: `python -m pytest tests/ -q` → 103 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.
