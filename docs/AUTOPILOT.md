@@ -72,6 +72,11 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       `onepond_geese_protected` as a floor. New ticket T-POND-05 (the complete galactic
       sanctuary: all five building types, fences out two foxes while launching) driven to
       acceptance — One Pond now accepts **5/5 at autonomy 1.0**.
+- [x] Sanctuary pond visually gated — the stub renderer now draws the `fence` tile and the
+      prowling predators (fox markers in the margin ring), so a hazardous config *looks*
+      hazardous. T-POND-05 renders and passes `ReferenceAnchoredScorer` (edge density 0.26,
+      within bounds); a test asserts the predator markers actually appear. The Godot+Xvfb
+      worker remains the drop-in behind the same seam.
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
@@ -82,7 +87,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of the predator mechanic: `python -m pytest tests/ -q` → 98 passed.
+As of the sanctuary visual gate: `python -m pytest tests/ -q` → 99 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.

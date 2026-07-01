@@ -10,8 +10,11 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
       builds trip a recurring subjective "unsafe pond" Stage-B defect, let Stage C surface the
       proposal, then author the check against that proposal's signature. (Or: pick the next
       mechanic and drive its check through Stage C rather than by hand.)
-- [ ] **Render T-POND-05 through the visual gate** — extend `StubScreenshotWorker` (or the
-      real Godot drop-in) to draw fences/predators so the sanctuary pond is visually gated too.
+- [ ] **Wire the screenshot render into the live Stage-B path** — `StubScreenshotWorker` +
+      `ReferenceAnchoredScorer` exist and are tested, but the One Pond loop's Stage B uses the
+      scripted reviewer only; nothing renders the accepted config and runs the visual gate as
+      part of a run. Wire render→visual-gate in behind the reviewer seam so every One Pond
+      acceptance is visually gated end-to-end.
 
 ## Candidate increments (pick by value, not order)
 - [ ] Extend One Pond through the harness: a 4th mechanic, more tickets, a new
@@ -39,3 +42,5 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] New predator mechanic + `onepond_predator_safe` check: foxes eat un-fenced geese, a
       new `fence` building protects them; T-POND-05 (all five building types) fences out two
       foxes while launching, driven to acceptance 5/5 at autonomy 1.0 (98 tests)
+- [x] Sanctuary visual gate: stub renderer draws fences + prowling predators; T-POND-05
+      renders and passes `ReferenceAnchoredScorer`; test asserts predator markers appear (99 tests)

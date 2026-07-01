@@ -230,6 +230,21 @@ def test_stub_render_of_pond_passes_visual_gate(tmp_path):
     assert ReferenceAnchoredScorer().score(out).passed  # visual gate sees a real pond
 
 
+def test_stub_render_of_sanctuary_pond_draws_fences_and_predators(tmp_path):
+    pytest.importorskip("PIL")
+    from game.onepond.render import StubScreenshotWorker, _PREDATOR
+    from game.onepond.tickets import POND_CONFIGS
+    from harness.review.visual_gate import ReferenceAnchoredScorer
+    from PIL import Image
+
+    out = StubScreenshotWorker().render(POND_CONFIGS["T-POND-05"], tmp_path / "sanctuary.png")
+    assert ReferenceAnchoredScorer().score(out).passed  # the full sanctuary is visually gated too
+    # The prowling foxes are actually drawn — a hazardous config *looks* hazardous.
+    with Image.open(out) as im:
+        colors = {c for _, c in im.convert("RGB").getcolors(maxcolors=1 << 24)}
+    assert _PREDATOR in colors, "predator markers must appear in the render"
+
+
 # --- end to end: the harness builds One Pond, unattended ------------------------------
 
 
