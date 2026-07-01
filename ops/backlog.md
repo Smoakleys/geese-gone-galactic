@@ -62,3 +62,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] Sixth mechanic — water access: `well` building + certified `onepond_water_access` spatial
       pairwise-adjacency check (opt-in on well presence); T-POND-06 (all six building types)
       driven to acceptance 6/6 at autonomy 1.0 (112 tests)
+- [x] Doc-sync: refreshed the stale top-level orientation docs (`CLAUDE.md` current-status,
+      `docs/EXECUTION_PLAN.md` status callout) to reflect 112 tests, One Pond 6/6, and the
+      wired+verified flywheel/teeth — so the next session isn't misled by "80 tests / phases 0.5-4"

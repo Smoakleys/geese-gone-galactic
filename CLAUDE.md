@@ -28,10 +28,19 @@ the game, is the near-term product.
 - **Phase 4 (One Pond through the harness) COMPLETE** — authoritative Python game model
   (`game/onepond/`), game checks, ticket set + Icarus client, screenshot seam, and an e2e run
   driving the ticket set to full acceptance at autonomy rate 1.0. Godot view is the drop-in.
-- **80 governance tests pass:** `pip install -r requirements.txt && python -m pytest tests/ -q`.
+- **Flywheel + teeth wired and verified (beyond the base plan):** Stage C harvests recurring
+  subjective defects into `new_check`/`tighten_rubric` proposals (both halves demonstrated —
+  a harvested `auto_cohesion_check` and a tightened cohesion gate); the visual gate runs live in
+  Stage B (`OnePondVisualReviewer`); cold audits run periodically in the loop and hard-block on a
+  finding; the self-mod validator approved a real harness change (harness-mod-6). One Pond now
+  drives **6 tickets** (six building types: bakery/hatchery/granary/launchpad/fence/well; checks:
+  placement, solvency, launch, liveliness, predator-safety, cohesion, water-access) to acceptance
+  at autonomy 1.0.
+- **112 governance tests pass:** `pip install -r requirements.txt && python -m pytest tests/ -q`.
 - **All planned phases (0.5–4) are done in software.** Remaining work is external-hardware
   swaps behind existing seams: real Godot+Xvfb screenshots, a GPU text-to-3D worker, and the
-  live Anthropic reviewer key. See `docs/AUTOPILOT.md`.
+  live Anthropic reviewer key. See `docs/AUTOPILOT.md` (kept current every increment) and
+  `docs/HANDOFF.md`.
 
 ## The one invariant to preserve
 Commit authority lives **only** in `harness/gatekeeper.py`. Builders write to gitignored
@@ -48,5 +57,7 @@ from anywhere else — that's the whole point.
 - Harness *core* is stdlib-only on purpose (imports anywhere). `pydantic` is a Phase-1 upgrade.
 - Every `harness/` change needs a `harness/HARNESS_CHANGELOG.md` entry (the self-mod validator
   enforces this).
-- Suggested next step: **Phase 0** (install Godot, prove the Xvfb screenshot path) or **Phase 1**
-  (replace the trivial `non_empty_artifact` check with real code/CV checks + fixtures).
+- Next step: read `docs/HANDOFF.md` + `ops/backlog.md` (kept current every increment) and take
+  the top backlog item. The software plan is complete; increments now extend One Pond through the
+  harness or harden the harness itself. External-hardware swaps (real Godot+Xvfb, GPU text-to-3D,
+  live Anthropic key) are drop-ins behind existing tested seams when the hardware/keys appear.
