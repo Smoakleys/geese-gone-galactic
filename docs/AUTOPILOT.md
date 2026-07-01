@@ -58,6 +58,12 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       prove the turn: the lifeless pond slips past the pre-flywheel gates but the new check
       rejects it in Stage A, so the reviewer never has to. One Pond still accepts 4/4 at
       autonomy 1.0.
+- [x] Liveliness gate driven through real tickets — the granary tickets (T-POND-03/04) now
+      carry an `AC_LIVE` acceptance criterion citing `onepond_liveliness`, so the harvested
+      check is a demanded live gate, not just certified in isolation. E2e proves a
+      `.onepond_geese_hatched` floor is minted during the run; a loop-level test proves the
+      gate catches a lifeless in-loop build and drives Icarus to add a hatchery on rework
+      before acceptance. Still 4/4 at autonomy 1.0.
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
@@ -68,7 +74,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of the first flywheel turn: `python -m pytest tests/ -q` → 94 passed.
+As of the liveliness gate through tickets: `python -m pytest tests/ -q` → 95 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.

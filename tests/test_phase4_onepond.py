@@ -215,11 +215,49 @@ def test_harness_builds_one_pond_end_to_end(git_repo, tmp_path):
         (git_repo / "game" / "accepted" / "T-POND-04" / "onepond_config.json").read_text()))
     assert final["launched"] > 0
 
-    # Both the economy floor and the galactic-score floor were minted; the suite regression-green.
+    # Economy, galactic-score, and living-flock floors were all minted; suite regression-green.
     floors = gatekeeper.ratchet.floors()
     assert any(k.endswith(".onepond_min_bread") for k in floors)
     assert any(k.endswith(".onepond_launched") for k in floors)
+    assert any(k.endswith(".onepond_geese_hatched") for k in floors)  # liveliness ran as a live gate
     assert run_regression_suite(gatekeeper, registry) == []
+
+
+def test_liveliness_gate_forces_rework_in_the_loop(git_repo, tmp_path):
+    """The harvested check catches a real in-loop build and drives Icarus to fix it.
+
+    Icarus first ships a lifeless pond (granary capacity, no hatchery). Stage A now rejects it
+    on ``onepond_liveliness`` and hands that defect back; on rework Icarus adds a hatchery and
+    the living pond is accepted. This is the flywheel closing on a live build, not a fixture.
+    """
+    lifeless = {"grid": [8, 8], "start_bread": 12, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "granary", "x": 1, "y": 0}]}
+    living = {"grid": [8, 8], "start_bread": 12, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "granary", "x": 1, "y": 0},
+        {"type": "hatchery", "x": 2, "y": 0}]}
+
+    def script(packet):
+        fixed = any(d.criterion == "onepond_liveliness" for d in packet.defects)
+        return {"onepond_config.json": json.dumps(living if fixed else lifeless)}
+
+    from harness.icarus.llm_builder import ScriptedGenerationClient
+    registry = build_onepond_registry(tmp_path / "lock")
+    gatekeeper = Gatekeeper(git_repo, ratchet_dir=tmp_path / "ratchet")
+    store = RunStore(tmp_path / "state.json")
+    runner = AutonomousRunner(
+        store=store, repo_root=git_repo, registry=registry, gatekeeper=gatekeeper,
+        reviewer=StubReviewer(lambda r: True),
+        icarus_builder=LLMBuilder(ScriptedGenerationClient(script)),
+        staging_root=tmp_path / "staging", max_rounds=4,
+    )
+    runner.submit(make_ticket("T-LIVE"))
+    recs = runner.run_pending()
+
+    assert recs[0].committed and recs[0].rounds >= 2   # rejected once, fixed on rework
+    accepted = json.loads(
+        (git_repo / "game" / "accepted" / "T-LIVE" / "onepond_config.json").read_text())
+    assert any(b["type"] == "hatchery" for b in accepted["buildings"])   # Icarus added the flock
+    assert simulate_solvency(accepted)["geese"] > 0                      # the accepted pond is alive
 
 
 def test_full_one_pond_has_all_building_types():

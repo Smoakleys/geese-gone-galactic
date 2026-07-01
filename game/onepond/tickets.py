@@ -62,6 +62,9 @@ _TITLES = {
 
 # Tickets that must also send geese to space earn a launch-viability acceptance criterion.
 _LAUNCH_TICKETS = {"T-POND-04"}
+# Ponds that invest in a granary (goose capacity) must keep a living flock — the harvested
+# liveliness gate. These are exactly the tickets that build a granary.
+_LIVELINESS_TICKETS = {"T-POND-03", "T-POND-04"}
 
 
 def _ticket(tid: str) -> Ticket:
@@ -75,6 +78,11 @@ def _ticket(tid: str) -> Ticket:
                             "economy without going bankrupt", stage=Stage.B,
             rubric_ref="game/onepond/rubric.md"),
     ]
+    if tid in _LIVELINESS_TICKETS:
+        criteria.append(AcceptanceCriterion(
+            id="AC_LIVE", text="not a dead pond: the granary's goose capacity is backed by a "
+                               "living flock — at least one goose is hatched within 20 ticks",
+            stage=Stage.A, check_hint="onepond_liveliness"))
     if tid in _LAUNCH_TICKETS:
         criteria.append(AcceptanceCriterion(
             id="AC3", text="the pond sends geese galactic: at least one goose is launched to "

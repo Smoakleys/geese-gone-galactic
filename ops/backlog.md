@@ -5,10 +5,11 @@ increment, tick it and add the next. This is guidance, not the stop condition �
 ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 
 ## Now
-- [ ] **Drive the liveliness gate through a real ticket** — author a One Pond ticket whose
-      acceptance criteria cite `onepond_liveliness` and drive it through `AutonomousRunner`
-      to acceptance at autonomy 1.0, the same way T-POND-04 exercised the launch check. This
-      proves the harvested check works as a live ticket gate, not just in isolation.
+- [ ] **Extend One Pond with a new mechanic + its own harvested check** — the flywheel is
+      proven; now grow the game. Add a real 5th mechanic to the world model (e.g. predators
+      that eat unprotected geese, or a pond-cleanliness/pollution stat), a ticket set that
+      builds it, and a deterministic check certifying the new failure mode. Drive to
+      acceptance at autonomy 1.0.
 
 ## Candidate increments (pick by value, not order)
 - [ ] Extend One Pond through the harness: a 4th mechanic, more tickets, a new
@@ -30,3 +31,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] First full flywheel turn: `onepond_liveliness` check makes the subjective "lifeless
       pond" (granary capacity, no hatched geese) defect a mechanical Stage-A gate; certified
       w/ good+bad fixtures, tests prove it closes the gap, 4/4 still green (94 tests)
+- [x] Liveliness gate driven through real tickets: T-POND-03/04 carry an `AC_LIVE` criterion
+      citing `onepond_liveliness`; e2e mints a `.onepond_geese_hatched` floor and a loop test
+      proves the gate forces rework (Icarus adds a hatchery) before acceptance (95 tests)
