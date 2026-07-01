@@ -1,8 +1,17 @@
 # Executable Plan: GGG v3 Harness (Phases 0–4)
 
 > Companion to `docs/PLAN.md` (the design/architecture doc). This is the *ordered,
-> executable* plan. **Phase 0.5 is already implemented** (see `harness/` + `tests/`,
-> 20 governance tests green); everything from Phase 0 (env) and Phase 1 onward is pending.
+> executable* plan; the rationale below still holds. **STATUS (live): Phases 0.5–4 are all
+> complete in software and the anti-complacency teeth are wired and verified — 112 governance
+> tests green.** Beyond the base plan: the taste→gate flywheel runs end-to-end (Stage C harvests
+> recurring subjective defects into `new_check`/`tighten_rubric` proposals; both halves
+> demonstrated), the visual gate runs live in Stage B, cold audits run periodically in the loop
+> and hard-block on a finding, and the self-mod validator has approved a real harness change
+> (harness-mod-6). One Pond drives 6 tickets to acceptance at autonomy 1.0. For the current
+> phase state and the running backlog see `docs/AUTOPILOT.md` and `ops/backlog.md` — those are
+> kept current every increment; this document is the original ordered plan and its design
+> rationale. Remaining work is external-hardware swaps behind existing tested seams (real
+> Godot+Xvfb, a GPU text-to-3D worker, the live Anthropic reviewer key).
 
 ## Context
 
