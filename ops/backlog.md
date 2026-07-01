@@ -71,3 +71,5 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] harness-mod-7: deterministic code checks are total functions — a non-UTF-8 or null-byte
       file is a clean Stage-A FAIL, never an uncaught exception crashing the loop (matches the CV
       checks' posture); self-mod validator approved (114 tests)
+- [x] Resource hygiene: `OnePondVisualReviewer` creates its render dir lazily (was `mkdtemp` in
+      `__init__`, leaking a temp dir per instantiation even when unused) (115 tests)

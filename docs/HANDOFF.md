@@ -7,7 +7,7 @@ you to wait for me for anything. Keep going." Neither you nor Icarus may ask him
 
 ## First actions on resume
 1. `cd C:\Users\bhump\geese-gone-galactic`
-2. `python -m pytest tests/ -q` → expect **114 passed**. If red, fixing that is job #1.
+2. `python -m pytest tests/ -q` → expect **115 passed**. If red, fixing that is job #1.
 3. Read `docs/AUTOPILOT.md` (the phase state + loop) and your memory index `MEMORY.md`
    (`ggg-autonomous-mandate`, `ggg-progress`).
 

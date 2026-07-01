@@ -43,8 +43,15 @@ class OnePondVisualReviewer(Reviewer):
         self._base = base
         self._worker = worker or StubScreenshotWorker()
         self._scorer = scorer or ReferenceAnchoredScorer()
-        self._render_dir = Path(render_dir) if render_dir else Path(
-            tempfile.mkdtemp(prefix="onepond_render_"))
+        # Don't create a temp dir eagerly — a reviewer that's never asked to render (or always
+        # given an explicit dir) shouldn't leak one. Resolved lazily on first render instead.
+        self._render_dir = Path(render_dir) if render_dir else None
+
+    def _renders(self) -> Path:
+        if self._render_dir is None:
+            self._render_dir = Path(tempfile.mkdtemp(prefix="onepond_render_"))
+        self._render_dir.mkdir(parents=True, exist_ok=True)
+        return self._render_dir
 
     def review(self, packet: ReviewPacket, ticket: Ticket) -> Verdict:
         config = self._config_from(packet)
@@ -57,8 +64,7 @@ class OnePondVisualReviewer(Reviewer):
             return self._base.review(packet, ticket)  # don't block a run on a missing optional dep
 
         try:
-            self._render_dir.mkdir(parents=True, exist_ok=True)
-            out = self._worker.render(config, self._render_dir / f"{packet.ticket_id}.png")
+            out = self._worker.render(config, self._renders() / f"{packet.ticket_id}.png")
             visual = self._scorer.score(out)
         except Exception as e:  # a config that won't even render is itself a visual defect
             return self._fail(ticket, packet, f"config did not render: {e}")
