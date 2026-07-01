@@ -81,3 +81,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
       `ConsensusReviewer` (`--consensus N`, scripted offline). Test proves agreeing models pass but
       a split vote is rejected fail-closed even with the visual gate passing; 6/6 with `--consensus 3`
       (120 tests)
+- [x] Ratchet floors surfaced on the dashboard: runner mirrors `gatekeeper.ratchet.floors()` into
+      the `RunStore` snapshot (new `floors` field) and the read-only HTML shows them + a KPI count
+      — the quality-never-regresses record is now visible to an operator (122 tests)

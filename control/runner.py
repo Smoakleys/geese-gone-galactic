@@ -153,6 +153,9 @@ class AutonomousRunner:
         existing = [c.id for c in self.registry.certified_checks()]
         proposals = DecisionLogReview(threshold=self.stage_c_threshold).analyze(records, existing)
         self.store.record_proposals([asdict(p) for p in proposals])
+        # Mirror the monotonic ratchet floors so the read-only dashboard can show the
+        # quality-never-regresses record without importing the gatekeeper.
+        self.store.record_floors(self.gatekeeper.ratchet.floors())
         return proposals
 
     def _run_one(self, ticket: Ticket) -> RunRecord:
