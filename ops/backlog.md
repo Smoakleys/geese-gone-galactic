@@ -104,3 +104,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] Game checks are total functions: a valid-JSON but malformed config (`buildings` not a list
       of dicts) was crashing placement/economy/liveliness/predator/water with an uncaught
       TypeError/AttributeError; now a clean Stage-A FAIL (harness-mod-7 principle for game/) (127)
+- [x] harness-mod-8: `run_stage_a` is fail-closed against a check that raises — an unexpected
+      exception from any certified check becomes a FAIL (never crashes the loop, never PASSes),
+      making the total-function guarantee structural at the runner; self-mod approved (128 tests)
