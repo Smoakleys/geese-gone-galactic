@@ -130,6 +130,12 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       5/5 acceptance, Stage-C harvest, and the post-build cold audit, all the way to a 0 exit
       code (plus an `--audit-every 0` variant). Regressions in the wiring, not just the units,
       are now caught.
+- [x] Sixth mechanic — **water access** (a new *spatial pairwise-adjacency* check, distinct from
+      cohesion's compactness). A `well` building waters hatcheries within a Manhattan radius; the
+      certified `onepond_water_access` check (opt-in: scoped to ponds that sink a well) fails any
+      layout with a hatchery stranded from water and mints `onepond_watered_hatcheries` as a
+      floor. New ticket T-POND-06 assembles all six building types (the whole pond) with the
+      hatchery watered, driven to acceptance — One Pond now accepts **6/6 at autonomy 1.0**.
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
@@ -140,7 +146,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of the ops-entrypoint e2e test: `python -m pytest tests/ -q` → 111 passed.
+As of the water-access mechanic (T-POND-06): `python -m pytest tests/ -q` → 112 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.

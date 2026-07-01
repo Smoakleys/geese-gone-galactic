@@ -23,6 +23,7 @@ BUILDING_TYPES: dict[str, dict] = {
     "granary":   {"cost": 3, "bread_delta": 0, "geese_delta": 0},   # neutral; raises capacity
     "launchpad": {"cost": 5, "bread_delta": -1, "geese_delta": 0},  # burns bread as fuel, launches geese
     "fence":     {"cost": 2, "bread_delta": 0, "geese_delta": 0},   # neutralizes one prowling predator
+    "well":      {"cost": 2, "bread_delta": 0, "geese_delta": 0},   # waters nearby hatcheries
 }
 GRANARY_CAPACITY_BONUS = 20
 BASE_CAPACITY = 20

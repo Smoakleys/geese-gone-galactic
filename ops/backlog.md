@@ -5,8 +5,8 @@ increment, tick it and add the next. This is guidance, not the stop condition �
 ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 
 ## Now
-- [ ] **Extend One Pond further** — a 6th mechanic + its own check/ticket, or a second harvested
-      check via Stage C, driven to acceptance at autonomy 1.0.
+- [ ] **Extend One Pond further** — a 7th mechanic, a second harvested check via Stage C, or a
+      new deterministic check for a different failure mode, driven to acceptance at autonomy 1.0.
 
 ## Candidate increments (pick by value, not order)
 - [ ] Extend One Pond through the harness: a 4th mechanic, more tickets, a new
@@ -59,3 +59,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
       previously-passing 0.33 layout now rejected, all tickets (≥0.7) still pass, cert green (109)
 - [x] Ops entrypoint e2e test: runs `run_onepond_autopilot.main` in a throwaway workspace to a
       0 exit code (5/5, clean audit); covers the glue the unit tests miss (111 tests)
+- [x] Sixth mechanic — water access: `well` building + certified `onepond_water_access` spatial
+      pairwise-adjacency check (opt-in on well presence); T-POND-06 (all six building types)
+      driven to acceptance 6/6 at autonomy 1.0 (112 tests)
