@@ -54,6 +54,7 @@ class RunStore:
             "records": [],
             "metrics": {"accepted": 0, "escape_hatch_builds": 0, "review_rounds": []},
             "blocked": [],
+            "stage_c_proposals": [],
         }
 
     def _read(self) -> dict:
@@ -124,6 +125,21 @@ class RunStore:
     def blocked(self) -> list[str]:
         return list(self._read()["blocked"])
 
+    # -- Stage C flywheel proposals ----------------------------------------------------
+
+    def record_proposals(self, proposals: list[dict]) -> None:
+        """Overwrite the current set of Stage-C ``ProposedAdjustment`` dicts.
+
+        Harvesting re-scans every staging tree, so the latest run's proposals are the whole
+        truth; we replace rather than append to avoid unbounded, stale accumulation.
+        """
+        data = self._read()
+        data["stage_c_proposals"] = list(proposals)
+        self._write(data)
+
+    def proposals(self) -> list[dict]:
+        return list(self._read().get("stage_c_proposals", []))
+
     def autonomy_rate(self) -> float:
         """Share of accepted work built with zero escape-hatch (Claude) help. Target -> 1.0."""
         m = self.metrics()
@@ -144,4 +160,5 @@ class RunStore:
             "accepted": data["metrics"]["accepted"],
             "blocked": data["blocked"],
             "total_records": len(data["records"]),
+            "stage_c_proposals": data.get("stage_c_proposals", []),
         }

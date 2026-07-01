@@ -5,14 +5,6 @@ increment, tick it and add the next. This is guidance, not the stop condition �
 ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 
 ## Now
-- [ ] **Turn Stage C in the live pipeline** — `harness/review/decision_log_review.py`
-      (`DecisionLogReview` / `load_defect_records`) is only used in tests; it is NOT
-      invoked by `control/runner.py` or `scripts/run_onepond_autopilot.py`. Wire it in:
-      after `run_pending`, harvest builder decision logs from the STAGING trees (the
-      logs are in `FORBIDDEN_ARTIFACT_NAMES`, so never in `game/accepted`), run
-      `analyze`, and surface `ProposedAdjustment`s in the run summary + `RunStore`
-      snapshot (new field, don't break the existing shape). Test: a recurring defect
-      (>= threshold) yields a proposal end-to-end through the runner.
 - [ ] **Close one full flywheel turn** — take a proposal Stage C surfaces and author the
       deterministic check it suggests (with good/bad fixtures + certification), proving a
       subjective Stage-B defect became a mechanical Stage-A gate.
@@ -31,3 +23,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] harness-mod-5 ratchet floor gate (PR #9)
 - [x] docs sync (PR #10)
 - [x] anti-stop enforcement: Stop hook + sentinels + external driver (this PR)
+- [x] Stage C wired into the live pipeline: runner harvests staging decision logs after
+      run_pending, persists `stage_c_proposals` to the store, autopilot prints them; e2e
+      test proves a recurring cross-ticket defect yields a proposal (89 tests)
