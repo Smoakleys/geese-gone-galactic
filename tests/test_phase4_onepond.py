@@ -305,6 +305,34 @@ def test_visual_reviewer_passes_real_pond_and_defers_to_base(tmp_path):
     assert verdict.passed and seen, "a real pond passes the CV floor and reaches the base reviewer"
 
 
+def test_visual_gate_over_consensus_is_the_full_stage_b_stack(tmp_path):
+    # The production-shaped Stage B: the CV visual floor wrapping a multi-model unanimous
+    # consensus. A real pond with agreeing models passes; the same pond with the visual gate
+    # still passing but the models split is rejected fail-closed (unanimity is required).
+    pytest.importorskip("PIL")
+    from game.onepond.review import OnePondVisualReviewer
+    from harness.review.consensus import ConsensusReviewer
+    from harness.review.model_client import always_fail_client, always_pass_client
+
+    config = {"grid": [8, 8], "start_bread": 14, "buildings": [
+        {"type": "bakery", "x": 1, "y": 1}, {"type": "hatchery", "x": 3, "y": 2},
+        {"type": "granary", "x": 5, "y": 4}]}
+
+    agree = OnePondVisualReviewer(
+        ConsensusReviewer([always_pass_client("m1"), always_pass_client("m2")]),
+        render_dir=tmp_path / "r1")
+    t, packet = _review_packet(config)
+    assert agree.review(packet, t).passed  # visual floor + unanimous consensus -> PASS
+
+    split = OnePondVisualReviewer(
+        ConsensusReviewer([always_pass_client("m1"), always_fail_client("m2")]),
+        render_dir=tmp_path / "r2")
+    t2, packet2 = _review_packet(config)
+    verdict = split.review(packet2, t2)
+    assert not verdict.passed  # a real pond, but the models disagree -> fail-closed
+    assert any("disagreement" in d.detail for d in verdict.defects)
+
+
 def test_visual_reviewer_blocks_unreadable_pond_before_base(tmp_path):
     pytest.importorskip("PIL")
     from game.onepond.review import OnePondVisualReviewer

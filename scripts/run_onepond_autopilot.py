@@ -52,15 +52,23 @@ def _init_repo(path: Path) -> Path:
     return path
 
 
-def _reviewer(render_dir=None):
-    """Stage B: the visual gate (mechanical CV floor) wrapping an offline scripted reviewer.
+def _reviewer(render_dir=None, consensus=0):
+    """Stage B: the visual gate (mechanical CV floor) wrapping a subjective reviewer.
 
-    The scripted reviewer supplies the (here, always-pass) subjective judgement; the visual
-    reviewer renders each config and blocks anything that doesn't read as a real pond. Swap the
-    scripted inner reviewer for a real Anthropic reviewer in production — the wiring is unchanged.
+    The visual reviewer renders each config and blocks anything that doesn't read as a real
+    pond; beneath it sits the subjective judgement. With ``consensus=0`` that's a single scripted
+    reviewer; with ``consensus=N`` it's an N-model ``ConsensusReviewer`` (unanimity required,
+    fail-closed) — the production-shaped stack, with scripted models standing in for real ones.
+    Swap the scripted clients for ``AnthropicChatClient``s in production; the wiring is unchanged.
     """
     from game.onepond.review import OnePondVisualReviewer
-    return OnePondVisualReviewer(StubReviewer(lambda rnd: True), render_dir=render_dir)
+    if consensus > 0:
+        from harness.review.consensus import ConsensusReviewer
+        from harness.review.model_client import always_pass_client
+        base = ConsensusReviewer([always_pass_client(f"model-{i+1}") for i in range(consensus)])
+    else:
+        base = StubReviewer(lambda rnd: True)
+    return OnePondVisualReviewer(base, render_dir=render_dir)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -69,6 +77,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="persistent workspace (default: a throwaway temp sandbox)")
     ap.add_argument("--audit-every", type=int, default=3, dest="audit_every",
                     help="run a periodic in-loop cold audit every N committed tickets (0 = off)")
+    ap.add_argument("--consensus", type=int, default=0,
+                    help="Stage-B subjective reviewer = N-model unanimous consensus (0 = single)")
     ap.add_argument("--serve", action="store_true", help="serve the control dashboard after the run")
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8787)
@@ -82,7 +92,7 @@ def main(argv: list[str] | None = None) -> int:
 
     runner = AutonomousRunner(
         store=store, repo_root=repo, registry=registry, gatekeeper=gatekeeper,
-        reviewer=_reviewer(render_dir=harness_dir / "renders"),
+        reviewer=_reviewer(render_dir=harness_dir / "renders", consensus=args.consensus),
         icarus_builder=LLMBuilder(onepond_generation_client()),
         staging_root=repo / "run" / "staging",
         audit_every=args.audit_every,  # periodic in-loop cold audit; hard-blocks on a finding

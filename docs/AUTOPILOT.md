@@ -136,6 +136,11 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       layout with a hatchery stranded from water and mints `onepond_watered_hatcheries` as a
       floor. New ticket T-POND-06 assembles all six building types (the whole pond) with the
       hatchery watered, driven to acceptance — One Pond now accepts **6/6 at autonomy 1.0**.
+- [x] Full production-shaped Stage B composed on One Pond: the visual CV floor now wraps a
+      multi-model `ConsensusReviewer` (unanimity required, fail-closed) via `--consensus N`, with
+      scripted models offline standing in for real ones. A test proves a real pond with agreeing
+      models passes but the same pond with a split vote is rejected fail-closed even though the
+      visual gate passed. (Further per-increment history lives in `ops/backlog.md`.)
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
@@ -146,7 +151,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of the One Pond lint tool: `python -m pytest tests/ -q` → 119 passed.
+As of the full Stage-B stack (visual + consensus): `python -m pytest tests/ -q` → 120 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.
