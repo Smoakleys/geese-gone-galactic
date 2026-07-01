@@ -55,6 +55,7 @@ class RunStore:
             "metrics": {"accepted": 0, "escape_hatch_builds": 0, "review_rounds": []},
             "blocked": [],
             "stage_c_proposals": [],
+            "audit": {"blocked": False, "summary": "", "count": 0},
         }
 
     def _read(self) -> dict:
@@ -140,6 +141,19 @@ class RunStore:
     def proposals(self) -> list[dict]:
         return list(self._read().get("stage_c_proposals", []))
 
+    # -- cold-audit state --------------------------------------------------------------
+
+    def record_audit(self, blocked: bool, summary: str) -> None:
+        """Record the latest in-loop cold-audit result (and bump the audit count)."""
+        data = self._read()
+        prev = data.get("audit", {})
+        data["audit"] = {"blocked": bool(blocked), "summary": summary,
+                         "count": int(prev.get("count", 0)) + 1}
+        self._write(data)
+
+    def audit(self) -> dict:
+        return dict(self._read().get("audit", {"blocked": False, "summary": "", "count": 0}))
+
     def autonomy_rate(self) -> float:
         """Share of accepted work built with zero escape-hatch (Claude) help. Target -> 1.0."""
         m = self.metrics()
@@ -161,4 +175,5 @@ class RunStore:
             "blocked": data["blocked"],
             "total_records": len(data["records"]),
             "stage_c_proposals": data.get("stage_c_proposals", []),
+            "audit": data.get("audit", {"blocked": False, "summary": "", "count": 0}),
         }

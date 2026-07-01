@@ -67,6 +67,8 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Run the One Pond build unattended.")
     ap.add_argument("--workdir", default=None,
                     help="persistent workspace (default: a throwaway temp sandbox)")
+    ap.add_argument("--audit-every", type=int, default=3, dest="audit_every",
+                    help="run a periodic in-loop cold audit every N committed tickets (0 = off)")
     ap.add_argument("--serve", action="store_true", help="serve the control dashboard after the run")
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8787)
@@ -83,6 +85,7 @@ def main(argv: list[str] | None = None) -> int:
         reviewer=_reviewer(render_dir=harness_dir / "renders"),
         icarus_builder=LLMBuilder(onepond_generation_client()),
         staging_root=repo / "run" / "staging",
+        audit_every=args.audit_every,  # periodic in-loop cold audit; hard-blocks on a finding
     )
     tickets = onepond_tickets()
     for ticket in tickets:

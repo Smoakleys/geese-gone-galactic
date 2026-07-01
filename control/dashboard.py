@@ -34,6 +34,10 @@ def render_html(store: RunStore) -> str:
         for r in reversed(store.records()[-20:])
     ) or "<tr><td colspan=5><em>no runs yet</em></td></tr>"
     blocked = ", ".join(snap["blocked"]) or "none"
+    audit = snap.get("audit", {"blocked": False, "summary": "", "count": 0})
+    audit_str = ("no audit yet" if not audit.get("count") else
+                 ("BLOCKED — " + audit.get("summary", "") if audit.get("blocked")
+                  else f"clean (x{audit.get('count')})"))
     proposals = snap.get("stage_c_proposals", [])
     prop_rows = "".join(
         f"<tr><td><code>{p.get('suggested_check_id','')}</code></td>"
@@ -60,6 +64,7 @@ def render_html(store: RunStore) -> str:
  <div>{len(proposals)}<br><small>stage-C proposals</small></div>
 </div>
 <p>Blocked tickets: {blocked}</p>
+<p>Cold audit: {audit_str}</p>
 <form method="post" action="/control/start"><button>Start</button></form>
 <form method="post" action="/control/pause"><button>Pause</button></form>
 <form method="post" action="/control/stop"><button>Stop</button></form>
