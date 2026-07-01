@@ -87,3 +87,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] Full-stack ops e2e: runs the real entrypoint with `--consensus 2 --audit-every 2` — all 13
       checks + visual+consensus Stage B + periodic & post-build cold audits + Stage-C + floors —
       to a 0 exit code, 6/6 clean (123 tests)
+- [x] Refreshed the stale `harness/README.md` (was "Phase 0.5 walking skeleton" claiming Phases
+      2–4 were future): current module map (review sub-modules, audit/, gen3d/, control/) + honest
+      "what's still external" section
