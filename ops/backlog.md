@@ -7,9 +7,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 ## Now
 - [ ] **Extend One Pond further** — a 6th mechanic + its own check/ticket, or a second harvested
       check via Stage C, driven to acceptance at autonomy 1.0.
-- [ ] **Prove the periodic audit catches a real regression end-to-end** — instead of an injected
-      auditor, corrupt an accepted artifact mid-run (or weaken a floor) and show the *real*
-      `cold_audit` path detects it and STOPs the runner. Closes the loop on the audit tooth.
 
 ## Candidate increments (pick by value, not order)
 - [ ] Extend One Pond through the harness: a 4th mechanic, more tickets, a new
@@ -52,3 +49,5 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] Periodic in-loop cold audits: runner `audit_every` re-audits every N committed tickets and
       hard-blocks (STOPs) on a finding; persisted to store + shown on dashboard; injectable
       `auditor` seam; autopilot defaults `--audit-every 3` (105 tests)
+- [x] Proved the real cold_audit path (no injected seam) catches a corrupted accepted artifact
+      mid-run and STOPs the runner (106 tests)
