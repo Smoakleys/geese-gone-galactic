@@ -22,10 +22,12 @@ BUILDING_TYPES: dict[str, dict] = {
     "hatchery":  {"cost": 6, "bread_delta": -2, "geese_delta": 1},  # eats bread, hatches geese
     "granary":   {"cost": 3, "bread_delta": 0, "geese_delta": 0},   # neutral; raises capacity
     "launchpad": {"cost": 5, "bread_delta": -1, "geese_delta": 0},  # burns bread as fuel, launches geese
+    "fence":     {"cost": 2, "bread_delta": 0, "geese_delta": 0},   # neutralizes one prowling predator
 }
 GRANARY_CAPACITY_BONUS = 20
 BASE_CAPACITY = 20
 LAUNCH_RATE = 1  # geese each launchpad sends galactic per tick, drawn from the on-pond flock
+PREDATOR_RATE = 1  # geese each un-fenced predator eats per tick, from the standing flock
 
 
 class PlacementError(ValueError):
@@ -46,6 +48,8 @@ class World:
     bread: int = 10
     geese: int = 0
     launched: int = 0  # geese sent galactic — the score that makes it Geese Gone Galactic
+    predators: int = 0  # foxes prowling the pond; each un-fenced one eats a goose per tick
+    eaten: int = 0      # geese lost to predators over the run (a failure signal, not a score)
     tick_count: int = 0
     buildings: list[Building] = field(default_factory=list)
 
@@ -89,11 +93,25 @@ class World:
         """Geese that can be sent galactic per tick, across all launchpads."""
         return sum(1 for b in self.buildings if b.type == "launchpad") * LAUNCH_RATE
 
+    @property
+    def fences(self) -> int:
+        return sum(1 for b in self.buildings if b.type == "fence")
+
+    @property
+    def effective_predators(self) -> int:
+        """Predators left prowling after fences neutralize them one-for-one (never negative)."""
+        return max(0, self.predators - self.fences) * PREDATOR_RATE
+
     def tick(self, n: int = 1) -> None:
         for _ in range(n):
             self.bread = min(self.capacity, self.bread + self.net_bread_delta())
             self.geese += sum(BUILDING_TYPES[b.type]["geese_delta"] for b in self.buildings)
-            # Launch after hatching: each launchpad sends geese galactic, drawn from the flock.
+            # Predators strike after hatching, before launch: an un-fenced pond loses geese from
+            # its standing flock. A fully-fenced pond (fences >= predators) loses none.
+            eaten = min(self.effective_predators, self.geese)
+            self.geese -= eaten
+            self.eaten += eaten
+            # Launch after predation: each launchpad sends surviving geese galactic.
             launched = min(self.launch_capacity, self.geese)
             self.geese -= launched
             self.launched += launched
@@ -107,6 +125,8 @@ class World:
             "bread": self.bread,
             "geese": self.geese,
             "launched": self.launched,
+            "predators": self.predators,
+            "eaten": self.eaten,
             "tick_count": self.tick_count,
             "buildings": [{"type": b.type, "x": b.x, "y": b.y} for b in self.buildings],
         }
@@ -116,6 +136,7 @@ class World:
         gw, gh = data.get("grid", [8, 8])
         w = cls(grid_w=int(gw), grid_h=int(gh), bread=int(data.get("bread", 10)),
                 geese=int(data.get("geese", 0)), launched=int(data.get("launched", 0)),
+                predators=int(data.get("predators", 0)), eaten=int(data.get("eaten", 0)),
                 tick_count=int(data.get("tick_count", 0)))
         w.buildings = [Building(b["type"], int(b["x"]), int(b["y"]))
                        for b in data.get("buildings", [])]
@@ -137,7 +158,8 @@ def build_world(config: dict) -> World:
     unaffordable at placement time).
     """
     gw, gh = config.get("grid", [8, 8])
-    world = World(grid_w=int(gw), grid_h=int(gh), bread=int(config.get("start_bread", 10)))
+    world = World(grid_w=int(gw), grid_h=int(gh), bread=int(config.get("start_bread", 10)),
+                  predators=int(config.get("predators", 0)))
     for spec in config.get("buildings", []):
         world.place(spec["type"], int(spec["x"]), int(spec["y"]))
     return world
@@ -162,5 +184,8 @@ def simulate_solvency(config: dict, horizon: int = 20) -> dict:
         "geese": world.geese,
         "launched": world.launched,
         "launch_capacity": world.launch_capacity,
+        "predators": world.predators,
+        "effective_predators": world.effective_predators,
+        "eaten": world.eaten,
         "buildings": len(world.buildings),
     }

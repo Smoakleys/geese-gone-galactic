@@ -1,0 +1,25 @@
+{
+  "buildings": [
+    {
+      "type": "bakery",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "hatchery",
+      "x": 1,
+      "y": 0
+    },
+    {
+      "type": "fence",
+      "x": 2,
+      "y": 0
+    }
+  ],
+  "grid": [
+    8,
+    8
+  ],
+  "predators": 1,
+  "start_bread": 12
+}

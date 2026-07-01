@@ -64,6 +64,14 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       `.onepond_geese_hatched` floor is minted during the run; a loop-level test proves the
       gate catches a lifeless in-loop build and drives Icarus to add a hatchery on rework
       before acceptance. Still 4/4 at autonomy 1.0.
+- [x] New game mechanic + its own harvested check — **predators**. Foxes (`"predators": n`)
+      eat one goose per un-fenced predator per tick; a new `fence` building neutralizes them
+      one-for-one. Orthogonal to the existing numerics (predators default 0, so tickets 01–04
+      are unchanged). New certified `onepond_predator_safe` check (scoped to ponds that invite
+      predators AND hatch geese) fails any whose flock is culled to nothing, minting
+      `onepond_geese_protected` as a floor. New ticket T-POND-05 (the complete galactic
+      sanctuary: all five building types, fences out two foxes while launching) driven to
+      acceptance — One Pond now accepts **5/5 at autonomy 1.0**.
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
@@ -74,7 +82,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of the liveliness gate through tickets: `python -m pytest tests/ -q` → 95 passed.
+As of the predator mechanic: `python -m pytest tests/ -q` → 98 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.

@@ -7,7 +7,7 @@ you to wait for me for anything. Keep going." Neither you nor Icarus may ask him
 
 ## First actions on resume
 1. `cd C:\Users\bhump\geese-gone-galactic`
-2. `python -m pytest tests/ -q` → expect **95 passed**. If red, fixing that is job #1.
+2. `python -m pytest tests/ -q` → expect **98 passed**. If red, fixing that is job #1.
 3. Read `docs/AUTOPILOT.md` (the phase state + loop) and your memory index `MEMORY.md`
    (`ggg-autonomous-mandate`, `ggg-progress`).
 
@@ -33,8 +33,13 @@ via the GitHub API using stored git creds — `gh` CLI is NOT installed).
   is registered. One Pond still accepts 4/4 at autonomy 1.0.
 - **Liveliness gate is now a demanded live gate:** T-POND-03/04 carry an `AC_LIVE` criterion
   citing `onepond_liveliness`; the e2e mints a `.onepond_geese_hatched` floor and a loop test
-  proves the gate forces rework (Icarus adds a hatchery) before acceptance. Next: extend One
-  Pond with a new mechanic + its own harvested check (see `ops/backlog.md`).
+  proves the gate forces rework (Icarus adds a hatchery) before acceptance.
+- **New predator mechanic:** foxes (`"predators": n` in the config) eat one goose per un-fenced
+  predator per tick; a new `fence` building neutralizes them one-for-one. It's opt-in (default
+  0), so tickets 01–04 are unchanged. New certified `onepond_predator_safe` check mints an
+  `onepond_geese_protected` floor. T-POND-05 (all five building types — the galactic sanctuary)
+  is driven to acceptance: One Pond now accepts **5/5 at autonomy 1.0**. Next: harvest a check
+  from a real Stage-C proposal, or render T-POND-05 through the visual gate (see backlog).
 - The harness runs unattended: `python scripts/run_onepond_autopilot.py` (add `--serve` for the
   dashboard). Verified to make real Gatekeeper commits at 100% autonomy.
 

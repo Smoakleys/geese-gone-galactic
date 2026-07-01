@@ -5,11 +5,13 @@ increment, tick it and add the next. This is guidance, not the stop condition �
 ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 
 ## Now
-- [ ] **Extend One Pond with a new mechanic + its own harvested check** — the flywheel is
-      proven; now grow the game. Add a real 5th mechanic to the world model (e.g. predators
-      that eat unprotected geese, or a pond-cleanliness/pollution stat), a ticket set that
-      builds it, and a deterministic check certifying the new failure mode. Drive to
-      acceptance at autonomy 1.0.
+- [ ] **Harvest the predator check from a real Stage-C proposal** — right now the predator
+      subsystem's check was hand-authored. Close the loop the honest way: run tickets whose
+      builds trip a recurring subjective "unsafe pond" Stage-B defect, let Stage C surface the
+      proposal, then author the check against that proposal's signature. (Or: pick the next
+      mechanic and drive its check through Stage C rather than by hand.)
+- [ ] **Render T-POND-05 through the visual gate** — extend `StubScreenshotWorker` (or the
+      real Godot drop-in) to draw fences/predators so the sanctuary pond is visually gated too.
 
 ## Candidate increments (pick by value, not order)
 - [ ] Extend One Pond through the harness: a 4th mechanic, more tickets, a new
@@ -34,3 +36,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] Liveliness gate driven through real tickets: T-POND-03/04 carry an `AC_LIVE` criterion
       citing `onepond_liveliness`; e2e mints a `.onepond_geese_hatched` floor and a loop test
       proves the gate forces rework (Icarus adds a hatchery) before acceptance (95 tests)
+- [x] New predator mechanic + `onepond_predator_safe` check: foxes eat un-fenced geese, a
+      new `fence` building protects them; T-POND-05 (all five building types) fences out two
+      foxes while launching, driven to acceptance 5/5 at autonomy 1.0 (98 tests)
