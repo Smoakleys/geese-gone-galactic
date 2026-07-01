@@ -15,9 +15,13 @@ the game, is the near-term product.
 - **Phase 1 (real deterministic check runner) COMPLETE** — cost-tiered Stage A with real
   code checks (Python-syntax, JSON) and CV checks (image loadable / min-resolution /
   not-blank, via Pillow); checks emit metrics minted as ratchet floors.
-- **31 governance tests pass:** `pip install -r requirements.txt && python -m pytest tests/ -q`.
-- **Not started:** Phase 0 env (Godot + Xvfb screenshot, GPU spike), Phase 2 real Opus
-  reviewer + visual gate, Phase 3 real Icarus + dashboard, Phase 4 One Pond.
+- **Phase 2 (reviewers + four teeth) COMPLETE** — `LLMReviewer` + multi-model
+  `ConsensusReviewer` behind a `ChatClient` seam (offline-scripted; Anthropic in prod),
+  reference-anchored CV visual gate validated on a labeled set, plateau detection in the loop,
+  hard-blocking cold audits, decision-log→new-check flywheel.
+- **51 governance tests pass:** `pip install -r requirements.txt && python -m pytest tests/ -q`.
+- **Not started:** Phase 0 env (Godot + Xvfb screenshot, GPU spike), Phase 3 real Icarus +
+  dashboard/control surface, Phase 3.5 text-to-3D spike, Phase 4 One Pond.
 
 ## The one invariant to preserve
 Commit authority lives **only** in `harness/gatekeeper.py`. Builders write to gitignored

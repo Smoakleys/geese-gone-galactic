@@ -98,10 +98,13 @@ tests/    test_walking_skeleton.py
   `non_empty_artifact` check; explicit `CheckCost` tiers make Stage A cost-tiered (cheap FAIL
   short-circuits expensive pixel analysis); checks emit numeric metrics the Gatekeeper mints as
   monotonic ratchet floors. 31 governance tests green.
-- **Phase 2 — Reviewers + four teeth.** Clean adversarial Opus review (real, behind the
-  `Reviewer` seam), decision-log review → harness adjustments, visual gate (decomposed +
-  reference-anchored + multi-model + CV + prompt library tested on a labeled good/bad image
-  set), plateau detection, cold audits.
+- **Phase 2 — Reviewers + four teeth. ✅ DONE.** Real Stage-B reviewer behind a `ChatClient`
+  seam (`LLMReviewer`; scripted offline, Anthropic Opus in prod), multi-model `ConsensusReviewer`
+  that fails closed on disagreement, decision-log→new-check flywheel, a decomposed
+  reference-anchored CV visual gate validated on a committed labeled good/bad image set, plateau
+  detection wired into the loop as an independent escalation trigger, and hard-blocking cold
+  audits. 51 governance tests green. (Live wiring of the visual gate to real reference art lands
+  with One Pond in Phase 4.)
 - **Phase 3 — Real Icarus + control surface.** `LocalLLMBuilder` behind the seam; dashboard +
   phone heartbeat + Start/Stop/Pause.
 - **Phase 3.5 — Text-to-3D spike.** Pick a generator (behind the GPU-worker seam) by measured

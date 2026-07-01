@@ -30,3 +30,27 @@ without a matching entry. Reverts are one command via the token in `harness/reve
 - Rationale: replace the trivial `non_empty_artifact` placeholder with a real, cost-tiered
   Stage A that catches broken/blank/tiny art and code deterministically, and make quality
   floors ratchet on real measurements. See `docs/EXECUTION_PLAN.md` Phase 1.
+
+## harness-mod-2 — Phase 2 reviewers + four anti-complacency teeth
+- Model-client seam (`review/model_client.py`): `ChatClient` protocol, deterministic
+  `ScriptedChatClient` for offline tests, optional lazily-imported `AnthropicChatClient` for
+  a real fresh-session Opus reviewer. Models answer per-criterion only; the overall verdict
+  stays derived/default-FAIL.
+- `LLMReviewer` (`review/llm_reviewer.py`): real Stage-B reviewer behind the seam; decomposes
+  the isolated packet into one question per criterion, fresh reviewer id per round,
+  evidence-required.
+- Multi-model `ConsensusReviewer` (`review/consensus.py`): unanimity required, fails closed on
+  any disagreement — catches a single-model wrong verdict; can only tighten, never loosen.
+- Visual gate (`review/visual_gate.py`): decomposed CV signals (variance, resolution, edge
+  coherence, palette) + reference-anchored histogram similarity; validated by
+  `evaluate_labeled_set` against a committed labeled good/bad image set (verification item 7).
+- Plateau detection (`metrics/plateau.py`) wired into `loop.py` as an independent escalation
+  trigger (stuck defect signature OR no score gain over a window), distinct from the
+  max-rounds ceiling.
+- Cold audits (`audit/cold_audit.py`): re-verify accepted artifacts mechanically (checks +
+  hashes) and optionally via a fresh cold re-review; any finding hard-blocks.
+- Decision-log -> new-check flywheel (`review/decision_log_review.py`): Stage C reads decision
+  logs / recurring subjective defects and proposes deterministic checks (taste→gate).
+- Rationale: turn the stubbed reviewer into real, adversarial, multi-lens Stage B and stand up
+  the anti-coasting teeth. Real LLM/vision calls sit behind seams so the suite stays offline.
+  See `docs/EXECUTION_PLAN.md` Phase 2.
