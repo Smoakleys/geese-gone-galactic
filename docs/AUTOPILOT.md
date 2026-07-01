@@ -151,7 +151,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of the reference-anchored live visual gate: `python -m pytest tests/ -q` → 124 passed.
+As of the reference-asset guard test: `python -m pytest tests/ -q` → 125 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.

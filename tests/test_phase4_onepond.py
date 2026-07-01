@@ -281,6 +281,19 @@ def _review_packet(config: dict, tid: str = "T-0001"):
         artifact_files={"onepond_config.json": json.dumps(config)})
 
 
+def test_committed_reference_render_is_a_valid_pond_image():
+    # The committed reference is load-bearing: the whole live visual gate anchors to it. Guard
+    # it so a bad regeneration (corrupt/blank/wrong-size) is caught rather than silently
+    # weakening the gate.
+    pytest.importorskip("PIL")
+    from game.onepond.review import _REFERENCE
+    from harness.review.visual_gate import ReferenceAnchoredScorer, extract_signals
+    assert _REFERENCE.exists()
+    sig = extract_signals(_REFERENCE)
+    assert sig.width == sig.height == 128           # the stub renderer's 8x8 pond canvas
+    assert ReferenceAnchoredScorer().score(_REFERENCE).passed  # itself a real, non-blank pond
+
+
 def test_visual_reviewer_is_reference_anchored(tmp_path):
     # The live visual gate scores against the committed canonical pond reference, not in a
     # vacuum: a real pond passes, but a structurally-fine yet off-palette render is rejected on
