@@ -40,10 +40,10 @@ def render_html(store: RunStore) -> str:
                   else f"clean (x{audit.get('count')})"))
     proposals = snap.get("stage_c_proposals", [])
     prop_rows = "".join(
-        f"<tr><td><code>{p.get('suggested_check_id','')}</code></td>"
+        f"<tr><td>{p.get('kind','')}</td><td><code>{p.get('suggested_check_id','')}</code></td>"
         f"<td>{p.get('occurrences','')}</td><td>{p.get('signature','')}</td></tr>"
         for p in proposals
-    ) or "<tr><td colspan=3><em>none — no recurring subjective defect above threshold</em></td></tr>"
+    ) or "<tr><td colspan=4><em>none — no recurring subjective defect above threshold</em></td></tr>"
     return f"""<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GGG harness — control</title>
@@ -72,7 +72,7 @@ def render_html(store: RunStore) -> str:
 <th>rounds</th><th>builder</th></tr></thead><tbody>{rows}</tbody></table>
 <h2>Stage C — taste&rarr;gate proposals</h2>
 <p><small>recurring subjective defects Stage C suggests turning into deterministic checks</small></p>
-<table><thead><tr><th>suggested check</th><th>occurrences</th><th>defect signature</th></tr></thead>
+<table><thead><tr><th>kind</th><th>check</th><th>occurrences</th><th>defect signature</th></tr></thead>
 <tbody>{prop_rows}</tbody></table>
 <p><small>read-only view; the only mutation is Start/Stop/Pause. Poll /heartbeat for liveness.</small></p>
 </body></html>"""
