@@ -281,6 +281,15 @@ def _review_packet(config: dict, tid: str = "T-0001"):
         artifact_files={"onepond_config.json": json.dumps(config)})
 
 
+def test_visual_reviewer_does_not_create_render_dir_until_used(tmp_path):
+    # Resource hygiene: constructing a reviewer must not create its render dir eagerly.
+    from game.onepond.review import OnePondVisualReviewer
+    from harness.review.base import StubReviewer
+    rd = tmp_path / "renders"
+    OnePondVisualReviewer(StubReviewer(lambda x: True), render_dir=rd)
+    assert not rd.exists()
+
+
 def test_visual_reviewer_passes_real_pond_and_defers_to_base(tmp_path):
     pytest.importorskip("PIL")
     from game.onepond.review import OnePondVisualReviewer
