@@ -125,11 +125,19 @@ class Gatekeeper:
     # -- helpers -----------------------------------------------------------------------
 
     def _baseline_metrics(self, accepted_dir: Path, results: list[CheckResult]) -> dict[str, float]:
+        tid = accepted_dir.name
         non_empty = sum(1 for f in accepted_dir.rglob("*") if f.is_file() and f.stat().st_size > 0)
-        return {
-            f"{accepted_dir.name}.non_empty_files": float(non_empty),
-            f"{accepted_dir.name}.checks_passed": float(sum(1 for r in results if r.result == Result.PASS)),
+        metrics: dict[str, float] = {
+            f"{tid}.non_empty_files": float(non_empty),
+            f"{tid}.checks_passed": float(sum(1 for r in results if r.result == Result.PASS)),
         }
+        # Fold in the real numeric quality signals each certified check emitted (min
+        # resolution, pixel variance, ...). These become monotonic floors: this artifact can
+        # never be re-accepted below the sharpness it was first accepted at.
+        for r in results:
+            for key, value in r.metrics.items():
+                metrics[f"{tid}.{key}"] = float(value)
+        return metrics
 
     def _git(self, *args: str) -> str:
         return subprocess.run(

@@ -93,8 +93,11 @@ tests/    test_walking_skeleton.py
 - **Phase 0.5 — Walking skeleton. ✅ DONE.** Real Gatekeeper + state machine + `criteria_hash`
   freeze, `StubBuilder`, one certified check, `StubReviewer` (FAIL-then-PASS). Proves the whole
   structural core at zero LLM/art cost.
-- **Phase 1 — Real deterministic check runner.** Real code/CV checks replacing the trivial
-  `non_empty_artifact` check; cost-tiered Stage A; ratchet minting on real metrics.
+- **Phase 1 — Real deterministic check runner. ✅ DONE.** Real code checks (Python-syntax,
+  JSON) + CV checks (image loadable / min-resolution / not-blank, via Pillow) join the trivial
+  `non_empty_artifact` check; explicit `CheckCost` tiers make Stage A cost-tiered (cheap FAIL
+  short-circuits expensive pixel analysis); checks emit numeric metrics the Gatekeeper mints as
+  monotonic ratchet floors. 31 governance tests green.
 - **Phase 2 — Reviewers + four teeth.** Clean adversarial Opus review (real, behind the
   `Reviewer` seam), decision-log review → harness adjustments, visual gate (decomposed +
   reference-anchored + multi-model + CV + prompt library tested on a labeled good/bad image
