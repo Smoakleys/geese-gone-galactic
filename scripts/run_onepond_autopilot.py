@@ -34,6 +34,7 @@ from control.runner import AutonomousRunner
 from control.store import RunStore
 from game.onepond.checks import build_onepond_registry
 from game.onepond.tickets import onepond_generation_client, onepond_tickets
+from harness.audit.cold_audit import cold_audit
 from harness.gatekeeper import Gatekeeper
 from harness.icarus.llm_builder import LLMBuilder
 from harness.review.base import StubReviewer
@@ -83,7 +84,8 @@ def main(argv: list[str] | None = None) -> int:
         icarus_builder=LLMBuilder(onepond_generation_client()),
         staging_root=repo / "run" / "staging",
     )
-    for ticket in onepond_tickets():
+    tickets = onepond_tickets()
+    for ticket in tickets:
         runner.submit(ticket)
 
     print(f"workspace: {repo}")
@@ -108,12 +110,22 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print("  none above threshold")
 
+    # Cold audit: acceptance is not forever. Re-verify the committed tree from scratch
+    # (mechanical: hashes + certified checks; adversarial: a fresh visual re-review of the
+    # committed bytes). Any finding hard-blocks — a green build with a dirty audit is a failure.
+    by_id = {t.id: t for t in tickets}
+    audit = cold_audit(gatekeeper, registry,
+                       reviewer=_reviewer(render_dir=harness_dir / "audit_renders"),
+                       ticket_provider=by_id.get)
+    print("\n=== cold audit ===")
+    print(f"  {audit.summary()}")
+
     if args.serve:
         from control.dashboard import serve
         print(f"\nserving dashboard on http://{args.host}:{args.port}/  (Ctrl-C to stop)")
         serve(store.path, args.host, args.port)
 
-    return 0 if all(r.committed for r in records) else 1
+    return 0 if (all(r.committed for r in records) and not audit.blocked) else 1
 
 
 if __name__ == "__main__":

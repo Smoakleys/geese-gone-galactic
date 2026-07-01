@@ -333,6 +333,16 @@ def test_harness_builds_one_pond_end_to_end(git_repo, tmp_path):
     assert any(k.endswith(".onepond_geese_protected") for k in floors)  # predator safety ran too
     assert run_regression_suite(gatekeeper, registry) == []
 
+    # Cold audit (acceptance is not forever): re-verify the committed tree mechanically AND with
+    # a fresh cold visual re-review of the committed bytes — must be clean.
+    from harness.audit.cold_audit import cold_audit
+    by_id = {t.id: t for t in tickets}
+    audit = cold_audit(gatekeeper, registry,
+                       reviewer=OnePondVisualReviewer(StubReviewer(lambda r: True),
+                                                      render_dir=tmp_path / "audit_renders"),
+                       ticket_provider=by_id.get)
+    assert not audit.blocked, audit.summary()
+
 
 def test_liveliness_gate_forces_rework_in_the_loop(git_repo, tmp_path):
     """The harvested check catches a real in-loop build and drives Icarus to fix it.

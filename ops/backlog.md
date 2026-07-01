@@ -5,10 +5,11 @@ increment, tick it and add the next. This is guidance, not the stop condition �
 ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 
 ## Now
-- [ ] **Quality hardening pass** — targeted correctness review of `harness/` + `control/`
-      seams with regression tests (high-confidence only; don't invent fixes).
 - [ ] **Extend One Pond further** — a 6th mechanic + its own check/ticket, or a second harvested
       check via Stage C, driven to acceptance at autonomy 1.0.
+- [ ] **Schedule periodic cold audits** — the audit now runs once post-build; wire a periodic
+      unannounced re-audit (the tooth's real intent) into the control loop, hard-blocking further
+      acceptances when a finding appears.
 
 ## Candidate increments (pick by value, not order)
 - [ ] Extend One Pond through the harness: a 4th mechanic, more tickets, a new
@@ -46,3 +47,5 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
       scattered layouts a bare Stage A passed; test asserts proposed-id == authored-id (102 tests)
 - [x] Stage-C proposals surfaced on the dashboard: new taste→gate proposals table + KPI count
       from the `stage_c_proposals` snapshot; tests cover empty + populated render (103 tests)
+- [x] Cold audit wired into live ops: autopilot re-verifies the committed tree (mechanical +
+      cold visual re-review) after every build and fails exit-0 on any finding; e2e asserts clean
