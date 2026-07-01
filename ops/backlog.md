@@ -5,13 +5,10 @@ increment, tick it and add the next. This is guidance, not the stop condition �
 ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 
 ## Now
-- [ ] **Surface Stage-C proposals on the dashboard** — proposals are persisted to the
-      `RunStore` (`stage_c_proposals`) and printed by the autopilot, but the read-only
-      dashboard/heartbeat HTML doesn't show them. Render the current proposals (id, signature,
-      occurrences) so an operator watching the dashboard sees the flywheel's pending
-      taste→gate suggestions without reading the console.
 - [ ] **Quality hardening pass** — targeted correctness review of `harness/` + `control/`
       seams with regression tests (high-confidence only; don't invent fixes).
+- [ ] **Extend One Pond further** — a 6th mechanic + its own check/ticket, or a second harvested
+      check via Stage C, driven to acceptance at autonomy 1.0.
 
 ## Candidate increments (pick by value, not order)
 - [ ] Extend One Pond through the harness: a 4th mechanic, more tickets, a new
@@ -47,3 +44,5 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] Honest flywheel end-to-end: recurring subjective `cohesion` defect → Stage C proposes
       `auto_cohesion_check` → `CohesionCheck` authored with that exact id, certified, now gates
       scattered layouts a bare Stage A passed; test asserts proposed-id == authored-id (102 tests)
+- [x] Stage-C proposals surfaced on the dashboard: new taste→gate proposals table + KPI count
+      from the `stage_c_proposals` snapshot; tests cover empty + populated render (103 tests)

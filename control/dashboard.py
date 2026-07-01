@@ -34,6 +34,12 @@ def render_html(store: RunStore) -> str:
         for r in reversed(store.records()[-20:])
     ) or "<tr><td colspan=5><em>no runs yet</em></td></tr>"
     blocked = ", ".join(snap["blocked"]) or "none"
+    proposals = snap.get("stage_c_proposals", [])
+    prop_rows = "".join(
+        f"<tr><td><code>{p.get('suggested_check_id','')}</code></td>"
+        f"<td>{p.get('occurrences','')}</td><td>{p.get('signature','')}</td></tr>"
+        for p in proposals
+    ) or "<tr><td colspan=3><em>none — no recurring subjective defect above threshold</em></td></tr>"
     return f"""<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GGG harness — control</title>
@@ -51,6 +57,7 @@ def render_html(store: RunStore) -> str:
  <div>{snap['autonomy_rate']*100:.0f}%<br><small>autonomy rate</small></div>
  <div>{snap['accepted']}<br><small>accepted</small></div>
  <div>{snap['total_records']}<br><small>runs</small></div>
+ <div>{len(proposals)}<br><small>stage-C proposals</small></div>
 </div>
 <p>Blocked tickets: {blocked}</p>
 <form method="post" action="/control/start"><button>Start</button></form>
@@ -58,6 +65,10 @@ def render_html(store: RunStore) -> str:
 <form method="post" action="/control/stop"><button>Stop</button></form>
 <table><thead><tr><th>ticket</th><th>final state</th><th>committed</th>
 <th>rounds</th><th>builder</th></tr></thead><tbody>{rows}</tbody></table>
+<h2>Stage C — taste&rarr;gate proposals</h2>
+<p><small>recurring subjective defects Stage C suggests turning into deterministic checks</small></p>
+<table><thead><tr><th>suggested check</th><th>occurrences</th><th>defect signature</th></tr></thead>
+<tbody>{prop_rows}</tbody></table>
 <p><small>read-only view; the only mutation is Start/Stop/Pause. Poll /heartbeat for liveness.</small></p>
 </body></html>"""
 

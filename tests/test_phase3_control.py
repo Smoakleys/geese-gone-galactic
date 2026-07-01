@@ -226,6 +226,17 @@ def test_render_html_offline(tmp_path):
     store.beat()
     html = render_html(store)
     assert "autonomy rate" in html and "RUNNING" in html
+    assert "no recurring subjective defect" in html  # empty Stage-C section renders
+
+
+def test_render_html_shows_stage_c_proposals(tmp_path):
+    store = RunStore(tmp_path / "state.json")
+    store.record_proposals([{"kind": "new_check", "signature": "cohesion:scattered",
+                             "occurrences": 4, "rationale": "...",
+                             "suggested_check_id": "auto_cohesion_check"}])
+    html = render_html(store)
+    assert "auto_cohesion_check" in html and "cohesion:scattered" in html
+    assert "stage-C proposals" in html
 
 
 def test_dashboard_serves_and_controls(tmp_path):
