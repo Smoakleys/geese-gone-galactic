@@ -30,9 +30,11 @@ _TILE = {
     "hatchery": (139, 69, 19),
     "granary": (150, 150, 160),
     "launchpad": (200, 60, 60),  # red pad — the galactic departure gate
+    "fence": (120, 82, 45),      # wooden stakes ringing the sanctuary
 }
 _POND = (34, 139, 34)
 _GRID_LINE = (24, 100, 24)
+_PREDATOR = (220, 120, 40)      # a prowling fox marked in the margin around the pond
 
 
 @runtime_checkable
@@ -71,6 +73,13 @@ class StubScreenshotWorker(ScreenshotWorker):
             y0 = self.margin + b.y * self.tile_px + 2
             d.rectangle([x0, y0, x0 + self.tile_px - 4, y0 + self.tile_px - 4],
                         fill=_TILE.get(b.type, (200, 200, 200)), outline=(60, 40, 20))
+        # Predators prowl the margin ring around the pond, so a hazardous config *looks*
+        # hazardous — one fox marker per declared predator, spaced along the top border.
+        for i in range(world.predators):
+            cx = self.margin + (i + 1) * self.tile_px
+            cy = max(1, self.margin // 2)
+            r = max(2, self.margin // 2 - 1)
+            d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=_PREDATOR, outline=(90, 40, 10))
         out_path = Path(out_path)
         out_path.parent.mkdir(parents=True, exist_ok=True)
         im.save(out_path)

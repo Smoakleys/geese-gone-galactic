@@ -7,7 +7,7 @@ you to wait for me for anything. Keep going." Neither you nor Icarus may ask him
 
 ## First actions on resume
 1. `cd C:\Users\bhump\geese-gone-galactic`
-2. `python -m pytest tests/ -q` → expect **98 passed**. If red, fixing that is job #1.
+2. `python -m pytest tests/ -q` → expect **99 passed**. If red, fixing that is job #1.
 3. Read `docs/AUTOPILOT.md` (the phase state + loop) and your memory index `MEMORY.md`
    (`ggg-autonomous-mandate`, `ggg-progress`).
 
@@ -38,8 +38,11 @@ via the GitHub API using stored git creds — `gh` CLI is NOT installed).
   predator per tick; a new `fence` building neutralizes them one-for-one. It's opt-in (default
   0), so tickets 01–04 are unchanged. New certified `onepond_predator_safe` check mints an
   `onepond_geese_protected` floor. T-POND-05 (all five building types — the galactic sanctuary)
-  is driven to acceptance: One Pond now accepts **5/5 at autonomy 1.0**. Next: harvest a check
-  from a real Stage-C proposal, or render T-POND-05 through the visual gate (see backlog).
+  is driven to acceptance: One Pond now accepts **5/5 at autonomy 1.0**.
+- **Sanctuary pond is visually gated:** the stub renderer draws the `fence` tile and prowling
+  predator markers; T-POND-05 renders and passes `ReferenceAnchoredScorer`. Next: wire the
+  render→visual-gate into the live Stage-B path (behind the reviewer seam) so every One Pond
+  acceptance is visually gated end-to-end, or harvest a check via a real Stage-C proposal.
 - The harness runs unattended: `python scripts/run_onepond_autopilot.py` (add `--serve` for the
   dashboard). Verified to make real Gatekeeper commits at 100% autonomy.
 
