@@ -8,6 +8,7 @@ the game, is the near-term product.
 - `docs/PLAN.md` — the design/architecture (why the harness exists, the anti-complacency teeth).
 - `docs/EXECUTION_PLAN.md` — the ordered Phases 0–4 plan and where we are.
 - `harness/README.md` — how the structural core fits together.
+- `docs/CHECKS.md` — the Stage-A gate catalog (all 13 certified checks: tier, scope, floor).
 
 ## Current status
 - **Phase 0.5 (walking skeleton) COMPLETE** — governance thesis proven with stub

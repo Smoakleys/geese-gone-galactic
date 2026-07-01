@@ -73,3 +73,5 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
       checks' posture); self-mod validator approved (114 tests)
 - [x] Resource hygiene: `OnePondVisualReviewer` creates its render dir lazily (was `mkdtemp` in
       `__init__`, leaking a temp dir per instantiation even when unused) (115 tests)
+- [x] `docs/CHECKS.md` — reference catalog of all 13 certified Stage-A checks (tier, scope, what
+      each gates, metric→floor) + the Stage-C flywheel; linked from CLAUDE.md; verified vs registry
