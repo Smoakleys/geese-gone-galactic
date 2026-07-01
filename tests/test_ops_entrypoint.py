@@ -45,3 +45,16 @@ def test_autopilot_main_audit_off_still_accepts(tmp_path):
 
     rc = autopilot.main(["--workdir", str(tmp_path / "ws2"), "--audit-every", "0"])
     assert rc == 0  # periodic audit disabled; the post-build audit still runs and is clean
+
+
+def test_autopilot_main_full_production_stack(tmp_path, capsys):
+    # The whole machine at once through the real entrypoint: all 13 certified Stage-A checks,
+    # Stage B = visual CV floor + a 2-model unanimous consensus, periodic + post-build cold
+    # audits, Stage-C harvest, and floors mirrored — driven to full acceptance at a 0 exit code.
+    pytest.importorskip("PIL")
+    import run_onepond_autopilot as autopilot
+
+    rc = autopilot.main(["--workdir", str(tmp_path / "ws"), "--consensus", "2", "--audit-every", "2"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "accepted: 6/6" in out and "cold audit clean" in out

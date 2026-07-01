@@ -84,3 +84,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] Ratchet floors surfaced on the dashboard: runner mirrors `gatekeeper.ratchet.floors()` into
       the `RunStore` snapshot (new `floors` field) and the read-only HTML shows them + a KPI count
       — the quality-never-regresses record is now visible to an operator (122 tests)
+- [x] Full-stack ops e2e: runs the real entrypoint with `--consensus 2 --audit-every 2` — all 13
+      checks + visual+consensus Stage B + periodic & post-build cold audits + Stage-C + floors —
+      to a 0 exit code, 6/6 clean (123 tests)
