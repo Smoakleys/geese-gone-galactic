@@ -107,3 +107,18 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   proposing a brand-new check for a defect a check already covers is noise. Telling "write the
   missing gate" apart from "tighten the existing gate" makes the taste→gate suggestions
   actionable. No checks/floors/fixtures touched. See `tests/test_phase2_reviewers.py`.
+
+## harness-mod-7 — deterministic code checks are total functions (never crash the loop)
+- `PythonSyntaxCheck` and `JsonValidCheck` only caught `SyntaxError` / `JSONDecodeError`. A
+  candidate file that was undecodable text (non-UTF-8 bytes -> `UnicodeDecodeError` from
+  `read_text`) or contained null bytes (`ast.parse` raises `ValueError`, not `SyntaxError`) would
+  raise *out of the check*, propagate through `run_stage_a`, and crash the whole ticket instead of
+  being recorded as a clean Stage-A FAIL. That is the CV checks' existing posture (`image.py`
+  catches broadly and FAILs); the code checks were the inconsistent outlier.
+- Both checks now read the file and parse under guarded `except`s: an unreadable/undecodable file
+  or null-byte source is a `Result.FAIL` with evidence, never an exception. Valid files are
+  unchanged (still PASS), broken-but-decodable files still FAIL with the same messages, so
+  certification against the committed good/bad fixtures is unaffected.
+- Rationale: a check must be a *total* function of `(artifact_dir, ticket)` — a builder shipping a
+  pathological file is a defect to gate, not a way to crash the harness. Keeps the loop robust
+  against adversarial/garbled builder output. See `tests/test_phase1_checks.py`.

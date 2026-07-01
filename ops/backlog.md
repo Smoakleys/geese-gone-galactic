@@ -68,3 +68,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] Correctness fix: `harvest_stage_c` now scopes to tickets processed this run (not a glob of
       all staging dirs), so a persistent `--workdir` no longer re-harvests stale prior-run
       decision logs into phantom proposals; test proves stale staging is ignored (113 tests)
+- [x] harness-mod-7: deterministic code checks are total functions — a non-UTF-8 or null-byte
+      file is a clean Stage-A FAIL, never an uncaught exception crashing the loop (matches the CV
+      checks' posture); self-mod validator approved (114 tests)

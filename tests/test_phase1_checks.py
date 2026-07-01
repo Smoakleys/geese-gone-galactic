@@ -109,6 +109,22 @@ def test_python_syntax_fails_bad_passes_good(tmp_path):
     assert chk.run(bad, make_ticket()).result == Result.FAIL
 
 
+def test_code_checks_fail_not_crash_on_unparseable_files(tmp_path):
+    # A check must be a total function: a pathological builder file is a clean FAIL, never an
+    # exception that crashes the loop (harness-mod-7).
+    py = tmp_path / "py"; py.mkdir()
+    (py / "nul.py").write_text("x = 1\x00\n")            # null byte -> ast.parse raises ValueError
+    assert PythonSyntaxCheck().run(py, make_ticket()).result == Result.FAIL
+
+    py2 = tmp_path / "py2"; py2.mkdir()
+    (py2 / "bin.py").write_bytes(b"\xff\xfe\x00\x01")    # not decodable as UTF-8 text
+    assert PythonSyntaxCheck().run(py2, make_ticket()).result == Result.FAIL
+
+    js = tmp_path / "js"; js.mkdir()
+    (js / "bin.json").write_bytes(b"\xff\xfe\x00\x01")
+    assert JsonValidCheck().run(js, make_ticket()).result == Result.FAIL
+
+
 def test_checks_skip_when_not_applicable(tmp_path):
     # A text-only artifact: code + image checks SKIP, non_empty passes.
     art = tmp_path / "art"; art.mkdir()
