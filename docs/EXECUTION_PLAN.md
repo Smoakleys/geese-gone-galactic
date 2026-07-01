@@ -105,8 +105,12 @@ tests/    test_walking_skeleton.py
   detection wired into the loop as an independent escalation trigger, and hard-blocking cold
   audits. 51 governance tests green. (Live wiring of the visual gate to real reference art lands
   with One Pond in Phase 4.)
-- **Phase 3 — Real Icarus + control surface.** `LocalLLMBuilder` behind the seam; dashboard +
-  phone heartbeat + Start/Stop/Pause.
+- **Phase 3 — Real Icarus + control surface. ✅ DONE.** `LLMBuilder` (Icarus) behind a swappable
+  `GenerationClient` seam; durable `RunStore` (mode + heartbeat + records + autonomy metric);
+  `AutonomousRunner` that processes a ticket queue unattended, auto-escalates to the escape-hatch
+  builder on plateau (never asks a human), and stops cleanly on Pause/Stop; stdlib read-only
+  dashboard with `/heartbeat` + Start/Stop/Pause. 63 governance tests green. (Local-model /
+  paid-API generation client is a drop-in behind the seam.)
 - **Phase 3.5 — Text-to-3D spike.** Pick a generator (behind the GPU-worker seam) by measured
   quality against Phase-2 labeled fixtures; fallback to curated packs.
 - **Phase 4 — Build "One Pond" through the harness.** Fixed iso camera, 3 AI-generated

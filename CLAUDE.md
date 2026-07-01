@@ -19,9 +19,13 @@ the game, is the near-term product.
   `ConsensusReviewer` behind a `ChatClient` seam (offline-scripted; Anthropic in prod),
   reference-anchored CV visual gate validated on a labeled set, plateau detection in the loop,
   hard-blocking cold audits, decision-log→new-check flywheel.
-- **51 governance tests pass:** `pip install -r requirements.txt && python -m pytest tests/ -q`.
-- **Not started:** Phase 0 env (Godot + Xvfb screenshot, GPU spike), Phase 3 real Icarus +
-  dashboard/control surface, Phase 3.5 text-to-3D spike, Phase 4 One Pond.
+- **Phase 3 (real Icarus + control surface) COMPLETE** — `LLMBuilder` behind a
+  `GenerationClient` seam; `control/` package with a durable `RunStore`, an `AutonomousRunner`
+  (auto escape-hatch on plateau, Pause/Stop-aware), and a stdlib read-only dashboard +
+  heartbeat. Runs unattended; intervention optional via Start/Stop/Pause.
+- **63 governance tests pass:** `pip install -r requirements.txt && python -m pytest tests/ -q`.
+- **Not started:** Phase 0 env (Godot + Xvfb screenshot), Phase 3.5 text-to-3D spike (GPU),
+  Phase 4 One Pond. See `docs/AUTOPILOT.md` for the resume point.
 
 ## The one invariant to preserve
 Commit authority lives **only** in `harness/gatekeeper.py`. Builders write to gitignored
