@@ -1,0 +1,52 @@
+{
+  "certified": {
+    "image_loadable": {
+      "bad_hashes": {
+        "C:\\Users\\bhump\\geese-gone-galactic\\harness\\checks\\fixtures\\image_loadable\\bad": "1339caaf797d8225f5fdce10124c851a92e46e9c60271bf18befc41c9d4254c3"
+      },
+      "good_hashes": {
+        "C:\\Users\\bhump\\geese-gone-galactic\\harness\\checks\\fixtures\\image_loadable\\good": "7c614dffb6107a4c848868d4998625ab90316a3a147a54116279a9891de9f8c5"
+      }
+    },
+    "image_min_resolution": {
+      "bad_hashes": {
+        "C:\\Users\\bhump\\geese-gone-galactic\\harness\\checks\\fixtures\\image_min_resolution\\bad": "7e03430c9467d7a5b147b5874ea5f814c1eb5ac37d3e874b8650a9ea56c8049f"
+      },
+      "good_hashes": {
+        "C:\\Users\\bhump\\geese-gone-galactic\\harness\\checks\\fixtures\\image_min_resolution\\good": "c151e4b7698a0396aaed39ba5857356abca9e5f586bb132b4d3b854a51af2241"
+      }
+    },
+    "image_not_blank": {
+      "bad_hashes": {
+        "C:\\Users\\bhump\\geese-gone-galactic\\harness\\checks\\fixtures\\image_not_blank\\bad": "23a63a000984e702bfb304fb6d895bf602a734484596d6c4a057b3b86ba33c8c"
+      },
+      "good_hashes": {
+        "C:\\Users\\bhump\\geese-gone-galactic\\harness\\checks\\fixtures\\image_not_blank\\good": "f5977ed59d50c3d0ab4a37e170915b03f78cbdc2176a3b381c2b412c1819e356"
+      }
+    },
+    "json_valid": {
+      "bad_hashes": {
+        "C:\\Users\\bhump\\geese-gone-galactic\\harness\\checks\\fixtures\\json_valid\\bad": "3a9ebf3ed5420df642a3ecc05b4669020443b1b5e0a898a910873d8e5619a2b0"
+      },
+      "good_hashes": {
+        "C:\\Users\\bhump\\geese-gone-galactic\\harness\\checks\\fixtures\\json_valid\\good": "bd5f42da1a167c2c0e28144d524236ecb3e8d42f017d70c4cd223b09cd39f023"
+      }
+    },
+    "non_empty_artifact": {
+      "bad_hashes": {
+        "C:\\Users\\bhump\\geese-gone-galactic\\harness\\checks\\fixtures\\non_empty_artifact\\bad": "73803ae36ca6c7094ae7f1a0e3aa5325d63e0a36c31c78baa888c8c3d34ca34b"
+      },
+      "good_hashes": {
+        "C:\\Users\\bhump\\geese-gone-galactic\\harness\\checks\\fixtures\\non_empty_artifact\\good": "d868cc633d0c0838190ce34e165aa2ad95a5bdea165e10f9560d63182db51195"
+      }
+    },
+    "python_syntax": {
+      "bad_hashes": {
+        "C:\\Users\\bhump\\geese-gone-galactic\\harness\\checks\\fixtures\\python_syntax\\bad": "02bd84f5481711c031852d827d1f4460e11826b6b9e0d999ae59c32003cced7f"
+      },
+      "good_hashes": {
+        "C:\\Users\\bhump\\geese-gone-galactic\\harness\\checks\\fixtures\\python_syntax\\good": "6dcc2e5f393493468fe4e4a1c0f4cd9f1ae3a0683c933ca8ff93f00590290727"
+      }
+    }
+  }
+}

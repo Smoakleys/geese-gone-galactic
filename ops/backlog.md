@@ -101,3 +101,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
       fails every round) and the runner auto-escalates to the escape-hatch builder, which ships a
       solvent pond that's accepted — proving "never block on a human" on a real game-quality
       failure through the actual game registry (126 tests)
+- [x] Game checks are total functions: a valid-JSON but malformed config (`buildings` not a list
+      of dicts) was crashing placement/economy/liveliness/predator/water with an uncaught
+      TypeError/AttributeError; now a clean Stage-A FAIL (harness-mod-7 principle for game/) (127)

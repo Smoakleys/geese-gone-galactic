@@ -31,7 +31,7 @@ from game.onepond.world import (
     build_world,
     simulate_solvency,
 )
-from harness.checks.registry import certify
+from harness.checks.registry import certify, stage_a_passed
 from harness.gatekeeper import Gatekeeper, run_regression_suite
 from harness.icarus.llm_builder import LLMBuilder, ScriptedGenerationClient
 from harness.models import Result
@@ -169,6 +169,19 @@ def test_placement_check_fails_overlap(tmp_path):
         "buildings": [{"type": "bakery", "x": 1, "y": 1},
                       {"type": "bakery", "x": 1, "y": 1}]}))
     assert PlacementValidCheck().run(art, make_ticket()).result == Result.FAIL
+
+
+def test_game_checks_are_total_on_malformed_but_valid_json(tmp_path):
+    # A valid-JSON config with a malformed structure (buildings not a list of dicts) passes
+    # json_valid but must be a clean Stage-A FAIL from the game checks, never an uncaught
+    # TypeError/AttributeError crashing the loop (the harness-mod-7 total-function principle,
+    # applied to game/onepond/checks.py).
+    art = tmp_path / "art"; art.mkdir()
+    (art / "onepond_config.json").write_text(json.dumps({"buildings": "oops"}))
+    registry = build_onepond_registry(tmp_path / "lock")
+    results = registry.run_stage_a(art, make_ticket("T-BAD"))  # must not raise
+    assert not stage_a_passed(results)
+    assert any(r.result == Result.FAIL for r in results)
 
 
 # --- predator mechanic + safety check -------------------------------------------------

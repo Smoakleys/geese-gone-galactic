@@ -51,7 +51,7 @@ class PlacementValidCheck(Check):
         try:
             config = json.loads(cfg_path.read_text())
             world = build_world(config)   # raises PlacementError on any illegal building
-        except (PlacementError, KeyError, ValueError) as e:
+        except (PlacementError, KeyError, ValueError, TypeError, AttributeError) as e:
             return CheckResult(self.id, Result.FAIL, f"illegal One Pond layout: {e}",
                                artifacts=[str(cfg_path)])
         return CheckResult(self.id, Result.PASS, f"{len(world.buildings)} building(s) placed legally",
@@ -77,7 +77,7 @@ class EconomySolvencyCheck(Check):
         try:
             config = json.loads(cfg_path.read_text())
             report = simulate_solvency(config, horizon=SOLVENCY_HORIZON)
-        except (PlacementError, KeyError, ValueError) as e:
+        except (PlacementError, KeyError, ValueError, TypeError, AttributeError) as e:
             return CheckResult(self.id, Result.FAIL, f"config will not simulate: {e}",
                                artifacts=[str(cfg_path)])
         if report["buildings"] < 1:
@@ -123,7 +123,7 @@ class LaunchViabilityCheck(Check):
         try:
             config = json.loads(cfg_path.read_text())
             report = simulate_solvency(config, horizon=SOLVENCY_HORIZON)
-        except (PlacementError, KeyError, ValueError) as e:
+        except (PlacementError, KeyError, ValueError, TypeError, AttributeError) as e:
             return CheckResult(self.id, Result.FAIL, f"config will not simulate: {e}",
                                artifacts=[str(cfg_path)])
         if report["launch_capacity"] < 1:
@@ -170,7 +170,7 @@ class LivelinessCheck(Check):
         try:
             config = json.loads(cfg_path.read_text())
             report = simulate_solvency(config, horizon=SOLVENCY_HORIZON)
-        except (PlacementError, KeyError, ValueError) as e:
+        except (PlacementError, KeyError, ValueError, TypeError, AttributeError) as e:
             return CheckResult(self.id, Result.FAIL, f"config will not simulate: {e}",
                                artifacts=[str(cfg_path)])
         has_granary = any(b.get("type") == "granary" for b in config.get("buildings", []))
@@ -220,7 +220,7 @@ class PredatorSafetyCheck(Check):
         try:
             config = json.loads(cfg_path.read_text())
             report = simulate_solvency(config, horizon=SOLVENCY_HORIZON)
-        except (PlacementError, KeyError, ValueError) as e:
+        except (PlacementError, KeyError, ValueError, TypeError, AttributeError) as e:
             return CheckResult(self.id, Result.FAIL, f"config will not simulate: {e}",
                                artifacts=[str(cfg_path)])
         if int(report["predators"]) < 1:
@@ -276,7 +276,7 @@ class CohesionCheck(Check):
         try:
             config = json.loads(cfg_path.read_text())
             coords = [(int(b["x"]), int(b["y"])) for b in config.get("buildings", [])]
-        except (KeyError, ValueError, TypeError) as e:
+        except (KeyError, ValueError, TypeError, AttributeError) as e:
             return CheckResult(self.id, Result.FAIL, f"unreadable layout: {e}",
                                artifacts=[str(cfg_path)])
         if len(coords) < 2:
@@ -326,7 +326,7 @@ class WaterAccessCheck(Check):
             buildings = config.get("buildings", [])
             wells = [(int(b["x"]), int(b["y"])) for b in buildings if b.get("type") == "well"]
             hatcheries = [(int(b["x"]), int(b["y"])) for b in buildings if b.get("type") == "hatchery"]
-        except (KeyError, ValueError, TypeError) as e:
+        except (KeyError, ValueError, TypeError, AttributeError) as e:
             return CheckResult(self.id, Result.FAIL, f"unreadable layout: {e}",
                                artifacts=[str(cfg_path)])
         if not wells:
