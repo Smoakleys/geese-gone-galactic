@@ -242,6 +242,57 @@ class PredatorSafetyCheck(Check):
         )
 
 
+class CohesionCheck(Check):
+    """Buildings must read as one pond, not clutter scattered across the grid.
+
+    This is the harness's own flywheel output made concrete: Stage-B reviewers kept rejecting
+    ponds whose buildings sprawled to opposite corners ("doesn't read as one pond; feels like
+    clutter") — a subjective ``cohesion`` defect. Stage C's ``DecisionLogReview`` clustered that
+    recurring defect and proposed a check id of ``auto_cohesion_check`` (``auto_`` + the defect
+    criterion). This check *is* that proposal realized: its id is exactly what Stage C proposed,
+    so a subjective judgement reviewers made by hand is now a mechanical Stage-A gate. It fails
+    layouts whose compactness (buildings per bounding-box cell) falls below a floor, and mints
+    ``onepond_cohesion`` as a ratchet floor. Ponds with fewer than two buildings SKIP (cohesion
+    is undefined for a single building).
+    """
+
+    id = "auto_cohesion_check"      # the id Stage C proposed for the recurring 'cohesion' defect
+    targets: list[str] = ["*"]
+    cost = CheckCost.STRUCTURAL
+    MIN_COMPACTNESS = 0.25
+
+    def __init__(self) -> None:
+        base = _FIXTURES / "cohesion"
+        self.good_fixtures = [base / "good"]
+        self.bad_fixtures = [base / "bad"]
+
+    def run(self, artifact_dir: Path, ticket: Ticket) -> CheckResult:
+        cfg_path = _find_config(Path(artifact_dir))
+        if cfg_path is None:
+            return CheckResult(self.id, Result.SKIP, f"no {CONFIG_NAME} in artifact")
+        try:
+            config = json.loads(cfg_path.read_text())
+            coords = [(int(b["x"]), int(b["y"])) for b in config.get("buildings", [])]
+        except (KeyError, ValueError, TypeError) as e:
+            return CheckResult(self.id, Result.FAIL, f"unreadable layout: {e}",
+                               artifacts=[str(cfg_path)])
+        if len(coords) < 2:
+            return CheckResult(self.id, Result.SKIP, "fewer than two buildings; cohesion undefined")
+        xs = [x for x, _ in coords]
+        ys = [y for _, y in coords]
+        bbox = (max(xs) - min(xs) + 1) * (max(ys) - min(ys) + 1)
+        compactness = len(coords) / bbox
+        if compactness < self.MIN_COMPACTNESS:
+            return CheckResult(self.id, Result.FAIL,
+                               f"scattered layout: {len(coords)} buildings sprawl across a "
+                               f"{bbox}-cell area (compactness {compactness:.2f} < "
+                               f"{self.MIN_COMPACTNESS}); cluster them into one pond",
+                               artifacts=[str(cfg_path)])
+        return CheckResult(self.id, Result.PASS,
+                           f"cohesive layout: {len(coords)} buildings, compactness {compactness:.2f}",
+                           metrics={"onepond_cohesion": float(compactness)})
+
+
 def build_onepond_registry(lock_dir: Path):
     """A registry with the harness default checks plus the One Pond game checks, certified."""
     from harness.checks.builtin import default_registry
@@ -252,5 +303,6 @@ def build_onepond_registry(lock_dir: Path):
     reg.register(LaunchViabilityCheck())
     reg.register(LivelinessCheck())
     reg.register(PredatorSafetyCheck())
+    reg.register(CohesionCheck())              # harvested from a Stage-C proposal (auto_cohesion_check)
     reg.certify_all()                          # re-certify the whole set, rewrite the lock
     return reg
