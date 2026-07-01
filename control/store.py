@@ -56,6 +56,7 @@ class RunStore:
             "blocked": [],
             "stage_c_proposals": [],
             "audit": {"blocked": False, "summary": "", "count": 0},
+            "floors": {},
         }
 
     def _read(self) -> dict:
@@ -154,6 +155,17 @@ class RunStore:
     def audit(self) -> dict:
         return dict(self._read().get("audit", {"blocked": False, "summary": "", "count": 0}))
 
+    # -- ratchet floors (mirrored for read-only display) -------------------------------
+
+    def record_floors(self, floors: dict) -> None:
+        """Mirror the Gatekeeper's current monotonic floors so the dashboard can show them."""
+        data = self._read()
+        data["floors"] = {k: float(v) for k, v in floors.items()}
+        self._write(data)
+
+    def floors(self) -> dict:
+        return dict(self._read().get("floors", {}))
+
     def autonomy_rate(self) -> float:
         """Share of accepted work built with zero escape-hatch (Claude) help. Target -> 1.0."""
         m = self.metrics()
@@ -176,4 +188,5 @@ class RunStore:
             "total_records": len(data["records"]),
             "stage_c_proposals": data.get("stage_c_proposals", []),
             "audit": data.get("audit", {"blocked": False, "summary": "", "count": 0}),
+            "floors": data.get("floors", {}),
         }

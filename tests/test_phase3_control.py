@@ -316,6 +316,24 @@ def test_render_html_shows_stage_c_proposals(tmp_path):
     assert "stage-C proposals" in html and "new_check" in html  # kind is shown
 
 
+def test_render_html_shows_ratchet_floors(tmp_path):
+    store = RunStore(tmp_path / "state.json")
+    store.record_floors({"T-1.onepond_min_bread": 6.0})
+    html = render_html(store)
+    assert "Ratchet floors" in html and "T-1.onepond_min_bread" in html
+
+
+def test_runner_mirrors_floors_into_store(git_repo, registry, gatekeeper, tmp_path):
+    store = RunStore(tmp_path / "state.json")
+    icarus = LLMBuilder(ScriptedGenerationClient(lambda p: {"artifact.txt": "a bakery"}))
+    runner = _runner(store, git_repo, registry, gatekeeper, tmp_path, icarus=icarus)
+    runner.submit(make_ticket("T-1"))
+    runner.run_pending()
+    floors = store.floors()
+    assert floors and any(k.endswith(".non_empty_files") for k in floors)  # mirrored for the UI
+    assert store.snapshot()["floors"] == floors
+
+
 def test_dashboard_serves_and_controls(tmp_path):
     store = RunStore(tmp_path / "state.json")
     store.beat()

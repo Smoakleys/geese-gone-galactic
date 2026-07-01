@@ -38,6 +38,11 @@ def render_html(store: RunStore) -> str:
     audit_str = ("no audit yet" if not audit.get("count") else
                  ("BLOCKED — " + audit.get("summary", "") if audit.get("blocked")
                   else f"clean (x{audit.get('count')})"))
+    floors = snap.get("floors", {})
+    floor_rows = "".join(
+        f"<tr><td><code>{k}</code></td><td>{v:g}</td></tr>"
+        for k, v in sorted(floors.items())
+    ) or "<tr><td colspan=2><em>no floors minted yet</em></td></tr>"
     proposals = snap.get("stage_c_proposals", [])
     prop_rows = "".join(
         f"<tr><td>{p.get('kind','')}</td><td><code>{p.get('suggested_check_id','')}</code></td>"
@@ -62,6 +67,7 @@ def render_html(store: RunStore) -> str:
  <div>{snap['accepted']}<br><small>accepted</small></div>
  <div>{snap['total_records']}<br><small>runs</small></div>
  <div>{len(proposals)}<br><small>stage-C proposals</small></div>
+ <div>{len(floors)}<br><small>ratchet floors</small></div>
 </div>
 <p>Blocked tickets: {blocked}</p>
 <p>Cold audit: {audit_str}</p>
@@ -74,6 +80,8 @@ def render_html(store: RunStore) -> str:
 <p><small>recurring subjective defects Stage C suggests turning into deterministic checks</small></p>
 <table><thead><tr><th>kind</th><th>check</th><th>occurrences</th><th>defect signature</th></tr></thead>
 <tbody>{prop_rows}</tbody></table>
+<h2>Ratchet floors — quality can never regress below these</h2>
+<table><thead><tr><th>metric</th><th>floor</th></tr></thead><tbody>{floor_rows}</tbody></table>
 <p><small>read-only view; the only mutation is Start/Stop/Pause. Poll /heartbeat for liveness.</small></p>
 </body></html>"""
 
