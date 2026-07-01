@@ -51,6 +51,21 @@ POND_CONFIGS: dict[str, dict] = {
             {"type": "launchpad", "x": 5, "y": 1},
         ],
     },
+    "T-POND-05": {
+        # The complete galactic sanctuary: foxes prowl the pond, so the flock must be fenced
+        # while it still launches. Two fences neutralize the two predators; the pond stays
+        # solvent, keeps a living flock, and sends geese galactic.
+        "grid": [8, 8], "start_bread": 20, "predators": 2,
+        "buildings": [
+            {"type": "bakery", "x": 1, "y": 1},
+            {"type": "bakery", "x": 2, "y": 1},
+            {"type": "hatchery", "x": 3, "y": 1},
+            {"type": "granary", "x": 4, "y": 1},
+            {"type": "launchpad", "x": 5, "y": 1},
+            {"type": "fence", "x": 1, "y": 2},
+            {"type": "fence", "x": 2, "y": 2},
+        ],
+    },
 }
 
 _TITLES = {
@@ -58,13 +73,16 @@ _TITLES = {
     "T-POND-02": "Add a hatchery that hatches geese without bankrupting the pond",
     "T-POND-03": "Add a granary; a complete, solvent One Pond",
     "T-POND-04": "Add a launchpad; send the geese galactic while staying solvent",
+    "T-POND-05": "Fence out the foxes; a galactic sanctuary that keeps its flock alive",
 }
 
 # Tickets that must also send geese to space earn a launch-viability acceptance criterion.
-_LAUNCH_TICKETS = {"T-POND-04"}
+_LAUNCH_TICKETS = {"T-POND-04", "T-POND-05"}
 # Ponds that invest in a granary (goose capacity) must keep a living flock — the harvested
 # liveliness gate. These are exactly the tickets that build a granary.
-_LIVELINESS_TICKETS = {"T-POND-03", "T-POND-04"}
+_LIVELINESS_TICKETS = {"T-POND-03", "T-POND-04", "T-POND-05"}
+# Ponds that let predators in must fence the flock — the harvested predator-safety gate.
+_PREDATOR_TICKETS = {"T-POND-05"}
 
 
 def _ticket(tid: str) -> Ticket:
@@ -83,6 +101,11 @@ def _ticket(tid: str) -> Ticket:
             id="AC_LIVE", text="not a dead pond: the granary's goose capacity is backed by a "
                                "living flock — at least one goose is hatched within 20 ticks",
             stage=Stage.A, check_hint="onepond_liveliness"))
+    if tid in _PREDATOR_TICKETS:
+        criteria.append(AcceptanceCriterion(
+            id="AC_SAFE", text="predators are fenced out: the flock survives the foxes prowling "
+                               "the pond over 20 ticks", stage=Stage.A,
+            check_hint="onepond_predator_safe"))
     if tid in _LAUNCH_TICKETS:
         criteria.append(AcceptanceCriterion(
             id="AC3", text="the pond sends geese galactic: at least one goose is launched to "
@@ -100,7 +123,8 @@ def _ticket(tid: str) -> Ticket:
 
 
 def onepond_tickets() -> list[Ticket]:
-    return [_ticket(tid) for tid in ("T-POND-01", "T-POND-02", "T-POND-03", "T-POND-04")]
+    return [_ticket(tid) for tid in
+            ("T-POND-01", "T-POND-02", "T-POND-03", "T-POND-04", "T-POND-05")]
 
 
 def onepond_generation_client() -> ScriptedGenerationClient:

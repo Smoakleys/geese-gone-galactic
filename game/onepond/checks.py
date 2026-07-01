@@ -190,6 +190,58 @@ class LivelinessCheck(Check):
         )
 
 
+class PredatorSafetyCheck(Check):
+    """A pond that lets predators in must fence the flock, or the geese are eaten.
+
+    The predator mechanic gives One Pond a genuine new failure mode: a pond can declare foxes
+    prowling it (``"predators": n``) for theme/challenge, but every un-fenced predator eats a
+    goose per tick. A builder that adds predators without enough ``fence`` buildings ships a
+    pond whose flock is silently culled to nothing — legal, solvent, and (with a launchpad) it
+    may even look busy, yet the geese keep dying. This mechanizes that: scoped to ponds that
+    both invite predators AND hatch geese, it fails any where no goose survives predation over
+    the horizon, and mints ``onepond_geese_protected`` as a ratchet floor so a pond's protected
+    flock can never silently regress to zero. Predator-free ponds, or ponds with no hatchery to
+    protect, are out of scope and SKIP.
+    """
+
+    id = "onepond_predator_safe"
+    targets: list[str] = ["*"]
+    cost = CheckCost.DYNAMIC
+
+    def __init__(self) -> None:
+        base = _FIXTURES / "predator_safe"
+        self.good_fixtures = [base / "good"]
+        self.bad_fixtures = [base / "bad"]
+
+    def run(self, artifact_dir: Path, ticket: Ticket) -> CheckResult:
+        cfg_path = _find_config(Path(artifact_dir))
+        if cfg_path is None:
+            return CheckResult(self.id, Result.SKIP, f"no {CONFIG_NAME} in artifact")
+        try:
+            config = json.loads(cfg_path.read_text())
+            report = simulate_solvency(config, horizon=SOLVENCY_HORIZON)
+        except (PlacementError, KeyError, ValueError) as e:
+            return CheckResult(self.id, Result.FAIL, f"config will not simulate: {e}",
+                               artifacts=[str(cfg_path)])
+        if int(report["predators"]) < 1:
+            return CheckResult(self.id, Result.SKIP, "no predators: safety not in scope")
+        has_hatchery = any(b.get("type") == "hatchery" for b in config.get("buildings", []))
+        if not has_hatchery:
+            return CheckResult(self.id, Result.SKIP, "no hatchery: no flock to protect")
+        survivors = int(report["geese"]) + int(report["launched"])
+        if survivors < 1:
+            return CheckResult(self.id, Result.FAIL,
+                               f"predators cull the flock: {report['effective_predators']} un-fenced "
+                               f"predator(s) leave no goose alive over {SOLVENCY_HORIZON} ticks "
+                               f"(add fences)", artifacts=[str(cfg_path)])
+        return CheckResult(
+            self.id, Result.PASS,
+            f"flock protected: {survivors} geese survived {report['predators']} predator(s) "
+            f"over {SOLVENCY_HORIZON} ticks ({report['eaten']} lost)",
+            metrics={"onepond_geese_protected": float(survivors)},
+        )
+
+
 def build_onepond_registry(lock_dir: Path):
     """A registry with the harness default checks plus the One Pond game checks, certified."""
     from harness.checks.builtin import default_registry
@@ -199,5 +251,6 @@ def build_onepond_registry(lock_dir: Path):
     reg.register(EconomySolvencyCheck())
     reg.register(LaunchViabilityCheck())
     reg.register(LivelinessCheck())
+    reg.register(PredatorSafetyCheck())
     reg.certify_all()                          # re-certify the whole set, rewrite the lock
     return reg

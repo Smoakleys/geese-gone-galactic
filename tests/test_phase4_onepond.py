@@ -19,6 +19,7 @@ from game.onepond.checks import (
     EconomySolvencyCheck,
     LaunchViabilityCheck,
     PlacementValidCheck,
+    PredatorSafetyCheck,
     build_onepond_registry,
 )
 from game.onepond.tickets import onepond_generation_client, onepond_tickets
@@ -120,6 +121,7 @@ def test_game_checks_certify():
     assert certify(PlacementValidCheck()).certified
     assert certify(EconomySolvencyCheck()).certified
     assert certify(LaunchViabilityCheck()).certified
+    assert certify(PredatorSafetyCheck()).certified
 
 
 def test_launch_check_fails_dead_launchpad(tmp_path):
@@ -167,6 +169,53 @@ def test_placement_check_fails_overlap(tmp_path):
     assert PlacementValidCheck().run(art, make_ticket()).result == Result.FAIL
 
 
+# --- predator mechanic + safety check -------------------------------------------------
+
+
+def test_predators_eat_unfenced_flock_and_fences_protect_it():
+    # Un-fenced: two foxes eat the hatched geese as fast as they hatch — flock stays empty.
+    exposed = build_world({"start_bread": 12, "predators": 2, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0}]})
+    exposed.tick(10)
+    assert exposed.geese == 0 and exposed.eaten == 10
+    # Fenced one-for-one: the predators are neutralized and the flock grows normally.
+    safe = build_world({"start_bread": 14, "predators": 2, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0},
+        {"type": "fence", "x": 2, "y": 0}, {"type": "fence", "x": 3, "y": 0}]})
+    safe.tick(10)
+    assert safe.geese == 10 and safe.eaten == 0
+
+
+def test_predator_free_ponds_are_unaffected():
+    # The whole mechanic is opt-in: a config with no predators behaves exactly as before.
+    w = build_world({"start_bread": 12, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0}]})
+    w.tick(10)
+    assert w.geese == 10 and w.eaten == 0 and w.effective_predators == 0
+
+
+def test_predator_safety_check_certifies_and_gates(tmp_path):
+    assert certify(PredatorSafetyCheck()).certified
+
+    def _run(config):
+        art = tmp_path / "art"; art.mkdir(exist_ok=True)
+        (art / "onepond_config.json").write_text(json.dumps(config))
+        return PredatorSafetyCheck().run(art, make_ticket())
+
+    # Predators + hatchery but under-fenced -> flock culled -> FAIL.
+    assert _run({"start_bread": 12, "predators": 2, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0},
+        {"type": "fence", "x": 2, "y": 0}]}).result == Result.FAIL
+    # No predators declared -> out of scope -> SKIP.
+    assert _run({"start_bread": 12, "predators": 0, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0}]}).result == Result.SKIP
+    # Predators fully fenced -> flock survives -> PASS + protected floor.
+    ok = _run({"start_bread": 14, "predators": 2, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0},
+        {"type": "fence", "x": 2, "y": 0}, {"type": "fence", "x": 3, "y": 0}]})
+    assert ok.result == Result.PASS and ok.metrics["onepond_geese_protected"] > 0
+
+
 # --- render / visual gate on the game -------------------------------------------------
 
 
@@ -210,16 +259,18 @@ def test_harness_builds_one_pond_end_to_end(git_repo, tmp_path):
         assert cfg.exists()
         assert simulate_solvency(json.loads(cfg.read_text()))["solvent"]
 
-    # The final ticket sent geese galactic — the game's objective, gated end-to-end.
+    # The final sanctuary ticket sent geese galactic while fenced against predators.
     final = simulate_solvency(json.loads(
-        (git_repo / "game" / "accepted" / "T-POND-04" / "onepond_config.json").read_text()))
-    assert final["launched"] > 0
+        (git_repo / "game" / "accepted" / "T-POND-05" / "onepond_config.json").read_text()))
+    assert final["launched"] > 0 and final["predators"] > 0 and final["eaten"] == 0
 
-    # Economy, galactic-score, and living-flock floors were all minted; suite regression-green.
+    # Economy, galactic-score, living-flock, and predator-safety floors were all minted;
+    # suite regression-green.
     floors = gatekeeper.ratchet.floors()
     assert any(k.endswith(".onepond_min_bread") for k in floors)
     assert any(k.endswith(".onepond_launched") for k in floors)
-    assert any(k.endswith(".onepond_geese_hatched") for k in floors)  # liveliness ran as a live gate
+    assert any(k.endswith(".onepond_geese_hatched") for k in floors)   # liveliness ran as a live gate
+    assert any(k.endswith(".onepond_geese_protected") for k in floors)  # predator safety ran too
     assert run_regression_suite(gatekeeper, registry) == []
 
 
@@ -261,7 +312,8 @@ def test_liveliness_gate_forces_rework_in_the_loop(git_repo, tmp_path):
 
 
 def test_full_one_pond_has_all_building_types():
-    # The final ticket assembles the complete galactic pond: producer + consumer + storage + launchpad.
+    # The final ticket assembles the complete galactic sanctuary: producer + consumer + storage
+    # + launchpad + fence (against the predators it invites).
     from game.onepond.tickets import POND_CONFIGS
-    types = {b["type"] for b in POND_CONFIGS["T-POND-04"]["buildings"]}
+    types = {b["type"] for b in POND_CONFIGS["T-POND-05"]["buildings"]}
     assert types == set(BUILDING_TYPES)
