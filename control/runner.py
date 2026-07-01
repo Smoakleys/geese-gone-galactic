@@ -141,10 +141,13 @@ class AutonomousRunner:
         dashboard/summary can show them. This does not author checks (a guarded self-mod); it
         only proposes.
         """
+        # Scope harvest to the tickets processed in THIS run, not every dir under staging_root.
+        # In a persistent --workdir, staging dirs from earlier runs linger; globbing them would
+        # re-harvest stale decision logs and inflate proposal counts across unrelated runs.
         records = []
-        if self.staging_root.exists():
-            for log in sorted(self.staging_root.glob("*/decision_log.jsonl")):
-                records.extend(load_defect_records(log, log.parent.name))
+        for tid in self._processed_tickets:
+            log = self.staging_root / tid / "decision_log.jsonl"
+            records.extend(load_defect_records(log, tid))
         # Pass the certified check ids so Stage C can tell "no gate exists yet" (propose a new
         # check) apart from "the gate exists but is too lax" (propose tightening it).
         existing = [c.id for c in self.registry.certified_checks()]
