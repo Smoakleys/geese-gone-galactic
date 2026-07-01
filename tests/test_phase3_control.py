@@ -292,7 +292,7 @@ def test_render_html_shows_stage_c_proposals(tmp_path):
                              "suggested_check_id": "auto_cohesion_check"}])
     html = render_html(store)
     assert "auto_cohesion_check" in html and "cohesion:scattered" in html
-    assert "stage-C proposals" in html
+    assert "stage-C proposals" in html and "new_check" in html  # kind is shown
 
 
 def test_dashboard_serves_and_controls(tmp_path):

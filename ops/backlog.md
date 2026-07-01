@@ -54,3 +54,4 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] harness-mod-6: Stage C `analyze` distinguishes `tighten_rubric` (criterion already a
       certified check → gate too lax) from `new_check` (novel criterion); runner passes certified
       ids; self-mod validator approves the change (108 tests)
+- [x] Proposal `kind` surfaced on the dashboard table + autopilot summary (108 tests)

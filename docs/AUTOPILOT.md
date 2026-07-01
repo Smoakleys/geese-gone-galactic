@@ -117,6 +117,9 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       the registry's certified ids so the live pipeline makes the call automatically. Dogfooded:
       the self-mod validator approves the change (changelog present, certification + regression
       green).
+- [x] Proposal `kind` surfaced — the dashboard proposals table and the autopilot summary now
+      show each proposal's `kind` (`new_check` vs `tighten_rubric`), so an operator sees at a
+      glance whether Stage C wants a missing gate written or an existing gate tightened.
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker

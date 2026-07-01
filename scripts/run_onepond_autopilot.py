@@ -105,10 +105,10 @@ def main(argv: list[str] | None = None) -> int:
           f"blocked: {store.blocked() or 'none'}")
 
     proposals = store.proposals()
-    print("\n=== stage C: recurring subjective defects -> proposed checks ===")
+    print("\n=== stage C: recurring subjective defects -> proposed adjustments ===")
     if proposals:
         for p in proposals:
-            print(f"  {p['suggested_check_id']:24} x{p['occurrences']}  "
+            print(f"  [{p['kind']:13}] {p['suggested_check_id']:24} x{p['occurrences']}  "
                   f"({p['signature']})")
     else:
         print("  none above threshold")

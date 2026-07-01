@@ -66,7 +66,8 @@ via the GitHub API using stored git creds — `gh` CLI is NOT installed).
   now distinguishes `tighten_rubric` (the recurring defect's criterion is already a certified
   check → the gate is too lax) from `new_check` (novel criterion), via an optional
   `existing_check_ids` arg that `harvest_stage_c` fills from the registry. Dogfooded — the
-  self-mod validator approves it. Next: extend One Pond further (see `ops/backlog.md`).
+  self-mod validator approves it. The proposal `kind` (`new_check`/`tighten_rubric`) is shown on
+  the dashboard table and autopilot summary. Next: extend One Pond further (see `ops/backlog.md`).
 - The harness runs unattended: `python scripts/run_onepond_autopilot.py` (add `--serve` for the
   dashboard). Verified to make real Gatekeeper commits at 100% autonomy.
 
