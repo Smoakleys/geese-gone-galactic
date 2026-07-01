@@ -117,9 +117,15 @@ tests/    test_walking_skeleton.py
   measures each candidate's preview against the reference-anchored visual gate and picks the
   best, falling back to curated packs when none pass. 69 governance tests green. (A real
   TRELLIS/Hunyuan worker on a GPU host slots in behind the seam unchanged.)
-- **Phase 4 — Build "One Pond" through the harness.** Fixed iso camera, 3 AI-generated
-  low-poly buildings, bread-economy tick, place-a-building + save. Measure and drive up Icarus
-  autonomy rate. The true test.
+- **Phase 4 — Build "One Pond" through the harness. ✅ DONE (Python model + e2e; Godot view is
+  the remaining drop-in).** Authoritative pure-Python game model (`game/onepond/`: bread economy
+  tick, 3 buildings, placement, save/load, `simulate_solvency`), deterministic game checks
+  (`onepond_placement_valid`, `onepond_economy_solvent`), the One Pond ticket set + Icarus
+  generation client, a screenshot seam (`StubScreenshotWorker` now, `GodotXvfbWorker` drop-in),
+  and an **end-to-end run**: `AutonomousRunner` + `LLMBuilder` drive the ticket set to full
+  acceptance at **autonomy rate 1.0**, committed configs verified solvent, economy floor minted
+  to the ratchet. 80 governance tests green. The fixed iso camera + GDScript view swap in behind
+  the screenshot seam.
 
 ## Verification
 

@@ -1,0 +1,14 @@
+{
+  "buildings": [
+    {
+      "type": "hatchery",
+      "x": 0,
+      "y": 0
+    }
+  ],
+  "grid": [
+    8,
+    8
+  ],
+  "start_bread": 12
+}

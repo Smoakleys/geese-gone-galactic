@@ -1,0 +1,9 @@
+{
+  "projection": "orthographic",
+  "note": "Fixed isometric camera for One Pond. Constant across all screenshots so the visual gate compares like-for-like renders. Godot: Camera3D projection=ORTHOGONAL.",
+  "position": [12, 12, 12],
+  "look_at": [0, 0, 0],
+  "rotation_euler_deg": [-35.264, 45, 0],
+  "size": 10.0,
+  "viewport": [1024, 1024]
+}

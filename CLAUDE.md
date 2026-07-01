@@ -25,9 +25,13 @@ the game, is the near-term product.
   heartbeat. Runs unattended; intervention optional via Start/Stop/Pause.
 - **Phase 3.5 (text-to-3D worker seam) COMPLETE** — `harness/gen3d/` `MeshGenerator` seam,
   curated-pack fallback, visual-gate-measured `select_generator`; real GPU worker is a drop-in.
-- **69 governance tests pass:** `pip install -r requirements.txt && python -m pytest tests/ -q`.
-- **Not started:** Phase 0 env (Godot + Xvfb screenshot), Phase 4 One Pond (Godot-gated).
-  See `docs/AUTOPILOT.md` for the resume point.
+- **Phase 4 (One Pond through the harness) COMPLETE** — authoritative Python game model
+  (`game/onepond/`), game checks, ticket set + Icarus client, screenshot seam, and an e2e run
+  driving the ticket set to full acceptance at autonomy rate 1.0. Godot view is the drop-in.
+- **80 governance tests pass:** `pip install -r requirements.txt && python -m pytest tests/ -q`.
+- **All planned phases (0.5–4) are done in software.** Remaining work is external-hardware
+  swaps behind existing seams: real Godot+Xvfb screenshots, a GPU text-to-3D worker, and the
+  live Anthropic reviewer key. See `docs/AUTOPILOT.md`.
 
 ## The one invariant to preserve
 Commit authority lives **only** in `harness/gatekeeper.py`. Builders write to gitignored

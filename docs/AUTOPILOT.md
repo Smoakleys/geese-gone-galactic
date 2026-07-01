@@ -28,9 +28,10 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       heartbeat (PR #4).
 - [x] Phase 3.5 — text-to-3D `MeshGenerator` seam + `select_generator` (visual-gate-measured)
       + curated-pack fallback; real GPU worker is a drop-in (`harness/gen3d/`) (PR #5).
-- [ ] Phase 4 — "One Pond" built through the harness in Godot (Godot-gated: build the
-      harness-side ticket set, rubrics, reference art hooks, and everything not requiring a
-      Godot binary; leave a clear seam for the GDScript/screenshot step).
+- [x] Phase 4 — "One Pond" through the harness: authoritative Python game model
+      (`game/onepond/`), game checks, ticket set + Icarus client, screenshot seam, and an e2e
+      run to full acceptance at autonomy 1.0. Godot/GDScript view is the drop-in behind the
+      screenshot seam (PR #6).
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
@@ -41,7 +42,13 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of Phase 3.5: `python -m pytest tests/ -q` → 69 passed.
+As of Phase 4: `python -m pytest tests/ -q` → 80 passed.
+
+## What remains (all external-hardware-gated, seams in place)
+- Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.
+- A real GPU host to swap a TRELLIS/Hunyuan worker in behind `harness/gen3d`.
+- An `ANTHROPIC_API_KEY` to run the live `AnthropicChatClient` reviewer.
+All three are drop-ins behind existing, tested seams; the pipeline runs fully without them.
 
 ## Running the control surface (unattended operation)
 - Dashboard: `python -m control.dashboard` style entry — `control.dashboard.serve(store_path)`;
