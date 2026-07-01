@@ -36,7 +36,12 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       score in the game model, a certified `onepond_launch_viable` Stage-A check (scoped to
       ponds with a launchpad; catches dead launch infrastructure) that mints an
       `onepond_launched` ratchet floor, and ticket T-POND-04 driven to acceptance at autonomy
-      1.0 (4/4). The first flywheel increment authored entirely through the harness.
+      1.0 (4/4). The first flywheel increment authored entirely through the harness (PR #8).
+- [x] harness-mod-5 — wire the ratchet **floor gate** into the Gatekeeper: `check_floors` was
+      dead code, so the monotonic ratchet was a storage invariant, not a gate. `try_commit` now
+      refuses any candidate whose measured metric falls below an established floor (no promotion,
+      no commit, floor/artifact untouched), closing the "Ratchet holds" verification item.
+      Dogfooded through the self-mod validator (PR #9).
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
@@ -47,7 +52,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of Phase 4.1: `python -m pytest tests/ -q` → 85 passed.
+As of harness-mod-5: `python -m pytest tests/ -q` → 87 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.
