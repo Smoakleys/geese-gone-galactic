@@ -94,3 +94,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
       `OnePondVisualReviewer` scores each render against it (histogram similarity), so off-palette
       art is caught — not just blank/tiny/noise. Test proves a structured-but-off-palette render
       is rejected on palette while real ponds pass; still 6/6 (124 tests)
+- [x] Guard the load-bearing reference render: test asserts the committed `reference_pond.png` is
+      a valid 128x128 non-blank pond image (a bad regeneration is caught, not silently weakening
+      the gate) (125 tests)
