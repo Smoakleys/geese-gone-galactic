@@ -101,7 +101,16 @@ class AutonomousRunner:
                 break
             ticket = self._queue.pop(0)
             self.store.beat()
-            rec = self._run_one(ticket)
+            try:
+                rec = self._run_one(ticket)
+            except Exception as e:
+                # Orchestration-level fail-closed: the loop already degrades builder/check/reviewer
+                # errors to rejections (harness-mod-8/9/10), but a catastrophic per-ticket failure
+                # (e.g. an unexpected commit/git error) must not kill the whole queue. Block this
+                # ticket and move on — "run unattended, never require a human" holds end to end.
+                rec = RunRecord(ticket_id=ticket.id, final_state="ERRORED", committed=False,
+                                rounds=0, escape_hatch=False,
+                                reason=f"runner caught {type(e).__name__}: {e}")
             self.store.record(rec)
             processed.append(rec)
             self._processed_tickets[ticket.id] = ticket

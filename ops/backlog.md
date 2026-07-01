@@ -113,3 +113,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] harness-mod-10: the builder call is fail-closed too — a generation-client crash discards
       partial output and rejects the empty build (completes the check/reviewer/builder trio: no
       single loop actor can crash the unattended run); self-mod approved (130 tests)
+- [x] Orchestration-level net: `AutonomousRunner.run_pending` catches any catastrophic per-ticket
+      failure (e.g. an unexpected Gatekeeper/git error the loop doesn't handle), blocks that ticket
+      and continues the queue — the run never dies mid-queue (131 tests)

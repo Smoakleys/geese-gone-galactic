@@ -194,6 +194,30 @@ def test_runner_periodic_cold_audit_clean_continues(git_repo, registry, gatekeep
     assert store.audit()["count"] == 2 and not store.audit()["blocked"]
 
 
+def test_runner_survives_a_catastrophic_per_ticket_failure(git_repo, registry, tmp_path):
+    # Orchestration-level fail-closed: even an unexpected failure the loop doesn't catch (here a
+    # Gatekeeper whose try_commit explodes) must not kill the queue — the ticket is blocked and
+    # the runner moves on, so "run unattended" holds end to end.
+    from harness.gatekeeper import Gatekeeper
+
+    class _BoomGatekeeper(Gatekeeper):
+        def try_commit(self, **kwargs):
+            raise RuntimeError("git subsystem exploded")
+
+    store = RunStore(tmp_path / "state.json")
+    icarus = LLMBuilder(ScriptedGenerationClient(lambda p: {"artifact.txt": "a bakery"}))
+    runner = AutonomousRunner(
+        store=store, repo_root=git_repo, registry=registry,
+        gatekeeper=_BoomGatekeeper(git_repo, ratchet_dir=tmp_path / "ratchet"),
+        reviewer=StubReviewer(lambda r: True), icarus_builder=icarus,
+        staging_root=tmp_path / "staging")
+    runner.submit(make_ticket("T-1")); runner.submit(make_ticket("T-2"))
+    recs = runner.run_pending()  # must not raise
+
+    assert len(recs) == 2 and not any(r.committed for r in recs)   # whole queue processed
+    assert "T-1" in store.blocked() and "T-2" in store.blocked()   # both blocked, runner alive
+
+
 def test_runner_survives_a_builder_that_raises(git_repo, registry, gatekeeper, tmp_path):
     # harness-mod-10: a builder that throws (a generation-client failure) must not crash the run.
     # Fail-closed — partial output is discarded, Stage A rejects the empty build, ticket blocked.
