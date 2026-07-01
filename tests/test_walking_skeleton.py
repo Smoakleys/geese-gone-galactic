@@ -238,6 +238,59 @@ def test_ratchet_catches_reintroduced_defect(git_repo, registry, gatekeeper, tmp
     assert any("T-0001" in r for r in regressions)
 
 
+# --- item 4b: the ratchet is a GATE, not just a storage invariant ---------------------
+
+
+def _pass_verdict(t) -> Verdict:
+    return Verdict.build(ticket=t, stage=Stage.B, reviewer_id="x",
+                         per_criterion=[CriterionVerdict(id="AC2", result=Result.PASS, evidence="ok")])
+
+
+def _stage_a_quality(q: float) -> list[CheckResult]:
+    return [CheckResult("non_empty_artifact", Result.PASS, "ok", metrics={"quality": q})]
+
+
+def _staging_with(tmp_path: Path, tag: str) -> Path:
+    s = tmp_path / f"stg_{tag}"
+    s.mkdir()
+    (s / "artifact.txt").write_text(tag)
+    return s
+
+
+def test_ratchet_floor_gate_blocks_regressed_recommit(git_repo, registry, gatekeeper, tmp_path):
+    # "Ratchet holds": an artifact that measures WORSE than an established floor is refused
+    # before it can touch the protected tree, even though both stages pass. This is the
+    # enforcement half of the monotonic ratchet — previously check_floors was never called.
+    t = make_ticket()
+    good = gatekeeper.try_commit(ticket=t, staging_dir=_staging_with(tmp_path, "v1"),
+                                 registry=registry, stage_a_results=_stage_a_quality(10.0),
+                                 verdict_b=_pass_verdict(t))
+    assert good.committed
+    assert gatekeeper.ratchet.floors()["T-0001.quality"] == 10.0
+    head_after_good = _head(git_repo)
+
+    bad = gatekeeper.try_commit(ticket=t, staging_dir=_staging_with(tmp_path, "v2"),
+                                registry=registry, stage_a_results=_stage_a_quality(3.0),
+                                verdict_b=_pass_verdict(t))
+    assert not bad.committed
+    assert "floor" in bad.reason and "quality" in bad.reason
+    assert gatekeeper.ratchet.floors()["T-0001.quality"] == 10.0      # floor never lowered
+    assert _head(git_repo) == head_after_good                         # no new commit
+    assert (gatekeeper.accepted_root / "T-0001" / "artifact.txt").read_text() == "v1"  # untouched
+
+
+def test_ratchet_floor_gate_allows_equal_or_better(git_repo, registry, gatekeeper, tmp_path):
+    t = make_ticket()
+    assert gatekeeper.try_commit(ticket=t, staging_dir=_staging_with(tmp_path, "a"),
+                                 registry=registry, stage_a_results=_stage_a_quality(5.0),
+                                 verdict_b=_pass_verdict(t)).committed
+    better = gatekeeper.try_commit(ticket=t, staging_dir=_staging_with(tmp_path, "b"),
+                                   registry=registry, stage_a_results=_stage_a_quality(8.0),
+                                   verdict_b=_pass_verdict(t))
+    assert better.committed                                           # not a regression
+    assert gatekeeper.ratchet.floors()["T-0001.quality"] == 8.0       # floor rose
+
+
 # --- item 5: self-mod safety ----------------------------------------------------------
 
 

@@ -76,3 +76,21 @@ without a matching entry. Reverts are one command via the token in `harness/reve
 - Rationale: de-risk the biggest external unknown (local text-to-3D needs a GPU we don't have)
   by making the generator swappable and quality-selected, with a shippable fallback. See
   `docs/EXECUTION_PLAN.md` Phase 3.5.
+
+## harness-mod-5 — wire the ratchet floor gate into the Gatekeeper
+- `RatchetStore.check_floors` was dead code: the monotonic ratchet kept a floor from *dropping
+  in storage* (`raise_floors` = max), but nothing refused a candidate artifact whose measured
+  quality had regressed *below* an established floor — so a worse re-build of a ticket could be
+  committed while the stored floor silently stayed high. That is the exact "quality silently
+  regressed" failure the ratchet exists to make impossible (`docs/PLAN.md` teeth #2).
+- `Gatekeeper.try_commit` now computes the candidate's baseline metrics *before* promotion and
+  calls `check_floors`; any metric below its floor short-circuits with `CommitOutcome(committed=
+  False, reason="ratchet floor regression: …")` — no promotion, no `git commit`, no floor/fixture
+  mint, and the existing accepted artifact is left untouched (`gatekeeper.py`).
+- `_baseline_metrics` refactored to measure from a source dir + explicit ticket id, counting only
+  the files that will actually be promoted (non-empty, non-forbidden), so the metrics checked
+  pre-promotion match the committed artifact exactly; the mint path reuses that same dict.
+- First commit of any ticket is unaffected (no prior floor for its keys → no violation); metrics
+  are ticket-scoped so tickets never cross-block each other.
+- Rationale: make the monotonic ratchet a real *gate*, not just a storage invariant — closing
+  verification item "Ratchet holds" (`docs/PLAN.md`). See tests in `test_walking_skeleton.py`.

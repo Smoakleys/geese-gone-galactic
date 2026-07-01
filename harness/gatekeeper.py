@@ -8,7 +8,9 @@ ticket, the staging dir, the Stage-A results and the Stage-B verdict, and it com
   2. the Stage-B verdict's criteria_hash matches the frozen ticket (verdict is for THIS spec),
      AND
   3. the Stage-B verdict passes (derived, default-FAIL), AND
-  4. Stage A passed.
+  4. Stage A passed, AND
+  5. no measured quality metric falls below an established ratchet floor (a regression is
+     refused before it can touch the protected tree — the enforcement half of the ratchet).
 
 Only then does it promote staging -> protected tree, ``git commit``, and mint the regression
 fixture. Any failure short-circuits with no commit. This is why "the builder cannot approve
@@ -91,6 +93,18 @@ class Gatekeeper:
         if not verdict_b.passed:
             return CommitOutcome(False, State.REWORK, "stage B failed")
 
+        # (5) ratchet floor gate — the enforcement half of the monotonic ratchet.
+        # ``raise_floors`` keeps a floor from dropping in *storage*; this refuses to accept an
+        # artifact whose measured quality has dropped *below* an established floor at all. Run
+        # BEFORE any promotion or commit so a regression never touches the protected tree.
+        candidate_metrics = self._baseline_metrics(staging_dir, ticket.id, stage_a_results)
+        violations = self.ratchet.check_floors(candidate_metrics)
+        if violations:
+            floors = self.ratchet.floors()
+            detail = ", ".join(
+                f"{m} {candidate_metrics[m]:g} < floor {floors[m]:g}" for m in sorted(violations))
+            return CommitOutcome(False, State.REWORK, f"ratchet floor regression: {detail}")
+
         # --- promote staging -> protected tree ----------------------------------------
         accepted_dir = self.accepted_root / ticket.id
         if accepted_dir.exists():
@@ -110,7 +124,9 @@ class Gatekeeper:
         git_sha = self._git_commit(accepted_dir, ticket)
 
         # --- ratchet: mint fixture + raise floors -------------------------------------
-        metrics = self._baseline_metrics(accepted_dir, stage_a_results)
+        # ``candidate_metrics`` was measured from the same bytes just promoted (identical file
+        # set: staging minus the forbidden decision log), so it is the artifact's true baseline.
+        metrics = candidate_metrics
         self.ratchet.raise_floors(metrics)
         fixture = RegressionFixture(
             ticket_id=ticket.id,
@@ -124,9 +140,14 @@ class Gatekeeper:
 
     # -- helpers -----------------------------------------------------------------------
 
-    def _baseline_metrics(self, accepted_dir: Path, results: list[CheckResult]) -> dict[str, float]:
-        tid = accepted_dir.name
-        non_empty = sum(1 for f in accepted_dir.rglob("*") if f.is_file() and f.stat().st_size > 0)
+    def _baseline_metrics(self, source_dir: Path, tid: str,
+                          results: list[CheckResult]) -> dict[str, float]:
+        # Count only the files that will actually be promoted: real files, non-empty, and not
+        # the forbidden decision log — so metrics measured pre-promotion from staging match the
+        # committed artifact exactly.
+        non_empty = sum(
+            1 for f in Path(source_dir).rglob("*")
+            if f.is_file() and f.name not in FORBIDDEN_ARTIFACT_NAMES and f.stat().st_size > 0)
         metrics: dict[str, float] = {
             f"{tid}.non_empty_files": float(non_empty),
             f"{tid}.checks_passed": float(sum(1 for r in results if r.result == Result.PASS)),
