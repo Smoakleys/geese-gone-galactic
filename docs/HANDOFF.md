@@ -7,7 +7,7 @@ you to wait for me for anything. Keep going." Neither you nor Icarus may ask him
 
 ## First actions on resume
 1. `cd C:\Users\bhump\geese-gone-galactic`
-2. `python -m pytest tests/ -q` → expect **105 passed**. If red, fixing that is job #1.
+2. `python -m pytest tests/ -q` → expect **106 passed**. If red, fixing that is job #1.
 3. Read `docs/AUTOPILOT.md` (the phase state + loop) and your memory index `MEMORY.md`
    (`ggg-autonomous-mandate`, `ggg-progress`).
 
@@ -59,8 +59,10 @@ via the GitHub API using stored git creds — `gh` CLI is NOT installed).
 - **Periodic in-loop cold audits:** `AutonomousRunner.audit_every` re-audits every N committed
   tickets and hard-blocks (STOPs the runner, persists to `store.audit`, shows on the dashboard)
   on any finding, so nothing is accepted on top of a tree that no longer verifies. Injectable
-  `auditor` seam; autopilot defaults `--audit-every 3`. Next: extend One Pond further, or prove
-  the *real* audit path catches a corrupted artifact end-to-end (see `ops/backlog.md`).
+  `auditor` seam; autopilot defaults `--audit-every 3`. The *real* audit path is verified end
+  to end: a test corrupts a committed artifact behind the harness's back and shows the next
+  in-loop `cold_audit` catches the hash regression and STOPs the runner. Next: extend One Pond
+  further (see `ops/backlog.md`).
 - The harness runs unattended: `python scripts/run_onepond_autopilot.py` (add `--serve` for the
   dashboard). Verified to make real Gatekeeper commits at 100% autonomy.
 

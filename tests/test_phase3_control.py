@@ -155,6 +155,30 @@ def test_runner_periodic_cold_audit_hard_blocks(git_repo, registry, gatekeeper, 
     assert store.audit()["blocked"] and store.snapshot()["audit"]["blocked"]
 
 
+def test_runner_real_cold_audit_catches_corrupted_artifact(git_repo, registry, gatekeeper, tmp_path):
+    # No injected auditor: the *real* cold_audit runs. Accept T-1, corrupt its committed bytes
+    # behind the harness's back, then accept T-2 — the next in-loop audit must catch the T-1
+    # regression and hard-block, so the runner never keeps building on a rotted tree.
+    store = RunStore(tmp_path / "state.json")
+    icarus = LLMBuilder(ScriptedGenerationClient(lambda p: {"artifact.txt": "a bakery"}))
+    runner = AutonomousRunner(
+        store=store, repo_root=git_repo, registry=registry, gatekeeper=gatekeeper,
+        reviewer=StubReviewer(lambda r: True), icarus_builder=icarus,
+        staging_root=tmp_path / "staging", audit_every=1)  # real auditor
+
+    runner.submit(make_ticket("T-1"))
+    assert runner.run_pending()[0].committed
+    assert store.mode is ControlMode.RUNNING and not store.audit()["blocked"]  # first audit clean
+
+    (git_repo / "game" / "accepted" / "T-1" / "artifact.txt").write_text("tampered!")
+
+    runner.submit(make_ticket("T-2"))
+    recs2 = runner.run_pending()
+    assert recs2[0].committed                          # T-2 itself is fine...
+    assert store.audit()["blocked"]                    # ...but the real audit caught T-1's rot
+    assert store.mode is ControlMode.STOPPED           # and hard-blocked further acceptances
+
+
 def test_runner_periodic_cold_audit_clean_continues(git_repo, registry, gatekeeper, tmp_path):
     from harness.audit.cold_audit import AuditReport
     store = RunStore(tmp_path / "state.json")

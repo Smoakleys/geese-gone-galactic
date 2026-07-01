@@ -106,6 +106,10 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       is persisted to the `RunStore` (`audit` field) and shown on the dashboard. An injectable
       `auditor` seam makes the block path deterministically testable. The autopilot defaults to
       `--audit-every 3`.
+- [x] Proved the *real* audit path catches corruption end-to-end — a test accepts a ticket,
+      corrupts its committed bytes behind the harness's back, accepts a second ticket, and shows
+      the real `cold_audit` (no injected seam) catches the first ticket's hash regression on the
+      next in-loop audit and STOPs the runner. The tooth is verified, not just wired.
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
@@ -116,7 +120,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of periodic in-loop cold audits: `python -m pytest tests/ -q` → 105 passed.
+As of the real-audit corruption proof: `python -m pytest tests/ -q` → 106 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.
