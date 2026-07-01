@@ -110,3 +110,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] harness-mod-9: Stage B is fail-closed against a reviewer that raises — a model/network
       failure becomes a blocking review defect (rework/escalate), never crashes the run and never
       passes; runner test proves survival + block; self-mod approved (129 tests)
+- [x] harness-mod-10: the builder call is fail-closed too — a generation-client crash discards
+      partial output and rejects the empty build (completes the check/reviewer/builder trio: no
+      single loop actor can crash the unattended run); self-mod approved (130 tests)

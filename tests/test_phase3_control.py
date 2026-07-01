@@ -194,6 +194,28 @@ def test_runner_periodic_cold_audit_clean_continues(git_repo, registry, gatekeep
     assert store.audit()["count"] == 2 and not store.audit()["blocked"]
 
 
+def test_runner_survives_a_builder_that_raises(git_repo, registry, gatekeeper, tmp_path):
+    # harness-mod-10: a builder that throws (a generation-client failure) must not crash the run.
+    # Fail-closed — partial output is discarded, Stage A rejects the empty build, ticket blocked.
+    class _BoomBuilder:
+        id = "boom-builder"
+        def build(self, packet):
+            Path(packet.writable_root).mkdir(parents=True, exist_ok=True)
+            (Path(packet.writable_root) / "partial.txt").write_text("half-written")
+            raise RuntimeError("generation client exploded")
+
+    store = RunStore(tmp_path / "state.json")
+    runner = AutonomousRunner(
+        store=store, repo_root=git_repo, registry=registry, gatekeeper=gatekeeper,
+        reviewer=StubReviewer(lambda r: True), icarus_builder=_BoomBuilder(),
+        staging_root=tmp_path / "staging", plateau_window=2, max_rounds=4)
+    runner.submit(make_ticket("T-1"))
+    recs = runner.run_pending()  # must not raise
+
+    assert not recs[0].committed          # fail-closed: no acceptable artifact, never committed
+    assert "T-1" in store.blocked()
+
+
 def test_runner_survives_a_reviewer_that_raises(git_repo, registry, gatekeeper, tmp_path):
     # harness-mod-9: a reviewer that throws (a model/network failure) must not crash the run.
     # Fail-closed — the ticket reworks, plateaus, and is blocked; it is never committed.
