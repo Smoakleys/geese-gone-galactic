@@ -70,6 +70,25 @@ def _artifact(tmp_path: Path, config: dict) -> Path:
     return d
 
 
+def test_cohesion_threshold_tightened_rejects_marginal_layouts(tmp_path):
+    # Acting on a tighten_rubric signal: the compactness gate was raised 0.25 -> 0.5. A layout
+    # the old gate passed (compactness 0.33) is now rejected, while every shipped ticket (all
+    # >= 0.7 compact) still passes and the check still certifies.
+    from game.onepond.checks import CohesionCheck
+    from game.onepond.tickets import POND_CONFIGS
+    check = CohesionCheck()
+    assert check.MIN_COMPACTNESS == 0.5 and certify(check).certified
+
+    marginal = {"grid": [8, 8], "start_bread": 12, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "bakery", "x": 2, "y": 1}]}  # 2 / (3*2) = 0.33
+    res = check.run(_artifact(tmp_path / "m", marginal), make_ticket())
+    assert res.result == Result.FAIL and "scattered" in res.evidence
+
+    for tid, cfg in POND_CONFIGS.items():
+        r = check.run(_artifact(tmp_path / tid, cfg), make_ticket())
+        assert r.result is not Result.FAIL, f"{tid} must not fail the stricter gate (got {r.result})"
+
+
 def test_stage_c_proposal_is_realized_as_the_check_that_closes_it(git_repo, tmp_path):
     # (1)+(2) The live pipeline harvests the recurring subjective defect into a proposal. Uses a
     # pre-cohesion registry (default checks only) so the scattered pond passes Stage A and the

@@ -120,6 +120,10 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
 - [x] Proposal `kind` surfaced — the dashboard proposals table and the autopilot summary now
       show each proposal's `kind` (`new_check` vs `tighten_rubric`), so an operator sees at a
       glance whether Stage C wants a missing gate written or an existing gate tightened.
+- [x] Acted on a `tighten_rubric` signal — `CohesionCheck`'s compactness gate tightened
+      0.25 → 0.5 (the other half of the flywheel: not a new check, an existing one made stricter).
+      A layout the old gate passed (compactness 0.33) is now rejected; every shipped ticket
+      (≥ 0.7 compact) still passes and the check still certifies. One Pond stays 5/5 at 1.0.
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
@@ -130,7 +134,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of harness-mod-6 (Stage C tighten vs new): `python -m pytest tests/ -q` → 108 passed.
+As of the cohesion-gate tightening: `python -m pytest tests/ -q` → 109 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.
