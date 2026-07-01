@@ -50,6 +50,14 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       snapshot field — existing shape preserved) which the autopilot summary prints. Off the
       critical path; never gates a commit. E2e test proves a defect recurring across tickets
       (>= threshold) yields a proposal through the runner.
+- [x] First full flywheel turn — a subjective Stage-B defect made mechanical. Reviewers kept
+      rejecting ponds that were legal + solvent yet "read as dead" (a granary buys goose
+      capacity but no hatchery ever fills it). New certified `onepond_liveliness` Stage-A check
+      (scoped to ponds with a granary; SKIPs bare build-up ponds) fails any pond that hatches
+      zero geese over the horizon and mints `onepond_geese_hatched` as a ratchet floor. Tests
+      prove the turn: the lifeless pond slips past the pre-flywheel gates but the new check
+      rejects it in Stage A, so the reviewer never has to. One Pond still accepts 4/4 at
+      autonomy 1.0.
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
@@ -60,7 +68,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of Stage-C wiring: `python -m pytest tests/ -q` → 89 passed.
+As of the first flywheel turn: `python -m pytest tests/ -q` → 94 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.

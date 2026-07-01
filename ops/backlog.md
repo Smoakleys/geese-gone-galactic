@@ -5,9 +5,10 @@ increment, tick it and add the next. This is guidance, not the stop condition �
 ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 
 ## Now
-- [ ] **Close one full flywheel turn** — take a proposal Stage C surfaces and author the
-      deterministic check it suggests (with good/bad fixtures + certification), proving a
-      subjective Stage-B defect became a mechanical Stage-A gate.
+- [ ] **Drive the liveliness gate through a real ticket** — author a One Pond ticket whose
+      acceptance criteria cite `onepond_liveliness` and drive it through `AutonomousRunner`
+      to acceptance at autonomy 1.0, the same way T-POND-04 exercised the launch check. This
+      proves the harvested check works as a live ticket gate, not just in isolation.
 
 ## Candidate increments (pick by value, not order)
 - [ ] Extend One Pond through the harness: a 4th mechanic, more tickets, a new
@@ -26,3 +27,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] Stage C wired into the live pipeline: runner harvests staging decision logs after
       run_pending, persists `stage_c_proposals` to the store, autopilot prints them; e2e
       test proves a recurring cross-ticket defect yields a proposal (89 tests)
+- [x] First full flywheel turn: `onepond_liveliness` check makes the subjective "lifeless
+      pond" (granary capacity, no hatched geese) defect a mechanical Stage-A gate; certified
+      w/ good+bad fixtures, tests prove it closes the gap, 4/4 still green (94 tests)

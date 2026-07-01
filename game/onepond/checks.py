@@ -139,6 +139,57 @@ class LaunchViabilityCheck(Check):
         )
 
 
+class LivelinessCheck(Check):
+    """A pond that builds flock infrastructure must actually keep a living flock.
+
+    Harvested from the flywheel: Stage-B reviewers kept rejecting ponds that were legal and
+    solvent yet "read as dead" — a granary raising goose *capacity* for a flock that is never
+    hatched, so nothing on the pond is ever alive. That is a real, silent failure mode the
+    deterministic gates missed (placement is legal, the economy is solvent, and with no
+    launchpad the launch check does not apply). This mechanizes the reviewers' subjective
+    "lifeless pond" judgement: scoped to ponds that invest in a granary (goose capacity), it
+    fails any that hatch zero geese over the horizon, and mints ``onepond_geese_hatched`` as a
+    ratchet floor so a pond's living flock can never silently regress to zero. Bare build-up
+    ponds with no granary (e.g. the first-bakery ticket) are out of scope and SKIP — a lone
+    bakery is legitimately not yet alive.
+    """
+
+    id = "onepond_liveliness"
+    targets: list[str] = ["*"]
+    cost = CheckCost.DYNAMIC
+
+    def __init__(self) -> None:
+        base = _FIXTURES / "liveliness"
+        self.good_fixtures = [base / "good"]
+        self.bad_fixtures = [base / "bad"]
+
+    def run(self, artifact_dir: Path, ticket: Ticket) -> CheckResult:
+        cfg_path = _find_config(Path(artifact_dir))
+        if cfg_path is None:
+            return CheckResult(self.id, Result.SKIP, f"no {CONFIG_NAME} in artifact")
+        try:
+            config = json.loads(cfg_path.read_text())
+            report = simulate_solvency(config, horizon=SOLVENCY_HORIZON)
+        except (PlacementError, KeyError, ValueError) as e:
+            return CheckResult(self.id, Result.FAIL, f"config will not simulate: {e}",
+                               artifacts=[str(cfg_path)])
+        has_granary = any(b.get("type") == "granary" for b in config.get("buildings", []))
+        if not has_granary:
+            return CheckResult(self.id, Result.SKIP,
+                               "no granary: flock-capacity liveliness not in scope")
+        hatched = int(report["geese"]) + int(report["launched"])
+        if hatched < 1:
+            return CheckResult(self.id, Result.FAIL,
+                               f"lifeless pond: granary provides goose capacity but no geese are "
+                               f"hatched over {SOLVENCY_HORIZON} ticks (add a hatchery)",
+                               artifacts=[str(cfg_path)])
+        return CheckResult(
+            self.id, Result.PASS,
+            f"living flock: {hatched} geese hatched over {SOLVENCY_HORIZON} ticks",
+            metrics={"onepond_geese_hatched": float(hatched)},
+        )
+
+
 def build_onepond_registry(lock_dir: Path):
     """A registry with the harness default checks plus the One Pond game checks, certified."""
     from harness.checks.builtin import default_registry
@@ -147,5 +198,6 @@ def build_onepond_registry(lock_dir: Path):
     reg.register(PlacementValidCheck())
     reg.register(EconomySolvencyCheck())
     reg.register(LaunchViabilityCheck())
+    reg.register(LivelinessCheck())
     reg.certify_all()                          # re-certify the whole set, rewrite the lock
     return reg
