@@ -1,14 +1,27 @@
 # CLAUDE.md — orientation for the next session
 
-**Project:** GGG v3 — a strict, self-improving **harness** whose real deliverable is a
-locally-based game-dev AI ("Icarus"), used to build *Geese Gone Galactic*. The harness, not
-the game, is the near-term product.
+## ON SESSION START: read `docs/HANDOFF.md` FIRST and continue autonomously (do not wait for a prompt).
+That file is the self-resuming contract; this file is background. Only this repo matters — the old
+Unity project at `C:\Users\bhump\GeeseGoneGalactic` is abandoned; **ignore it entirely.**
+
+**Project:** GGG v3 — build the game *Geese Gone Galactic* **primarily BY a local agentic AI
+("Icarus"), gated by a strict harness.** The harness is the vehicle; **the game Icarus builds is
+the destination.** Icarus is the driving force: a **local, model-agnostic** coding agent (Ollama;
+the model is a *free variable* — swap/ensemble freely). **You (Claude) author bounded tickets +
+gate; Icarus builds. North star = Icarus autonomy rate → 100%; you build ONLY when Icarus can't,
+and then you improve Icarus.** Never build the game by hand.
+
+**Engine = GODOT** (3D low-poly, 2.5D iso). **Pond era only — NO rocket/launchpad/eras/military in
+the opening.** First slice = "One Pond" (Nest/Bakery/Pond, bread tick, place-a-building), built by
+Icarus. NOTE: `game/onepond/` is currently a **python economy TOY** (a drifted stand-in) — do NOT
+extend it; it's being replaced by the real Godot slice (see HANDOFF §4–5).
 
 ## Read these first
-- `docs/PLAN.md` — the design/architecture (why the harness exists, the anti-complacency teeth).
-- `docs/EXECUTION_PLAN.md` — the ordered Phases 0–4 plan and where we are.
+- `docs/HANDOFF.md` — **self-resuming status + next actions (read this first).**
+- `docs/catchup/CATCHUP.md` — the true project history + the design decisions (from the grilling).
+- `docs/PLAN.md` — the ultraplan design/architecture (harness teeth, Icarus bootstrap, visual gate).
 - `harness/README.md` — how the structural core fits together.
-- `docs/CHECKS.md` — the Stage-A gate catalog (all 13 certified checks: tier, scope, floor).
+- `docs/CHECKS.md` — the current Stage-A gate catalog.
 
 ## Current status
 - **Phase 0.5 (walking skeleton) COMPLETE** — governance thesis proven with stub
