@@ -328,6 +328,19 @@ def _accept_one(loop, tid="T-0001"):
     assert loop.run_ticket(make_ticket(tid)).committed
 
 
+def test_reaccepting_unchanged_ticket_is_idempotent(git_repo, registry, gatekeeper, tmp_path):
+    # harness-mod-11: re-running a ticket whose artifact is byte-identical to what's already
+    # committed is idempotent SUCCESS (no "nothing to commit" error, same sha), so unattended
+    # re-runs over a persistent workspace don't spuriously block every already-done ticket.
+    loop = _make_loop(git_repo, registry, gatekeeper, tmp_path,
+                      builder=StubBuilder(lambda r: "good bakery"),
+                      reviewer=StubReviewer(lambda r: True))
+    r1 = loop.run_ticket(make_ticket())
+    r2 = loop.run_ticket(make_ticket())  # same id + spec + deterministic artifact
+    assert r1.committed and r2.committed
+    assert r1.git_sha == r2.git_sha and r2.git_sha is not None  # no new commit; same HEAD
+
+
 def test_selfmod_blocks_change_that_reddens_suite(git_repo, registry, gatekeeper, tmp_path):
     loop = _make_loop(
         git_repo, registry, gatekeeper, tmp_path,

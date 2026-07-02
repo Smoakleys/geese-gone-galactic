@@ -168,8 +168,15 @@ class Gatekeeper:
 
     def _git_commit(self, accepted_dir: Path, ticket: Ticket) -> str:
         self._git("add", str(accepted_dir.relative_to(self.repo_root)))
-        self._git("commit", "-m", f"accept {ticket.id}: {ticket.title}",
-                  "--author", "harness-gatekeeper <gatekeeper@ggg.local>")
+        # Idempotent re-accept: if the promoted bytes are identical to what's already committed,
+        # there is nothing to commit. That is success, not a failure — re-running a ticket whose
+        # artifact hasn't changed must not error (it used to raise "nothing to commit", which the
+        # runner then marked as a blocked/errored ticket). Skip the commit and keep the same sha.
+        staged_dirty = subprocess.run(
+            ["git", "diff", "--cached", "--quiet"], cwd=self.repo_root).returncode != 0
+        if staged_dirty:
+            self._git("commit", "-m", f"accept {ticket.id}: {ticket.title}",
+                      "--author", "harness-gatekeeper <gatekeeper@ggg.local>")
         return self._git("rev-parse", "HEAD")
 
 

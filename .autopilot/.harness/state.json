@@ -1,19 +1,10 @@
 {
   "audit": {
     "blocked": false,
-    "count": 2,
+    "count": 3,
     "summary": "cold audit clean"
   },
-  "blocked": [
-    "T-POND-01",
-    "T-POND-02",
-    "T-POND-03",
-    "T-POND-04",
-    "T-POND-05",
-    "T-POND-06",
-    "T-POND-07",
-    "T-POND-08"
-  ],
+  "blocked": [],
   "floors": {
     "T-POND-01.checks_passed": 4.0,
     "T-POND-01.non_empty_files": 1.0,
@@ -93,7 +84,7 @@
     "T-POND-09.onepond_total_tier": 5.0,
     "T-POND-09.onepond_victories": 4.0
   },
-  "heartbeat": 1782968691.8618581,
+  "heartbeat": 1782968785.0191946,
   "metrics": {
     "accepted": 9,
     "escape_hatch_builds": 0,
@@ -118,7 +109,7 @@
       "reason": "committed",
       "rounds": 1,
       "ticket_id": "T-POND-01",
-      "ts": 1782968306.0702894
+      "ts": 1782968781.4733336
     },
     {
       "committed": true,
@@ -127,7 +118,7 @@
       "reason": "committed",
       "rounds": 1,
       "ticket_id": "T-POND-02",
-      "ts": 1782968306.2328913
+      "ts": 1782968781.6351786
     },
     {
       "committed": true,
@@ -136,7 +127,7 @@
       "reason": "committed",
       "rounds": 1,
       "ticket_id": "T-POND-03",
-      "ts": 1782968306.3987765
+      "ts": 1782968781.8187377
     },
     {
       "committed": true,
@@ -145,7 +136,7 @@
       "reason": "committed",
       "rounds": 1,
       "ticket_id": "T-POND-04",
-      "ts": 1782968306.8051615
+      "ts": 1782968782.2285392
     },
     {
       "committed": true,
@@ -154,7 +145,7 @@
       "reason": "committed",
       "rounds": 1,
       "ticket_id": "T-POND-05",
-      "ts": 1782968306.9703424
+      "ts": 1782968782.3920805
     },
     {
       "committed": true,
@@ -163,7 +154,7 @@
       "reason": "committed",
       "rounds": 1,
       "ticket_id": "T-POND-06",
-      "ts": 1782968307.131243
+      "ts": 1782968782.5604572
     },
     {
       "committed": true,
@@ -172,7 +163,7 @@
       "reason": "committed",
       "rounds": 1,
       "ticket_id": "T-POND-07",
-      "ts": 1782968307.7825723
+      "ts": 1782968783.214867
     },
     {
       "committed": true,
@@ -181,79 +172,7 @@
       "reason": "committed",
       "rounds": 1,
       "ticket_id": "T-POND-08",
-      "ts": 1782968307.9476311
-    },
-    {
-      "committed": false,
-      "escape_hatch": false,
-      "final_state": "ERRORED",
-      "reason": "runner caught CalledProcessError: Command '['git', 'commit', '-m', 'accept T-POND-01: Place the first bakery (bread producer)', '--author', 'harness-gatekeeper <gatekeeper@ggg.local>']' returned non-zero exit status 1.",
-      "rounds": 0,
-      "ticket_id": "T-POND-01",
-      "ts": 1782968689.8472216
-    },
-    {
-      "committed": false,
-      "escape_hatch": false,
-      "final_state": "ERRORED",
-      "reason": "runner caught CalledProcessError: Command '['git', 'commit', '-m', 'accept T-POND-02: Add a hatchery that hatches geese without bankrupting the pond', '--author', 'harness-gatekeeper <gatekeeper@ggg.local>']' returned non-zero exit status 1.",
-      "rounds": 0,
-      "ticket_id": "T-POND-02",
-      "ts": 1782968690.0020423
-    },
-    {
-      "committed": false,
-      "escape_hatch": false,
-      "final_state": "ERRORED",
-      "reason": "runner caught CalledProcessError: Command '['git', 'commit', '-m', 'accept T-POND-03: Add a granary; a complete, solvent One Pond', '--author', 'harness-gatekeeper <gatekeeper@ggg.local>']' returned non-zero exit status 1.",
-      "rounds": 0,
-      "ticket_id": "T-POND-03",
-      "ts": 1782968690.1425357
-    },
-    {
-      "committed": false,
-      "escape_hatch": false,
-      "final_state": "ERRORED",
-      "reason": "runner caught CalledProcessError: Command '['git', 'commit', '-m', 'accept T-POND-04: Add a launchpad; send the geese galactic while staying solvent', '--author', 'harness-gatekeeper <gatekeeper@ggg.local>']' returned non-zero exit status 1.",
-      "rounds": 0,
-      "ticket_id": "T-POND-04",
-      "ts": 1782968690.280546
-    },
-    {
-      "committed": false,
-      "escape_hatch": false,
-      "final_state": "ERRORED",
-      "reason": "runner caught CalledProcessError: Command '['git', 'commit', '-m', 'accept T-POND-05: Fence out the foxes; a galactic sanctuary that keeps its flock alive', '--author', 'harness-gatekeeper <gatekeeper@ggg.local>']' returned non-zero exit status 1.",
-      "rounds": 0,
-      "ticket_id": "T-POND-05",
-      "ts": 1782968690.4245973
-    },
-    {
-      "committed": false,
-      "escape_hatch": false,
-      "final_state": "ERRORED",
-      "reason": "runner caught CalledProcessError: Command '['git', 'commit', '-m', 'accept T-POND-06: Sink a well; water the flock in the complete pond (every building type)', '--author', 'harness-gatekeeper <gatekeeper@ggg.local>']' returned non-zero exit status 1.",
-      "rounds": 0,
-      "ticket_id": "T-POND-06",
-      "ts": 1782968690.5664394
-    },
-    {
-      "committed": false,
-      "escape_hatch": false,
-      "final_state": "ERRORED",
-      "reason": "runner caught CalledProcessError: Command '['git', 'commit', '-m', 'accept T-POND-07: Upgrade the base: tier-2 bakery + hatchery (buildings evolve T1->T6)', '--author', 'harness-gatekeeper <gatekeeper@ggg.local>']' returned non-zero exit status 1.",
-      "rounds": 0,
-      "ticket_id": "T-POND-07",
-      "ts": 1782968690.7034278
-    },
-    {
-      "committed": false,
-      "escape_hatch": false,
-      "final_state": "ERRORED",
-      "reason": "runner caught CalledProcessError: Command '['git', 'commit', '-m', 'accept T-POND-08: Raise an army: a Training Grounds musters geese into soldier-geese', '--author', 'harness-gatekeeper <gatekeeper@ggg.local>']' returned non-zero exit status 1.",
-      "rounds": 0,
-      "ticket_id": "T-POND-08",
-      "ts": 1782968690.867271
+      "ts": 1782968783.3775287
     },
     {
       "committed": true,
@@ -262,15 +181,15 @@
       "reason": "committed",
       "rounds": 1,
       "ticket_id": "T-POND-09",
-      "ts": 1782968691.0371954
+      "ts": 1782968783.5398977
     }
   ],
   "stage_c_proposals": [],
-  "started_at": 1782965724.940223,
+  "started_at": 1782968781.3025043,
   "status": {
-    "activity": "Campaigns merged: hatch->train->campaign loop complete; One Pond 9/9, 151 tests",
-    "last_change": "Keep the remote site populated: live status feed + run-data store (#52)",
-    "tests": "149",
-    "updated": "2026-07-02 00:04:51"
+    "activity": "Campaigns merged (PR #53): hatch->train->campaign loop complete; One Pond 9/9, 151 tests, 15 checks",
+    "last_change": "Add campaigns (the Command building) \u00e2\u20ac\u201d the hatch->train->campaign loop (#53)",
+    "tests": "151",
+    "updated": "2026-07-02 00:06:25"
   }
 }

@@ -160,3 +160,15 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   is thrown away rather than judged, so a mid-write crash can't accidentally pass Stage A.
 - Rationale: "run unattended" means the three moving parts of every round must each degrade to a
   rejection, not a crash. See `tests/test_phase3_control.py`.
+
+## harness-mod-11 — idempotent re-accept (a re-run of an unchanged ticket isn't a failure)
+- `Gatekeeper._git_commit` unconditionally ran `git commit`; re-accepting a ticket whose promoted
+  bytes are identical to what's already committed produced "nothing to commit" (a non-zero git
+  exit), which propagated out and the runner recorded the ticket as blocked/errored. Re-running an
+  unattended build over a persistent workspace therefore "blocked" every already-done ticket.
+- Now the commit is skipped when `git diff --cached --quiet` shows nothing staged; the existing
+  HEAD sha is returned. Re-accepting an unchanged, still-valid artifact is idempotent SUCCESS
+  (committed=True, same sha) — a first-time accept, or any real byte change, still commits exactly
+  as before. Preserves the one invariant (commit authority stays here) and the ratchet.
+- Rationale: "run unattended" implies safe, repeatable re-runs; a no-op re-accept must not look
+  like a regression. See `tests/test_walking_skeleton.py`.
