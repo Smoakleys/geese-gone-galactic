@@ -172,3 +172,28 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   as before. Preserves the one invariant (commit authority stays here) and the ratchet.
 - Rationale: "run unattended" implies safe, repeatable re-runs; a no-op re-accept must not look
   like a regression. See `tests/test_walking_skeleton.py`.
+
+## harness-mod-12 — Icarus' agent runtime (plan->act->reflect walking skeleton)
+- New `harness/icarus/agent/`: replaces one-shot generation with a plan->act->reflect agent loop —
+  the thing that turns the local model into something that can investigate, act, observe, and adapt.
+  `runtime.py`: a forgiving text tool-protocol parser (`parse_tool_call`, one ```tool block/turn —
+  local models are weak at strict JSON function-calling); sandboxed `exec_tool`
+  (write_file/read_file/run/finish, path-escape-guarded, output-capped, never raises); an
+  `AgentModel` chat seam with a deterministic `ScriptedAgentModel` for offline tests; and
+  `run_agent` (the loop — states DONE/MAX_STEPS/STUCK; captures the stated PLAN as the approach
+  artifact and the full transcript as the trajectory the critic + scorecard inspect).
+  `ollama.py`: `OllamaAgentModel` (local chat brain, `POST /api/chat`, gpt-oss:20b default).
+- Gate untouched: no checks, floors, fixtures, gatekeeper, reviewer, or ratchet changed. This is
+  "Icarus' harness" (the builder side), kept strictly separate from the gate; the runtime writes
+  only into a sandboxed workspace and has no commit path.
+- Rationale: the north star is Icarus's *unaided* problem-solving, and a one-shot generator cannot
+  investigate/observe/adapt. This is the walking skeleton of the agent loop I improve every cycle;
+  perception (see-screenshot via the vision model), codebase/doc search, and the durable notebook
+  are the next measured upgrades. Tested offline (scripted model): loop end-to-end + protocol +
+  sandbox escape + failure reflection. See `tests/test_agent_runtime.py`.
+- Live-verified: the loop drove **gpt-oss:20b** to write `greet.py`, RUN it to verify its output,
+  and finish (5 steps, ~20s). Prompt tuned for reasoning models — an over-instructed system prompt
+  makes gpt-oss leave `content` empty (all in the `thinking` channel), so the prompt is a short
+  "exactly one tool block, nothing else" form and `OllamaAgentModel` falls back to `thinking` when
+  `content` is empty. Occasional reasoning-only turns are recovered by the loop's reflect step;
+  higher-reliability tool emission (native tool-calls) is a future measured improvement.
