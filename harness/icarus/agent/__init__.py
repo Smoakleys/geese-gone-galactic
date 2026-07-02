@@ -3,6 +3,7 @@ into an autonomous agent (tools, observation, self-correction). This is 'Icarus'
 (distinct from the gate): the scaffolding I build up so Icarus can figure things out itself.
 """
 
+from harness.icarus.agent.notebook import Notebook
 from harness.icarus.agent.runtime import (
     AgentModel,
     AgentResult,
@@ -19,6 +20,7 @@ from harness.icarus.agent.runtime import (
 __all__ = [
     "AgentModel",
     "AgentResult",
+    "Notebook",
     "ScriptedAgentModel",
     "State",
     "ToolCall",
