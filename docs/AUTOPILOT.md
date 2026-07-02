@@ -142,6 +142,13 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       models passes but the same pond with a split vote is rejected fail-closed even though the
       visual gate passed. (Further per-increment history lives in `ops/backlog.md`.)
 
+- [x] Toward the real game — **building tiers (T1→T6)**, the tap-to-upgrade core of the vision.
+      Each building carries a `tier` (default 1, so all prior configs/tests are unchanged) that
+      scales its output *and* up-front cost; placement rejects tiers outside 1..6. The placement
+      check mints `onepond_total_tier` (the base's development level) as a monotonic ratchet floor
+      so an upgraded base can never regress in tech. New ticket T-POND-07 upgrades a bakery +
+      hatchery to T2 and is driven to acceptance — One Pond now **7/7 at autonomy 1.0**.
+
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
   is behind a seam with a deterministic stub. Real Godot render is a drop-in.
@@ -151,7 +158,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of the remote control site: `python -m pytest tests/ -q` → 140 passed.
+As of building tiers (toward the real game): `python -m pytest tests/ -q` → 144 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.

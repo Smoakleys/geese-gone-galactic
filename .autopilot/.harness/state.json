@@ -1,0 +1,19 @@
+{
+  "audit": {
+    "blocked": false,
+    "count": 0,
+    "summary": ""
+  },
+  "blocked": [],
+  "floors": {},
+  "heartbeat": 0.0,
+  "metrics": {
+    "accepted": 0,
+    "escape_hatch_builds": 0,
+    "review_rounds": []
+  },
+  "mode": "RUNNING",
+  "records": [],
+  "stage_c_proposals": [],
+  "started_at": 1782965724.940223
+}

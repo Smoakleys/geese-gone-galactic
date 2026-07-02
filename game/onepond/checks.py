@@ -55,7 +55,10 @@ class PlacementValidCheck(Check):
             return CheckResult(self.id, Result.FAIL, f"illegal One Pond layout: {e}",
                                artifacts=[str(cfg_path)])
         return CheckResult(self.id, Result.PASS, f"{len(world.buildings)} building(s) placed legally",
-                           metrics={"onepond_buildings": float(len(world.buildings))})
+                           metrics={"onepond_buildings": float(len(world.buildings)),
+                                    # sum of tiers = the base's development level; a monotonic
+                                    # ratchet floor so an upgraded base can never regress in tech.
+                                    "onepond_total_tier": float(sum(b.tier for b in world.buildings))})
 
 
 class EconomySolvencyCheck(Check):
