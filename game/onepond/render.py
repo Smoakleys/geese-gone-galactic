@@ -32,6 +32,8 @@ _TILE = {
     "launchpad": (200, 60, 60),  # red pad — the galactic departure gate
     "fence": (120, 82, 45),      # wooden stakes ringing the sanctuary
     "well": (70, 130, 180),      # water source for the flock
+    "training_grounds": (160, 120, 70),  # the mustering yard (landmark)
+    "command": (90, 90, 110),    # the war room / command post
 }
 _POND = (34, 139, 34)
 _GRID_LINE = (24, 100, 24)
