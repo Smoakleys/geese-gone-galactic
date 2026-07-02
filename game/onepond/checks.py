@@ -180,7 +180,7 @@ class LivelinessCheck(Check):
         if not has_granary:
             return CheckResult(self.id, Result.SKIP,
                                "no granary: flock-capacity liveliness not in scope")
-        hatched = int(report["geese"]) + int(report["launched"])
+        hatched = int(report["geese"]) + int(report["launched"]) + int(report.get("soldiers", 0))
         if hatched < 1:
             return CheckResult(self.id, Result.FAIL,
                                f"lifeless pond: granary provides goose capacity but no geese are "
@@ -231,7 +231,7 @@ class PredatorSafetyCheck(Check):
         has_hatchery = any(b.get("type") == "hatchery" for b in config.get("buildings", []))
         if not has_hatchery:
             return CheckResult(self.id, Result.SKIP, "no hatchery: no flock to protect")
-        survivors = int(report["geese"]) + int(report["launched"])
+        survivors = int(report["geese"]) + int(report["launched"]) + int(report.get("soldiers", 0))
         if survivors < 1:
             return CheckResult(self.id, Result.FAIL,
                                f"predators cull the flock: {report['effective_predators']} un-fenced "
@@ -346,6 +346,50 @@ class WaterAccessCheck(Check):
                            metrics={"onepond_watered_hatcheries": float(len(hatcheries))})
 
 
+class ArmyViableCheck(Check):
+    """A pond that builds a training grounds must actually muster an army.
+
+    Toward the vision's military loop: the Training Grounds is the landmark that turns hatched
+    geese into soldier-geese. A training grounds with nothing to muster (no hatchery feeding it,
+    or the flock eaten/launched before it can train) is dead landmark infrastructure — legal and
+    solvent, but the mustering yard stands empty. Scoped to ponds that build a training grounds,
+    this fails any that field zero soldiers over the horizon and mints ``onepond_soldiers`` as a
+    ratchet floor so a raised army can never silently regress to nothing.
+    """
+
+    id = "onepond_army_viable"
+    targets: list[str] = ["*"]
+    cost = CheckCost.DYNAMIC
+
+    def __init__(self) -> None:
+        base = _FIXTURES / "army_viable"
+        self.good_fixtures = [base / "good"]
+        self.bad_fixtures = [base / "bad"]
+
+    def run(self, artifact_dir: Path, ticket: Ticket) -> CheckResult:
+        cfg_path = _find_config(Path(artifact_dir))
+        if cfg_path is None:
+            return CheckResult(self.id, Result.SKIP, f"no {CONFIG_NAME} in artifact")
+        try:
+            config = json.loads(cfg_path.read_text())
+            report = simulate_solvency(config, horizon=SOLVENCY_HORIZON)
+        except (PlacementError, KeyError, ValueError, TypeError, AttributeError) as e:
+            return CheckResult(self.id, Result.FAIL, f"config will not simulate: {e}",
+                               artifacts=[str(cfg_path)])
+        if int(report["train_capacity"]) < 1:
+            return CheckResult(self.id, Result.SKIP, "no training grounds; army not in scope")
+        if int(report["soldiers"]) < 1:
+            return CheckResult(self.id, Result.FAIL,
+                               f"empty muster: a training grounds but no soldiers raised over "
+                               f"{SOLVENCY_HORIZON} ticks (feed it geese from a hatchery)",
+                               artifacts=[str(cfg_path)])
+        return CheckResult(
+            self.id, Result.PASS,
+            f"army mustered: {report['soldiers']} soldier-geese over {SOLVENCY_HORIZON} ticks",
+            metrics={"onepond_soldiers": float(report["soldiers"])},
+        )
+
+
 def build_onepond_registry(lock_dir: Path):
     """A registry with the harness default checks plus the One Pond game checks, certified."""
     from harness.checks.builtin import default_registry
@@ -358,5 +402,6 @@ def build_onepond_registry(lock_dir: Path):
     reg.register(PredatorSafetyCheck())
     reg.register(CohesionCheck())              # harvested from a Stage-C proposal (auto_cohesion_check)
     reg.register(WaterAccessCheck())
+    reg.register(ArmyViableCheck())
     reg.certify_all()                          # re-certify the whole set, rewrite the lock
     return reg

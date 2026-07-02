@@ -264,6 +264,42 @@ def test_predator_safety_check_certifies_and_gates(tmp_path):
     assert ok.result == Result.PASS and ok.metrics["onepond_geese_protected"] > 0
 
 
+def test_training_grounds_musters_soldiers():
+    # A training grounds converts standing geese into soldier-geese each tick (tier-scaled).
+    w = build_world({"start_bread": 12, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0},
+        {"type": "training_grounds", "x": 2, "y": 0}]})
+    w.tick(5)
+    assert w.soldiers == 5 and w.geese == 0            # each hatched goose is mustered
+    # No training grounds -> no soldiers, geese accumulate as before.
+    plain = build_world({"start_bread": 12, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0}]})
+    plain.tick(5)
+    assert plain.soldiers == 0 and plain.geese == 5
+
+
+def test_army_viable_check_certifies_and_gates(tmp_path):
+    from game.onepond.checks import ArmyViableCheck
+    assert certify(ArmyViableCheck()).certified
+
+    def _run(config):
+        art = tmp_path / "art"; art.mkdir(exist_ok=True)
+        (art / "onepond_config.json").write_text(json.dumps(config))
+        return ArmyViableCheck().run(art, make_ticket())
+
+    # No training grounds -> out of scope -> SKIP.
+    assert _run({"start_bread": 12, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0}]}).result == Result.SKIP
+    # Training grounds but no hatchery to feed it -> empty muster -> FAIL.
+    assert _run({"start_bread": 12, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "training_grounds", "x": 1, "y": 0}]}).result == Result.FAIL
+    # Hatchery feeds the training grounds -> army raised -> PASS + soldiers floor.
+    ok = _run({"start_bread": 12, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0},
+        {"type": "training_grounds", "x": 2, "y": 0}]})
+    assert ok.result == Result.PASS and ok.metrics["onepond_soldiers"] > 0
+
+
 def test_water_access_check_certifies_and_gates(tmp_path):
     from game.onepond.checks import WaterAccessCheck
     assert certify(WaterAccessCheck()).certified
@@ -495,6 +531,7 @@ def test_harness_builds_one_pond_end_to_end(git_repo, tmp_path):
     assert any(k.endswith(".onepond_geese_protected") for k in floors)  # predator safety ran too
     assert any(k.endswith(".onepond_watered_hatcheries") for k in floors)  # water access ran too
     assert any(k.endswith(".onepond_total_tier") for k in floors)          # tier progression floor
+    assert any(k.endswith(".onepond_soldiers") for k in floors)            # army-viability ran too
     assert run_regression_suite(gatekeeper, registry) == []
 
     # Cold audit (acceptance is not forever): re-verify the committed tree mechanically AND with
@@ -579,9 +616,9 @@ def test_escape_hatch_rescues_a_plateaued_one_pond_ticket(git_repo, tmp_path):
     assert simulate_solvency(accepted)["solvent"]      # a real, solvent pond was committed
 
 
-def test_full_one_pond_has_all_building_types():
-    # The final ticket assembles the whole pond: every building type at once — producer,
-    # consumer, storage, launchpad, fence (predators) and well (water).
+def test_ticket_set_exercises_every_building_type():
+    # As the game grows, the ticket set as a whole must exercise every building type at least
+    # once (rather than pinning it to one 'final' pond that goes stale each time we add a type).
     from game.onepond.tickets import POND_CONFIGS
-    types = {b["type"] for b in POND_CONFIGS["T-POND-06"]["buildings"]}
-    assert types == set(BUILDING_TYPES)
+    used = {b["type"] for cfg in POND_CONFIGS.values() for b in cfg["buildings"]}
+    assert used == set(BUILDING_TYPES)

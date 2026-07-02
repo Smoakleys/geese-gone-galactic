@@ -24,11 +24,13 @@ BUILDING_TYPES: dict[str, dict] = {
     "launchpad": {"cost": 5, "bread_delta": -1, "geese_delta": 0},  # burns bread as fuel, launches geese
     "fence":     {"cost": 2, "bread_delta": 0, "geese_delta": 0},   # neutralizes one prowling predator
     "well":      {"cost": 2, "bread_delta": 0, "geese_delta": 0},   # waters nearby hatcheries
+    "training_grounds": {"cost": 4, "bread_delta": -1, "geese_delta": 0},  # musters geese into soldiers
 }
 GRANARY_CAPACITY_BONUS = 20
 BASE_CAPACITY = 20
 LAUNCH_RATE = 1  # geese each launchpad sends galactic per tick, drawn from the on-pond flock
 PREDATOR_RATE = 1  # geese each un-fenced predator eats per tick, from the standing flock
+TRAIN_RATE = 1  # geese each training grounds musters into soldiers per tick, from the flock
 MAX_TIER = 6  # buildings upgrade T1..T6 (VISION era ladder lives in the tiers, not the map)
 
 
@@ -51,6 +53,7 @@ class World:
     bread: int = 10
     geese: int = 0
     launched: int = 0  # geese sent galactic — the score that makes it Geese Gone Galactic
+    soldiers: int = 0  # geese mustered into soldier-geese at the training grounds (the army)
     predators: int = 0  # foxes prowling the pond; each un-fenced one eats a goose per tick
     eaten: int = 0      # geese lost to predators over the run (a failure signal, not a score)
     tick_count: int = 0
@@ -105,6 +108,11 @@ class World:
         return sum(b.tier for b in self.buildings if b.type == "fence")
 
     @property
+    def train_capacity(self) -> int:
+        """Geese mustered into soldiers per tick — each training grounds' throughput scales w/ tier."""
+        return sum(b.tier for b in self.buildings if b.type == "training_grounds") * TRAIN_RATE
+
+    @property
     def effective_predators(self) -> int:
         """Predators left prowling after fences neutralize them one-for-one (never negative)."""
         return max(0, self.predators - self.fences) * PREDATOR_RATE
@@ -118,7 +126,11 @@ class World:
             eaten = min(self.effective_predators, self.geese)
             self.geese -= eaten
             self.eaten += eaten
-            # Launch after predation: each launchpad sends surviving geese galactic.
+            # Muster survivors into soldiers at the training grounds, then launch what's left.
+            trained = min(self.train_capacity, self.geese)
+            self.geese -= trained
+            self.soldiers += trained
+            # Launch after predation + training: each launchpad sends remaining geese galactic.
             launched = min(self.launch_capacity, self.geese)
             self.geese -= launched
             self.launched += launched
@@ -132,6 +144,7 @@ class World:
             "bread": self.bread,
             "geese": self.geese,
             "launched": self.launched,
+            "soldiers": self.soldiers,
             "predators": self.predators,
             "eaten": self.eaten,
             "tick_count": self.tick_count,
@@ -144,6 +157,7 @@ class World:
         gw, gh = data.get("grid", [8, 8])
         w = cls(grid_w=int(gw), grid_h=int(gh), bread=int(data.get("bread", 10)),
                 geese=int(data.get("geese", 0)), launched=int(data.get("launched", 0)),
+                soldiers=int(data.get("soldiers", 0)),
                 predators=int(data.get("predators", 0)), eaten=int(data.get("eaten", 0)),
                 tick_count=int(data.get("tick_count", 0)))
         w.buildings = [Building(b["type"], int(b["x"]), int(b["y"]), int(b.get("tier", 1)))
@@ -191,6 +205,8 @@ def simulate_solvency(config: dict, horizon: int = 20) -> dict:
         "net_delta": world.net_bread_delta(),
         "geese": world.geese,
         "launched": world.launched,
+        "soldiers": world.soldiers,
+        "train_capacity": world.train_capacity,
         "launch_capacity": world.launch_capacity,
         "predators": world.predators,
         "effective_predators": world.effective_predators,
