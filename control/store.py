@@ -57,6 +57,7 @@ class RunStore:
             "stage_c_proposals": [],
             "audit": {"blocked": False, "summary": "", "count": 0},
             "floors": {},
+            "status": {},
         }
 
     def _read(self) -> dict:
@@ -166,6 +167,18 @@ class RunStore:
     def floors(self) -> dict:
         return dict(self._read().get("floors", {}))
 
+    # -- live session status (what the operator sees "now" on the dashboard) -----------
+
+    def record_status(self, status: dict) -> None:
+        """Set the live session status (current activity, test count, last change, ...) and beat."""
+        data = self._read()
+        data["status"] = dict(status)
+        data["heartbeat"] = time.time()
+        self._write(data)
+
+    def status(self) -> dict:
+        return dict(self._read().get("status", {}))
+
     def autonomy_rate(self) -> float:
         """Share of accepted work built with zero escape-hatch (Claude) help. Target -> 1.0."""
         m = self.metrics()
@@ -189,4 +202,5 @@ class RunStore:
             "stage_c_proposals": data.get("stage_c_proposals", []),
             "audit": data.get("audit", {"blocked": False, "summary": "", "count": 0}),
             "floors": data.get("floors", {}),
+            "status": data.get("status", {}),
         }
