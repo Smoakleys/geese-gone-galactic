@@ -14,6 +14,7 @@ Two things it produces:
 
 CLI:
     python ops/notify.py digest        # build + send the session digest, then advance the marker
+    python ops/notify.py iter "s" "b"  # send a per-iteration update email (Owner wants one each iteration)
     python ops/notify.py alert "text"  # send an immediate one-off alert (blocked run / STOP)
     python ops/notify.py test          # send a tiny "it works" email to verify setup
     python ops/notify.py preview       # print the digest without sending or advancing the marker
@@ -198,11 +199,21 @@ def main(argv: Optional[list[str]] = None) -> int:
         print(body)
     elif cmd == "alert":
         send_alert(argv[1] if len(argv) > 1 else "(no message)")
+    elif cmd == "iter":
+        # Per-iteration update: a short email after each increment (Owner wants one every iteration).
+        msg = argv[1] if len(argv) > 1 else "(iteration update)"
+        body = argv[2] if len(argv) > 2 else msg
+        try:
+            head = _git(_REPO, "log", "-1", "--pretty=%h %s")
+        except Exception:
+            head = "?"
+        full = f"{body}\n\nHEAD: {head}\nRepo: {_repo_slug(_REPO)}\n\n— GGG harness (per-iteration update)"
+        send_email(f"GGG iteration: {msg[:70]}", full)
     elif cmd == "test":
         send_email("GGG harness: notifier test",
                    "If you're reading this in your inbox, SMTP delivery works.")
     else:
-        print(f"unknown command {cmd!r}; use digest|preview|alert|test")
+        print(f"unknown command {cmd!r}; use digest|iter|preview|alert|test")
         return 2
     return 0
 
