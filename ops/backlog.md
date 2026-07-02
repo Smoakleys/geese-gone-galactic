@@ -116,3 +116,6 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] Orchestration-level net: `AutonomousRunner.run_pending` catches any catastrophic per-ticket
       failure (e.g. an unexpected Gatekeeper/git error the loop doesn't handle), blocks that ticket
       and continues the queue — the run never dies mid-queue (131 tests)
+- [x] Email digest notifier (`ops/notify.py`): SMTP+app-password sender (gitignored config,
+      console dry-run when absent) + git-based per-session digest (headline, test count, one line
+      per change + PR refs) + alert/test/preview CLI; docs/REMOTE_SETUP.md email steps (135 tests)
