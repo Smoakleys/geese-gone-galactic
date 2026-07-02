@@ -36,5 +36,34 @@ rollup, and one line per harness change since the last email (subject + PR/commi
 
 ## 2. Remote control site (Cloudflare Tunnel)
 
-_Built in the next increment — this section will cover: start the token-authed dashboard, run
-`cloudflared tunnel login` once, and open the HTTPS URL on your phone to Start/Pause/Stop._
+A token-protected **status + Start/Pause/Stop** dashboard, reachable from your phone via a
+Cloudflare tunnel. **Stop** halts the whole autonomous system (writes `ops/STOP`, which the
+Claude loop obeys, and sets the runner to STOPPED); **Start** clears it and re-arms
+`ops/AUTOPILOT_ON`; **Pause** parks the runner only (resumable).
+
+**One-time install:** get `cloudflared` on PATH:
+```
+winget install --id Cloudflare.cloudflared
+```
+(No Cloudflare account or login is needed for the quick-tunnel mode below.)
+
+**Run it** (share the store with the autopilot by matching `--workdir`):
+```
+# terminal 1 — the build, using a persistent workspace so control is shared:
+python scripts/run_onepond_autopilot.py --workdir .autopilot --serve   # (or your normal run)
+
+# terminal 2 — the remote control site + tunnel:
+python ops/serve_remote.py --store .autopilot/.harness/state.json
+```
+`serve_remote` serves the token-gated dashboard on `127.0.0.1:8787`, generates an access token
+into `ops/dashboard_token.local` (gitignored), launches a Cloudflare **quick tunnel**, and prints
+(and, if the email notifier is set up, emails you) the live `https://<random>.trycloudflare.com`
+URL **and the token**. Open the URL on your phone, enter the token once, and you're in.
+
+Notes:
+- The quick-tunnel URL **changes each launch**. For a permanent URL, set up a *named* tunnel
+  (`cloudflared tunnel login` → `cloudflared tunnel create ggg` → route a hostname → run it
+  against `http://127.0.0.1:8787`); the dashboard side is identical.
+- No `cloudflared`? `serve_remote` falls back to serving locally and prints the LAN/local URL;
+  add `--no-tunnel` to force local-only.
+- Access token: read from `$GGG_DASHBOARD_TOKEN`, else `ops/dashboard_token.local`, else generated.

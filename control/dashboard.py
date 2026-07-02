@@ -17,10 +17,22 @@ and every extra dependency is one more thing that can fail to import at 3am. End
 from __future__ import annotations
 
 import json
+from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
+from typing import Optional
+from urllib.parse import parse_qs, urlsplit
 
 from control.store import ControlMode, RunStore
+
+
+_LOGIN_PAGE = """<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>GGG control — unlock</title>
+<style>body{font-family:system-ui,sans-serif;margin:3rem;max-width:420px}
+input,button{font-size:1.1rem;padding:.6rem;width:100%;box-sizing:border-box;margin:.3rem 0}</style>
+</head><body><h1>GGG control</h1><p>Enter the access token.</p>
+<form method="get" action="/"><input name="token" type="password" placeholder="access token" autofocus>
+<button>Unlock</button></form></body></html>"""
 
 
 def render_html(store: RunStore) -> str:
@@ -88,58 +100,136 @@ def render_html(store: RunStore) -> str:
 
 class _Handler(BaseHTTPRequestHandler):
     store: RunStore = None  # type: ignore[assignment]  # injected by make_server
+    token: Optional[str] = None  # None => auth disabled (localhost dev / tests); set => required
+    sentinel_dir: Optional[Path] = None  # if set, Start/Stop also manage ops/STOP + AUTOPILOT_ON
 
-    def _send(self, code: int, body: str, ctype: str = "text/html; charset=utf-8") -> None:
+    def _send(self, code: int, body: str, ctype: str = "text/html; charset=utf-8",
+              extra_headers: Optional[list[tuple[str, str]]] = None) -> None:
         payload = body.encode("utf-8")
         self.send_response(code)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(payload)))
+        for k, v in (extra_headers or []):
+            self.send_header(k, v)
         self.end_headers()
         self.wfile.write(payload)
 
+    def _authed(self, query: dict) -> bool:
+        """Token gate. Open when no token is configured; else needs the cookie or ``?token=``."""
+        if self.token is None:
+            return True
+        cookie = SimpleCookie(self.headers.get("Cookie", ""))
+        if "ggg_token" in cookie and cookie["ggg_token"].value == self.token:
+            return True
+        return query.get("token", [None])[0] == self.token
+
     def do_GET(self) -> None:  # noqa: N802 (stdlib naming)
-        if self.path in ("/", "/index.html"):
+        parts = urlsplit(self.path)
+        path, query = parts.path, parse_qs(parts.query)
+        if not self._authed(query):
+            self._send(401, _LOGIN_PAGE)
+            return
+        # Authenticated via ?token= (first unlock): plant an httponly cookie, then redirect to a
+        # clean URL so the token never lingers in the address bar / history.
+        if self.token is not None and query.get("token"):
+            c = SimpleCookie(); c["ggg_token"] = self.token
+            c["ggg_token"]["path"] = "/"; c["ggg_token"]["httponly"] = True; c["ggg_token"]["samesite"] = "Lax"
+            self.send_response(303)
+            self.send_header("Set-Cookie", c["ggg_token"].OutputString())
+            self.send_header("Location", path or "/")
+            self.end_headers()
+            return
+
+        if path in ("/", "/index.html"):
             self._send(200, render_html(self.store))
-        elif self.path == "/heartbeat":
+        elif path == "/heartbeat":
             snap = self.store.snapshot()
             self._send(200, json.dumps({
                 "mode": snap["mode"], "heartbeat_age": snap["heartbeat_age"],
                 "autonomy_rate": snap["autonomy_rate"], "accepted": snap["accepted"],
             }), "application/json")
-        elif self.path == "/api/state":
+        elif path == "/api/state":
             self._send(200, json.dumps(self.store.snapshot()), "application/json")
         else:
             self._send(404, "not found", "text/plain")
 
     def do_POST(self) -> None:  # noqa: N802
+        parts = urlsplit(self.path)
+        path, query = parts.path, parse_qs(parts.query)
+        if not self._authed(query):
+            self._send(401, "unauthorized", "text/plain")
+            return
         actions = {
             "/control/start": ControlMode.RUNNING,
             "/control/pause": ControlMode.PAUSED,
             "/control/stop": ControlMode.STOPPED,
         }
-        if self.path in actions:
-            self.store.set_mode(actions[self.path])
+        if path in actions:
+            self.store.set_mode(actions[path])
+            self._apply_sentinels(path)
             self.send_response(303)
             self.send_header("Location", "/")
             self.end_headers()
         else:
             self._send(404, "not found", "text/plain")
 
+    def _apply_sentinels(self, path: str) -> None:
+        """Make Start/Stop also govern the autonomous Claude loop, not just the runner.
+
+        The runner reads ``store.mode``; the Claude autopilot loop reads the ``ops/STOP`` /
+        ``AUTOPILOT_ON`` sentinels. When a sentinel dir is wired, remote **Stop** creates STOP
+        (halting the loop at its next safe boundary) and **Start** clears it + arms AUTOPILOT_ON,
+        so one button governs the whole system. Pause is runner-only (resumable, loop keeps its
+        heartbeat)."""
+        d = self.sentinel_dir
+        if d is None:
+            return
+        stop, autopilot = d / "STOP", d / "AUTOPILOT_ON"
+        if path == "/control/stop":
+            stop.write_text("stopped via remote control\n")
+        elif path == "/control/start":
+            stop.unlink(missing_ok=True)
+            autopilot.write_text("armed via remote control\n")
+
     def log_message(self, *args) -> None:  # keep the console quiet in unattended runs
         pass
 
 
-def make_server(store: RunStore, host: str = "127.0.0.1", port: int = 8787) -> HTTPServer:
+def make_server(store: RunStore, host: str = "127.0.0.1", port: int = 8787,
+                token: Optional[str] = None, sentinel_dir: Optional[Path] = None) -> HTTPServer:
     """Build (but do not start) an HTTP server bound to ``host:port`` serving ``store``.
 
-    Call ``.serve_forever()`` to run it, or ``.handle_request()`` to serve one request. Use
-    ``port=0`` to get an ephemeral port (tests do this)."""
-    handler = type("BoundHandler", (_Handler,), {"store": store})
+    ``token`` gates access when set (required for remote exposure); ``None`` leaves it open for
+    localhost/tests. ``sentinel_dir`` (when set) lets Start/Stop also manage the ``ops`` autopilot
+    sentinels so remote control governs the whole system. ``port=0`` picks a free port (tests)."""
+    handler = type("BoundHandler", (_Handler,),
+                   {"store": store, "token": token,
+                    "sentinel_dir": Path(sentinel_dir) if sentinel_dir else None})
     return HTTPServer((host, port), handler)
 
 
-def serve(store_path: Path, host: str = "127.0.0.1", port: int = 8787) -> None:  # pragma: no cover
+def serve(store_path: Path, host: str = "127.0.0.1", port: int = 8787,
+          token: Optional[str] = None, sentinel_dir: Optional[Path] = None) -> None:  # pragma: no cover
     """Entry point for running the dashboard against a store file until interrupted."""
-    server = make_server(RunStore(Path(store_path)), host, port)
-    print(f"GGG control dashboard on http://{host}:{server.server_port}/")
+    server = make_server(RunStore(Path(store_path)), host, port, token=token, sentinel_dir=sentinel_dir)
+    lock = " (token-protected)" if token else ""
+    print(f"GGG control dashboard on http://{host}:{server.server_port}/{lock}")
     server.serve_forever()
+
+
+def main(argv: Optional[list[str]] = None) -> int:  # pragma: no cover - thin CLI wrapper
+    import argparse
+    import os
+    ap = argparse.ArgumentParser(description="Serve the GGG control dashboard.")
+    ap.add_argument("--store", required=True, help="path to the RunStore state.json")
+    ap.add_argument("--host", default="127.0.0.1")
+    ap.add_argument("--port", type=int, default=8787)
+    ap.add_argument("--token", default=os.environ.get("GGG_DASHBOARD_TOKEN"),
+                    help="access token; also read from $GGG_DASHBOARD_TOKEN. Omit for open localhost.")
+    args = ap.parse_args(argv)
+    serve(Path(args.store), args.host, args.port, token=args.token)
+    return 0
+
+
+if __name__ == "__main__":  # pragma: no cover
+    raise SystemExit(main())

@@ -119,3 +119,7 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] Email digest notifier (`ops/notify.py`): SMTP+app-password sender (gitignored config,
       console dry-run when absent) + git-based per-session digest (headline, test count, one line
       per change + PR refs) + alert/test/preview CLI; docs/REMOTE_SETUP.md email steps (135 tests)
+- [x] Remote control site: dashboard gains token auth (login page + cookie) + a CLI; Start/Stop
+      also manage the `ops/STOP`+`AUTOPILOT_ON` sentinels (remote Stop halts the whole system);
+      `ops/serve_remote.py` runs it behind a Cloudflare quick tunnel (emails the URL+token);
+      docs/REMOTE_SETUP.md §2 (140 tests)
