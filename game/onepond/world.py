@@ -29,6 +29,7 @@ GRANARY_CAPACITY_BONUS = 20
 BASE_CAPACITY = 20
 LAUNCH_RATE = 1  # geese each launchpad sends galactic per tick, drawn from the on-pond flock
 PREDATOR_RATE = 1  # geese each un-fenced predator eats per tick, from the standing flock
+MAX_TIER = 6  # buildings upgrade T1..T6 (VISION era ladder lives in the tiers, not the map)
 
 
 class PlacementError(ValueError):
@@ -40,6 +41,7 @@ class Building:
     type: str
     x: int
     y: int
+    tier: int = 1  # T1..T6; scales this building's output (and its up-front cost) linearly
 
 
 @dataclass
@@ -58,45 +60,49 @@ class World:
 
     @property
     def capacity(self) -> int:
-        granaries = sum(1 for b in self.buildings if b.type == "granary")
-        return BASE_CAPACITY + granaries * GRANARY_CAPACITY_BONUS
+        granary_tiers = sum(b.tier for b in self.buildings if b.type == "granary")
+        return BASE_CAPACITY + granary_tiers * GRANARY_CAPACITY_BONUS
 
     def _occupied(self) -> set[tuple[int, int]]:
         return {(b.x, b.y) for b in self.buildings}
 
-    def can_place(self, btype: str, x: int, y: int) -> tuple[bool, str]:
+    def can_place(self, btype: str, x: int, y: int, tier: int = 1) -> tuple[bool, str]:
         if btype not in BUILDING_TYPES:
             return False, f"unknown building type {btype!r}"
+        if not (1 <= tier <= MAX_TIER):
+            return False, f"tier {tier} out of range 1..{MAX_TIER} for {btype}"
         if not (0 <= x < self.grid_w and 0 <= y < self.grid_h):
             return False, f"({x},{y}) out of {self.grid_w}x{self.grid_h} grid"
         if (x, y) in self._occupied():
             return False, f"({x},{y}) already occupied"
-        if self.bread < BUILDING_TYPES[btype]["cost"]:
-            return False, f"not enough bread for {btype} (need {BUILDING_TYPES[btype]['cost']})"
+        cost = BUILDING_TYPES[btype]["cost"] * tier
+        if self.bread < cost:
+            return False, f"not enough bread for {btype} T{tier} (need {cost})"
         return True, "ok"
 
-    def place(self, btype: str, x: int, y: int) -> Building:
-        ok, reason = self.can_place(btype, x, y)
+    def place(self, btype: str, x: int, y: int, tier: int = 1) -> Building:
+        ok, reason = self.can_place(btype, x, y, tier)
         if not ok:
             raise PlacementError(reason)
-        self.bread -= BUILDING_TYPES[btype]["cost"]
-        b = Building(btype, x, y)
+        self.bread -= BUILDING_TYPES[btype]["cost"] * tier
+        b = Building(btype, x, y, tier)
         self.buildings.append(b)
         return b
 
     # -- economy -----------------------------------------------------------------------
 
     def net_bread_delta(self) -> int:
-        return sum(BUILDING_TYPES[b.type]["bread_delta"] for b in self.buildings)
+        return sum(BUILDING_TYPES[b.type]["bread_delta"] * b.tier for b in self.buildings)
 
     @property
     def launch_capacity(self) -> int:
-        """Geese that can be sent galactic per tick, across all launchpads."""
-        return sum(1 for b in self.buildings if b.type == "launchpad") * LAUNCH_RATE
+        """Geese sent galactic per tick — each launchpad's throughput scales with its tier."""
+        return sum(b.tier for b in self.buildings if b.type == "launchpad") * LAUNCH_RATE
 
     @property
     def fences(self) -> int:
-        return sum(1 for b in self.buildings if b.type == "fence")
+        """Predator-blocking strength: each fence neutralizes ``tier`` predators."""
+        return sum(b.tier for b in self.buildings if b.type == "fence")
 
     @property
     def effective_predators(self) -> int:
@@ -106,7 +112,7 @@ class World:
     def tick(self, n: int = 1) -> None:
         for _ in range(n):
             self.bread = min(self.capacity, self.bread + self.net_bread_delta())
-            self.geese += sum(BUILDING_TYPES[b.type]["geese_delta"] for b in self.buildings)
+            self.geese += sum(BUILDING_TYPES[b.type]["geese_delta"] * b.tier for b in self.buildings)
             # Predators strike after hatching, before launch: an un-fenced pond loses geese from
             # its standing flock. A fully-fenced pond (fences >= predators) loses none.
             eaten = min(self.effective_predators, self.geese)
@@ -129,7 +135,8 @@ class World:
             "predators": self.predators,
             "eaten": self.eaten,
             "tick_count": self.tick_count,
-            "buildings": [{"type": b.type, "x": b.x, "y": b.y} for b in self.buildings],
+            "buildings": [{"type": b.type, "x": b.x, "y": b.y, "tier": b.tier}
+                          for b in self.buildings],
         }
 
     @classmethod
@@ -139,7 +146,7 @@ class World:
                 geese=int(data.get("geese", 0)), launched=int(data.get("launched", 0)),
                 predators=int(data.get("predators", 0)), eaten=int(data.get("eaten", 0)),
                 tick_count=int(data.get("tick_count", 0)))
-        w.buildings = [Building(b["type"], int(b["x"]), int(b["y"]))
+        w.buildings = [Building(b["type"], int(b["x"]), int(b["y"]), int(b.get("tier", 1)))
                        for b in data.get("buildings", [])]
         return w
 
@@ -162,7 +169,7 @@ def build_world(config: dict) -> World:
     world = World(grid_w=int(gw), grid_h=int(gh), bread=int(config.get("start_bread", 10)),
                   predators=int(config.get("predators", 0)))
     for spec in config.get("buildings", []):
-        world.place(spec["type"], int(spec["x"]), int(spec["y"]))
+        world.place(spec["type"], int(spec["x"]), int(spec["y"]), int(spec.get("tier", 1)))
     return world
 
 
@@ -189,4 +196,5 @@ def simulate_solvency(config: dict, horizon: int = 20) -> dict:
         "effective_predators": world.effective_predators,
         "eaten": world.eaten,
         "buildings": len(world.buildings),
+        "total_tier": sum(b.tier for b in world.buildings),
     }

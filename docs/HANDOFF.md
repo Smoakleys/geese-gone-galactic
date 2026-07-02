@@ -7,9 +7,22 @@ you to wait for me for anything. Keep going." Neither you nor Icarus may ask him
 
 ## First actions on resume
 1. `cd C:\Users\bhump\geese-gone-galactic`
-2. `python -m pytest tests/ -q` → expect **131 passed**. If red, fixing that is job #1.
+2. `python -m pytest tests/ -q` → expect **144 passed**. If red, fixing that is job #1.
 3. Read `docs/AUTOPILOT.md` (the phase state + loop) and your memory index `MEMORY.md`
    (`ggg-autonomous-mandate`, `ggg-progress`).
+
+## Owner-facing systems (2026-07-01, LIVE)
+- **Email digests** to bridgerhumphreys03@gmail.com from geesegonegalactic@gmail.com
+  (`ops/notify.py`, SMTP app-password in gitignored `ops/notify_config.local.json`). Send a
+  session digest with `python ops/notify.py digest`; `send_alert` for exceptional events.
+- **Remote control** (`ops/serve_remote.py`): token-authed Start/Pause/Stop dashboard behind a
+  Cloudflare quick tunnel (cloudflared bundled in gitignored `ops/bin/`). Relaunch with
+  `python ops/serve_remote.py --store .autopilot/.harness/state.json`; it prints+emails the
+  (ephemeral) URL + token. Remote **Stop** writes `ops/STOP` (halts this loop). See
+  `docs/REMOTE_SETUP.md`. TODO: persistent named tunnel + autostart.
+- **Target = the real game** (`GeeseGoneGalactic/docs/VISION.md`, the Unity folder is OLD/ref
+  only): cozy goose base-builder, Pond→Galaxy, tap-to-upgrade tiered buildings, bread economy →
+  soldier-geese → campaigns. Evolve One Pond toward it, one mechanic+check+ticket at a time.
 
 ## Where things stand (all merged to `main`)
 Repo: https://github.com/Smoakleys/geese-gone-galactic (remote `origin` is set; push/PR/merge

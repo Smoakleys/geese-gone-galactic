@@ -122,4 +122,13 @@ ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 - [x] Remote control site: dashboard gains token auth (login page + cookie) + a CLI; Start/Stop
       also manage the `ops/STOP`+`AUTOPILOT_ON` sentinels (remote Stop halts the whole system);
       `ops/serve_remote.py` runs it behind a Cloudflare quick tunnel (emails the URL+token);
-      docs/REMOTE_SETUP.md §2 (140 tests)
+      docs/REMOTE_SETUP.md §2 (140 tests) — LIVE + verified (email + tunnel), PRs #46–49
+- [x] Toward the real game: **building tiers T1→T6** (tap-to-upgrade core of the vision). `tier`
+      scales output+cost (default 1 = unchanged); placement gates 1..6 and mints
+      `onepond_total_tier` as a progression ratchet floor; T-POND-07 upgrade ticket driven to
+      acceptance 7/7 (144 tests)
+
+## Now (toward the real game — see GeeseGoneGalactic/docs/VISION.md)
+- [ ] Continue evolving One Pond toward the vision's core loop: soldier-goose training (convert
+      geese → soldiers via a training building), then simple campaigns (spend soldiers for a
+      reward), then era expansion. Each a mechanic + certified check + ticket to acceptance 1.0.

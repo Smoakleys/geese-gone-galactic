@@ -70,6 +70,39 @@ def test_tick_runs_bread_economy_and_caps_capacity():
     assert w.bread <= w.capacity            # never exceeds storage capacity
 
 
+def test_building_tiers_scale_output_and_cost():
+    from game.onepond.world import MAX_TIER
+    # A T2 bakery produces double bread; a T2 hatchery hatches double geese; cost scales too.
+    w = build_world({"start_bread": 20, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0, "tier": 2},
+        {"type": "hatchery", "x": 1, "y": 0, "tier": 2}]})
+    assert w.net_bread_delta() == 3 * 2 + (-2 * 2)          # +2/tick
+    assert w.bread == 20 - 6 * 2                             # T2 hatchery cost 2x
+    w.tick(1)
+    assert w.geese == 2                                      # T2 hatchery hatches 2/tick
+    # Tier out of range is an illegal placement.
+    for bad in (0, MAX_TIER + 1):
+        with pytest.raises(PlacementError):
+            build_world({"start_bread": 99, "buildings": [
+                {"type": "bakery", "x": 0, "y": 0, "tier": bad}]})
+
+
+def test_tier_round_trips_and_defaults_to_one(tmp_path):
+    w = build_world({"start_bread": 20, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0, "tier": 3}]})
+    assert w.buildings[0].tier == 1 and w.buildings[1].tier == 3   # default 1, explicit 3
+    p = tmp_path / "s.json"; w.save(p)
+    assert World.load(p).to_dict() == w.to_dict()                 # tier survives save/load
+
+
+def test_placement_check_emits_total_tier_floor(tmp_path):
+    art = tmp_path / "art"; art.mkdir()
+    (art / "onepond_config.json").write_text(json.dumps({"buildings": [
+        {"type": "bakery", "x": 0, "y": 0, "tier": 2}, {"type": "granary", "x": 1, "y": 0}]}))
+    res = PlacementValidCheck().run(art, make_ticket())
+    assert res.result == Result.PASS and res.metrics["onepond_total_tier"] == 3  # 2 + 1
+
+
 def test_solvency_reports_insolvency():
     solvent = simulate_solvency({"start_bread": 12, "buildings": [
         {"type": "bakery", "x": 0, "y": 0}]})
@@ -461,6 +494,7 @@ def test_harness_builds_one_pond_end_to_end(git_repo, tmp_path):
     assert any(k.endswith(".onepond_geese_hatched") for k in floors)   # liveliness ran as a live gate
     assert any(k.endswith(".onepond_geese_protected") for k in floors)  # predator safety ran too
     assert any(k.endswith(".onepond_watered_hatcheries") for k in floors)  # water access ran too
+    assert any(k.endswith(".onepond_total_tier") for k in floors)          # tier progression floor
     assert run_regression_suite(gatekeeper, registry) == []
 
     # Cold audit (acceptance is not forever): re-verify the committed tree mechanically AND with

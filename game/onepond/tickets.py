@@ -81,6 +81,16 @@ POND_CONFIGS: dict[str, dict] = {
             {"type": "well", "x": 3, "y": 2},
         ],
     },
+    "T-POND-07": {
+        # Upgrade the base: buildings evolve T1->T6. A tier-2 bakery + tier-2 hatchery double
+        # their output (and cost), staying solvent — the tap-to-upgrade core of the vision.
+        "grid": [8, 8], "start_bread": 16,
+        "buildings": [
+            {"type": "bakery", "x": 1, "y": 1, "tier": 2},
+            {"type": "hatchery", "x": 2, "y": 1, "tier": 2},
+            {"type": "granary", "x": 3, "y": 1},
+        ],
+    },
 }
 
 _TITLES = {
@@ -90,13 +100,14 @@ _TITLES = {
     "T-POND-04": "Add a launchpad; send the geese galactic while staying solvent",
     "T-POND-05": "Fence out the foxes; a galactic sanctuary that keeps its flock alive",
     "T-POND-06": "Sink a well; water the flock in the complete pond (every building type)",
+    "T-POND-07": "Upgrade the base: tier-2 bakery + hatchery (buildings evolve T1->T6)",
 }
 
 # Tickets that must also send geese to space earn a launch-viability acceptance criterion.
 _LAUNCH_TICKETS = {"T-POND-04", "T-POND-05", "T-POND-06"}
 # Ponds that invest in a granary (goose capacity) must keep a living flock — the harvested
 # liveliness gate. These are exactly the tickets that build a granary.
-_LIVELINESS_TICKETS = {"T-POND-03", "T-POND-04", "T-POND-05", "T-POND-06"}
+_LIVELINESS_TICKETS = {"T-POND-03", "T-POND-04", "T-POND-05", "T-POND-06", "T-POND-07"}
 # Ponds that let predators in must fence the flock — the harvested predator-safety gate.
 _PREDATOR_TICKETS = {"T-POND-05", "T-POND-06"}
 # Ponds that sink a well must water their hatcheries — the water-access gate.
@@ -146,7 +157,8 @@ def _ticket(tid: str) -> Ticket:
 
 def onepond_tickets() -> list[Ticket]:
     return [_ticket(tid) for tid in
-            ("T-POND-01", "T-POND-02", "T-POND-03", "T-POND-04", "T-POND-05", "T-POND-06")]
+            ("T-POND-01", "T-POND-02", "T-POND-03", "T-POND-04", "T-POND-05", "T-POND-06",
+             "T-POND-07")]
 
 
 def onepond_generation_client() -> ScriptedGenerationClient:
