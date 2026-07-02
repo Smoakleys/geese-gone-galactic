@@ -100,7 +100,7 @@ def send_email(subject: str, body: str, config: Optional[NotifyConfig] = None) -
             s.starttls(context=ssl.create_default_context())
             s.login(config.username, config.app_password)
             s.send_message(msg)
-    print(f"[notify] sent → {config.to}: {subject}")
+    print(f"[notify] sent -> {config.to}: {subject}")
     return True
 
 
