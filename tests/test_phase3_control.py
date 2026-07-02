@@ -401,6 +401,73 @@ def test_runner_mirrors_floors_into_store(git_repo, registry, gatekeeper, tmp_pa
     assert store.snapshot()["floors"] == floors
 
 
+def test_dashboard_token_gate(tmp_path):
+    import http.cookiejar
+    import urllib.error
+
+    store = RunStore(tmp_path / "state.json")
+    store.beat()
+    server = make_server(store, "127.0.0.1", 0, token="s3cret")
+    port = server.server_port
+    th = threading.Thread(target=server.serve_forever, daemon=True)
+    th.start()
+    try:
+        base = f"http://127.0.0.1:{port}"
+        # No token and wrong token are both rejected with 401 (login page).
+        for url in (base + "/", base + "/?token=nope"):
+            try:
+                urllib.request.urlopen(url, timeout=5)
+                assert False, "expected 401"
+            except urllib.error.HTTPError as e:
+                assert e.code == 401
+        # Unlock with the right token: cookie is planted, redirect lands on the real page.
+        cj = http.cookiejar.CookieJar()
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+        body = opener.open(base + "/?token=s3cret", timeout=5).read().decode()
+        assert "harness control" in body.lower()
+        # Control POST is rejected without auth, accepted with the cookie the opener now holds.
+        req = urllib.request.Request(base + "/control/pause", method="POST", data=b"")
+        try:
+            urllib.request.urlopen(req, timeout=5)
+            assert False, "expected 401"
+        except urllib.error.HTTPError as e:
+            assert e.code == 401
+        opener.open(urllib.request.Request(base + "/control/pause", method="POST", data=b""), timeout=5)
+        assert store.mode is ControlMode.PAUSED
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+def test_dashboard_stop_start_manage_sentinels(tmp_path):
+    # Remote Stop/Start govern the whole system: Stop writes ops/STOP (halts the Claude loop),
+    # Start clears it and arms AUTOPILOT_ON. Pause is runner-only (leaves the sentinels alone).
+    import urllib.request
+
+    sentinels = tmp_path / "ops"; sentinels.mkdir()
+    (sentinels / "AUTOPILOT_ON").write_text("on")
+    store = RunStore(tmp_path / "state.json")
+    server = make_server(store, "127.0.0.1", 0, sentinel_dir=sentinels)  # no token: open for test
+    port = server.server_port
+    th = threading.Thread(target=server.serve_forever, daemon=True); th.start()
+    try:
+        base = f"http://127.0.0.1:{port}"
+
+        def post(action):
+            urllib.request.urlopen(
+                urllib.request.Request(base + action, method="POST", data=b""), timeout=5)
+
+        post("/control/stop")
+        assert (sentinels / "STOP").exists() and store.mode is ControlMode.STOPPED
+        post("/control/start")
+        assert not (sentinels / "STOP").exists() and (sentinels / "AUTOPILOT_ON").exists()
+        assert store.mode is ControlMode.RUNNING
+        post("/control/pause")
+        assert not (sentinels / "STOP").exists() and store.mode is ControlMode.PAUSED  # runner-only
+    finally:
+        server.shutdown(); server.server_close()
+
+
 def test_dashboard_serves_and_controls(tmp_path):
     store = RunStore(tmp_path / "state.json")
     store.beat()

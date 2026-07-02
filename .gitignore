@@ -28,3 +28,6 @@ ops/STOP
 
 # Notifier runtime state (last-emailed commit marker; secret config is *.local.json above)
 ops/.notify_state.json
+
+# Remote dashboard access token (generated; never committed)
+ops/dashboard_token.local
