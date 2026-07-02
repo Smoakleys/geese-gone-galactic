@@ -86,6 +86,9 @@ def render_html(store: RunStore) -> str:
 </style></head><body>
 <h1>Geese Gone Galactic — harness control</h1>
 <div class="live"><div class="act">{st_activity}</div><small>{st_detail}</small></div>
+<img src="/base.png" alt="the current One Pond goose base" class="base"
+     style="max-width:100%;border-radius:10px;display:block;margin:.6rem 0"
+     onerror="this.style.display='none'">
 <p>Mode: <span class="mode">{snap['mode']}</span> &nbsp; Heartbeat: {age_str}</p>
 <div class="kpi">
  <div>{snap['autonomy_rate']*100:.0f}%<br><small>autonomy rate</small></div>
@@ -115,6 +118,7 @@ class _Handler(BaseHTTPRequestHandler):
     store: RunStore = None  # type: ignore[assignment]  # injected by make_server
     token: Optional[str] = None  # None => auth disabled (localhost dev / tests); set => required
     sentinel_dir: Optional[Path] = None  # if set, Start/Stop also manage ops/STOP + AUTOPILOT_ON
+    base_image: Optional[Path] = None    # if set, served (auth-gated) at /base.png for the page
 
     def _send(self, code: int, body: str, ctype: str = "text/html; charset=utf-8",
               extra_headers: Optional[list[tuple[str, str]]] = None) -> None:
@@ -155,6 +159,17 @@ class _Handler(BaseHTTPRequestHandler):
 
         if path in ("/", "/index.html"):
             self._send(200, render_html(self.store))
+        elif path == "/base.png":
+            if self.base_image and Path(self.base_image).exists():
+                payload = Path(self.base_image).read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", "image/png")
+                self.send_header("Content-Length", str(len(payload)))
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                self.wfile.write(payload)
+            else:
+                self._send(404, "no base image", "text/plain")
         elif path == "/heartbeat":
             snap = self.store.snapshot()
             self._send(200, json.dumps({
@@ -209,22 +224,27 @@ class _Handler(BaseHTTPRequestHandler):
 
 
 def make_server(store: RunStore, host: str = "127.0.0.1", port: int = 8787,
-                token: Optional[str] = None, sentinel_dir: Optional[Path] = None) -> HTTPServer:
+                token: Optional[str] = None, sentinel_dir: Optional[Path] = None,
+                base_image: Optional[Path] = None) -> HTTPServer:
     """Build (but do not start) an HTTP server bound to ``host:port`` serving ``store``.
 
     ``token`` gates access when set (required for remote exposure); ``None`` leaves it open for
     localhost/tests. ``sentinel_dir`` (when set) lets Start/Stop also manage the ``ops`` autopilot
-    sentinels so remote control governs the whole system. ``port=0`` picks a free port (tests)."""
+    sentinels so remote control governs the whole system. ``base_image`` (when set) is served
+    auth-gated at ``/base.png`` and shown on the page. ``port=0`` picks a free port (tests)."""
     handler = type("BoundHandler", (_Handler,),
                    {"store": store, "token": token,
-                    "sentinel_dir": Path(sentinel_dir) if sentinel_dir else None})
+                    "sentinel_dir": Path(sentinel_dir) if sentinel_dir else None,
+                    "base_image": Path(base_image) if base_image else None})
     return HTTPServer((host, port), handler)
 
 
 def serve(store_path: Path, host: str = "127.0.0.1", port: int = 8787,
-          token: Optional[str] = None, sentinel_dir: Optional[Path] = None) -> None:  # pragma: no cover
+          token: Optional[str] = None, sentinel_dir: Optional[Path] = None,
+          base_image: Optional[Path] = None) -> None:  # pragma: no cover
     """Entry point for running the dashboard against a store file until interrupted."""
-    server = make_server(RunStore(Path(store_path)), host, port, token=token, sentinel_dir=sentinel_dir)
+    server = make_server(RunStore(Path(store_path)), host, port, token=token,
+                         sentinel_dir=sentinel_dir, base_image=base_image)
     lock = " (token-protected)" if token else ""
     print(f"GGG control dashboard on http://{host}:{server.server_port}/{lock}")
     server.serve_forever()

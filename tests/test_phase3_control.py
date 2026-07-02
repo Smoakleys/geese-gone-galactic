@@ -365,6 +365,22 @@ def test_runner_stage_c_no_proposal_below_threshold(git_repo, registry, gatekeep
 # --- dashboard ------------------------------------------------------------------------
 
 
+def test_dashboard_serves_base_image(tmp_path):
+    import urllib.request
+    png = tmp_path / "base.png"; png.write_bytes(b"\x89PNG\r\n\x1a\nFAKE-BASE")
+    store = RunStore(tmp_path / "state.json"); store.beat()
+    server = make_server(store, "127.0.0.1", 0, base_image=png)
+    port = server.server_port
+    th = threading.Thread(target=server.serve_forever, daemon=True); th.start()
+    try:
+        base = f"http://127.0.0.1:{port}"
+        resp = urllib.request.urlopen(base + "/base.png", timeout=5)
+        assert resp.read() == png.read_bytes() and resp.headers["Content-Type"] == "image/png"
+        assert '/base.png' in urllib.request.urlopen(base + "/", timeout=5).read().decode()
+    finally:
+        server.shutdown(); server.server_close()
+
+
 def test_render_html_offline(tmp_path):
     store = RunStore(tmp_path / "state.json")
     store.beat()

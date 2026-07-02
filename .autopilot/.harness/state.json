@@ -84,7 +84,7 @@
     "T-POND-09.onepond_total_tier": 5.0,
     "T-POND-09.onepond_victories": 4.0
   },
-  "heartbeat": 1782969070.6974528,
+  "heartbeat": 1782969373.5369163,
   "metrics": {
     "accepted": 9,
     "escape_hatch_builds": 0,
@@ -187,9 +187,9 @@
   "stage_c_proposals": [],
   "started_at": 1782969028.34909,
   "status": {
-    "activity": "Building campaign spoils: victories yield bread (closing the economy<->war loop)",
-    "last_change": "harness-mod-11: idempotent re-accept (re-running an unchanged ticket isn't a failure) (#54)",
-    "tests": "152",
-    "updated": "2026-07-02 00:11:10"
+    "activity": "Core game loop complete (tiers/soldiers/campaigns/spoils), 154 tests, 9/9. Awaiting direction on era-expansion axis.",
+    "last_change": "Render the new buildings (training grounds, command) \u00e2\u20ac\u201d keep the visual gate honest (#56)",
+    "tests": "154",
+    "updated": "2026-07-02 00:16:13"
   }
 }
