@@ -25,6 +25,9 @@ from urllib.parse import parse_qs, urlsplit
 
 from control.store import ControlMode, RunStore
 
+# Heartbeat age (seconds) beyond which the harness is shown as STALE / possibly-down.
+STALE_THRESHOLD_S = 1800.0
+
 
 _LOGIN_PAGE = """<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>GGG control — unlock</title>
@@ -39,6 +42,10 @@ def render_html(store: RunStore) -> str:
     snap = store.snapshot()
     age = snap["heartbeat_age"]
     age_str = "never" if age is None else f"{age:.0f}s ago"
+    stale = age is not None and age > STALE_THRESHOLD_S
+    stale_banner = (
+        f'<div class="stale">&#9888; STALE &mdash; no activity for {age / 60:.0f} min '
+        f'(the harness may be down or stuck; use Start/Stop below)</div>' if stale else "")
     rows = "".join(
         f"<tr><td>{r.ticket_id}</td><td>{r.final_state}</td>"
         f"<td>{'yes' if r.committed else 'no'}</td><td>{r.rounds}</td>"
@@ -83,8 +90,11 @@ def render_html(store: RunStore) -> str:
  small{{color:#666}}
  .live{{background:#f3f7f3;border:1px solid #cdd;border-radius:8px;padding:.8rem 1rem;margin:1rem 0}}
  .live .act{{font-size:1.15rem;font-weight:600}}
+ .stale{{background:#fdecea;border:1px solid #f5c6cb;color:#a3261e;font-weight:700;
+         border-radius:8px;padding:.8rem 1rem;margin:1rem 0}}
 </style></head><body>
 <h1>Geese Gone Galactic — harness control</h1>
+{stale_banner}
 <div class="live"><div class="act">{st_activity}</div><small>{st_detail}</small></div>
 <img src="/base.png" alt="the current One Pond goose base" class="base"
      style="max-width:100%;border-radius:10px;display:block;margin:.6rem 0"
