@@ -29,6 +29,7 @@ class TaskInstance:
     category: str
     prompt: str
     verify: VerifyFn
+    setup: "Optional[Callable[[Path], None]]" = None  # seed the workspace before the agent runs
 
 
 @dataclass
@@ -144,8 +145,72 @@ def gen_fizzbuzz(rng: Random) -> TaskInstance:
         f"verify before finishing.", verify)
 
 
+def gen_fix_bug(rng: Random) -> TaskInstance:
+    a, b = rng.randint(10, 99), rng.randint(10, 99)
+
+    def setup(ws: Path) -> None:
+        # A script that is SUPPOSED to print the sum but subtracts (a real bug to find + fix).
+        (ws / "solution.py").write_text(f"# prints the sum of two numbers\nprint({a} - {b})\n")
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        try:
+            rc, out, err = _run_py(ws, "solution.py")
+        except Exception as e:
+            return False, f"could not run solution.py: {e}"
+        return out == str(a + b), f"expected sum {a + b}, got {out!r}"
+
+    return TaskInstance(
+        f"fixbug_{a}_{b}", "debugging",
+        f"solution.py already exists but is BROKEN: it should print the sum of {a} and {b}, but it "
+        f"prints the wrong value. Read it, fix the bug, and run it to verify it prints {a + b}.",
+        verify, setup=setup)
+
+
+def gen_read_sum(rng: Random) -> TaskInstance:
+    nums = [rng.randint(1, 50) for _ in range(rng.randint(4, 7))]
+
+    def setup(ws: Path) -> None:
+        (ws / "numbers.txt").write_text("\n".join(str(n) for n in nums) + "\n")
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        try:
+            rc, out, err = _run_py(ws, "solution.py")
+        except Exception as e:
+            return False, f"could not run solution.py: {e}"
+        return out == str(sum(nums)), f"expected total {sum(nums)}, got {out!r}"
+
+    return TaskInstance(
+        f"readsum_{sum(nums)}_{len(nums)}", "multi-file",
+        "The file numbers.txt contains one integer per line. Write solution.py that reads numbers.txt, "
+        "sums the integers, and prints the total. Run it to verify.", verify, setup=setup)
+
+
+def gen_find_secret(rng: Random) -> TaskInstance:
+    token = "".join(rng.choice("ABCDEFGHJKLMNPQRSTUVWXYZ23456789") for _ in range(8))
+    n_noise = rng.randint(15, 30)
+    secret_line = rng.randint(0, n_noise)
+
+    def setup(ws: Path) -> None:
+        lines = []
+        for i in range(n_noise + 1):
+            lines.append(f"SECRET={token}" if i == secret_line else f"noise line {i} = {rng.randint(0,9999)}")
+        (ws / "data.txt").write_text("\n".join(lines) + "\n")
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        p = ws / "answer.txt"
+        if not p.exists():
+            return False, "answer.txt not found"
+        return p.read_text().strip() == token, f"expected {token!r}, got {p.read_text().strip()!r}"
+
+    return TaskInstance(
+        f"secret_{token}", "search",
+        "data.txt has many lines; exactly one has the form SECRET=<value>. Find that line, and write "
+        "ONLY the <value> (the token after SECRET=) into a file named answer.txt.", verify, setup=setup)
+
+
 def default_generators() -> "list[Callable[[Random], TaskInstance]]":
-    return [gen_sum, gen_reverse, gen_json, gen_fizzbuzz]
+    return [gen_sum, gen_reverse, gen_json, gen_fizzbuzz,
+            gen_fix_bug, gen_read_sum, gen_find_secret]
 
 
 def sample_battery(seed: int = 0, per_generator: int = 1,
@@ -167,8 +232,16 @@ def run_battery(model: AgentModel, instances: "list[TaskInstance]", workspace_ro
     root = Path(workspace_root)
     for inst in instances:
         ws = root / inst.id
-        res = run_agent(model, inst.prompt, ws, max_steps=max_steps, run_timeout=run_timeout,
-                        use_notebook=use_notebook, notebook=notebook, vision=vision)
+        ws.mkdir(parents=True, exist_ok=True)
+        if inst.setup is not None:
+            inst.setup(ws)  # seed a broken file / data file the task refers to
+        try:
+            res = run_agent(model, inst.prompt, ws, max_steps=max_steps, run_timeout=run_timeout,
+                            use_notebook=use_notebook, notebook=notebook, vision=vision)
+        except Exception as e:  # one task crashing must not kill the whole battery
+            report.results.append(TaskResult(inst.id, inst.category, False, 0, False,
+                                             f"agent crashed: {type(e).__name__}: {e}"))
+            continue
         try:
             passed, detail = inst.verify(ws)
         except Exception as e:  # a broken verifier must not crash the battery

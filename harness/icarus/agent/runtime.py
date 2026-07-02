@@ -311,7 +311,15 @@ def run_agent(model: AgentModel, task: str, workspace: Path, *,
     consecutive_bad = 0
     steps = 0
     for steps in range(1, max_steps + 1):
-        reply = model.complete(messages)
+        try:
+            reply = model.complete(messages)
+        except Exception as e:  # model/network failure must not crash the loop — degrade to STUCK
+            consecutive_bad += 1
+            if consecutive_bad >= 3:
+                return AgentResult(State.STUCK, steps, plan, messages, str(workspace), False)
+            messages.append({"role": "user",
+                             "content": f"(model call failed: {type(e).__name__}: {e}; try again)"})
+            continue
         messages.append({"role": "assistant", "content": reply})
         if not plan:
             plan = _extract_plan(reply)

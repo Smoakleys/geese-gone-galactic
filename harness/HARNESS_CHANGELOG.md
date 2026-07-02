@@ -226,3 +226,13 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   FizzBuzz) - a real, honest baseline. The tasks are basic; the point is the scorecard now exists and
   will climb (and get harder) measurably.
 - Gate untouched. Tested offline: reproducible/varying sampling, verifier pass/fail, runner scoring.
+
+## harness-mod-16 - Resilience + harder capability tasks (no single blip takes Icarus down)
+- harness/icarus/agent/: OllamaAgentModel now RETRIES transient failures (Ollama's HTTP 500 during a
+  model reload) with backoff; run_agent guards model.complete so a persistent model/network failure
+  degrades to STUCK instead of crashing the loop. (A transient 500 previously crashed a whole battery.)
+- harness/icarus/eval/capability.py: TaskInstance gained an optional `setup` hook (seed the workspace);
+  three harder generators - fixbug (debug a broken file), read_sum (multi-file read-then-compute),
+  find_secret (search) - make the scorecard discriminating. run_battery guards run_agent so one task
+  crashing never kills the run.
+- Gate untouched. Tested: retry-degrades-to-stuck, setup/verifiers, battery resilience.

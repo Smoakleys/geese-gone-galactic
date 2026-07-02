@@ -70,6 +70,17 @@ def test_stuck_after_repeated_bad_output(tmp_path):
     assert res.state == State.STUCK
 
 
+class _ExplodingModel:
+    def complete(self, messages):
+        raise RuntimeError("boom (simulated model/network failure)")
+
+
+def test_model_failure_degrades_to_stuck_not_crash(tmp_path):
+    # A model/network failure (e.g. a transient Ollama 500) must not crash the loop.
+    res = run_agent(_ExplodingModel(), "task", tmp_path, max_steps=5)
+    assert res.state == State.STUCK
+
+
 def test_unknown_tool_is_error_not_crash(tmp_path):
     r = exec_tool(ToolCall("frobnicate", {}), tmp_path)
     assert not r.ok
