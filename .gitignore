@@ -31,3 +31,6 @@ ops/.notify_state.json
 
 # Remote dashboard access token (generated; never committed)
 ops/dashboard_token.local
+
+# Bundled cloudflared binary (downloaded, not source)
+ops/bin/

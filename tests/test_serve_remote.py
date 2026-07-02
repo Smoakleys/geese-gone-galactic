@@ -19,6 +19,17 @@ def test_extract_tunnel_url_finds_trycloudflare():
     assert serve_remote.extract_tunnel_url("no url on this line") is None
 
 
+def test_cloudflared_path_prefers_path_then_bundled(monkeypatch, tmp_path):
+    monkeypatch.setattr(serve_remote.shutil, "which", lambda name: "/usr/bin/cloudflared")
+    assert serve_remote.cloudflared_path() == "/usr/bin/cloudflared"
+    monkeypatch.setattr(serve_remote.shutil, "which", lambda name: None)
+    monkeypatch.setattr(serve_remote, "_REPO", tmp_path)
+    assert serve_remote.cloudflared_path() is None            # nothing bundled yet
+    binp = tmp_path / "ops" / "bin"; binp.mkdir(parents=True)
+    (binp / "cloudflared.exe").write_text("x")
+    assert serve_remote.cloudflared_path() == str(binp / "cloudflared.exe")
+
+
 def test_resolve_token_prefers_env(monkeypatch, tmp_path):
     monkeypatch.setattr(serve_remote, "TOKEN_PATH", tmp_path / "tok.local")
     monkeypatch.setenv("GGG_DASHBOARD_TOKEN", "env-token")
