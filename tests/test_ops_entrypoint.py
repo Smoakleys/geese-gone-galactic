@@ -31,12 +31,12 @@ def test_autopilot_main_runs_to_clean_acceptance(tmp_path, capsys):
     assert rc == 0, "the autopilot must run to full acceptance with a clean cold audit"
 
     out = capsys.readouterr().out
-    assert "accepted: 7/7" in out and "autonomy_rate: 100%" in out
+    assert "accepted: 8/8" in out and "autonomy_rate: 100%" in out
     assert "cold audit clean" in out
 
     # Every ticket's config was really committed to the protected tree.
     for tid in ("T-POND-01", "T-POND-02", "T-POND-03", "T-POND-04", "T-POND-05", "T-POND-06",
-                "T-POND-07"):
+                "T-POND-07", "T-POND-08"):
         assert (ws / "game" / "accepted" / tid / "onepond_config.json").exists()
 
 
@@ -58,4 +58,4 @@ def test_autopilot_main_full_production_stack(tmp_path, capsys):
     rc = autopilot.main(["--workdir", str(tmp_path / "ws"), "--consensus", "2", "--audit-every", "2"])
     assert rc == 0
     out = capsys.readouterr().out
-    assert "accepted: 7/7" in out and "cold audit clean" in out
+    assert "accepted: 8/8" in out and "cold audit clean" in out
