@@ -215,3 +215,14 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   `use_notebook` flag - use_notebook=False strips the memory to measure UNAIDED capability (the
   dependence-gap discipline: every crutch we add, we can remove to check the skill actually stuck).
 - Gate untouched. Tested offline: notebook append/de-dup, the note tool, injection + strip-to-test.
+
+## harness-mod-15 - Icarus capability battery + scorer (the honest scorecard begins)
+- harness/icarus/eval/: procedural task GENERATORS (arithmetic/strings/config/logic), each emitting a
+  fresh randomized TaskInstance with its OWN deterministic verifier that RUNS the produced code
+  (Reasoning-Gym lesson: infinite, non-memorizable instances; a pass means it works, not that it looked
+  right). run_battery drives the agent loop and reports pass rate; default use_notebook=False = the
+  north-star UNAIDED score (gap to the assisted score = the dependence-gap metric).
+- First live reading: gpt-oss:20b scored 4/4 unaided on the seed-0 battery (sum, reverse, JSON,
+  FizzBuzz) - a real, honest baseline. The tasks are basic; the point is the scorecard now exists and
+  will climb (and get harder) measurably.
+- Gate untouched. Tested offline: reproducible/varying sampling, verifier pass/fail, runner scoring.
