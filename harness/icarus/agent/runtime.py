@@ -97,9 +97,10 @@ def _safe_path(workspace: Path, rel: str) -> Optional[Path]:
 
 
 def exec_tool(call: ToolCall, workspace: Path, *, run_timeout: float = 60.0,
-              vision: "Optional[VisionModel]" = None) -> ToolResult:
+              vision: "Optional[VisionModel]" = None,
+              notebook: "Optional[Notebook]" = None) -> ToolResult:
     """Execute one tool call in the sandboxed workspace. Never raises — a tool failure is an
-    observation the agent reflects on, not a crash. ``vision`` enables the ``see`` tool."""
+    observation the agent reflects on, not a crash. ``vision`` enables ``see``; ``notebook`` ``note``."""
     workspace = Path(workspace)
     name = call.name
 
@@ -198,8 +199,18 @@ def exec_tool(call: ToolCall, workspace: Path, *, run_timeout: float = 60.0,
             return ToolResult(False, f"vision error: {type(e).__name__}: {e}")
         return ToolResult(True, (desc or "(vision returned nothing)")[:_MAX_OUTPUT])
 
+    if name == "note":
+        text = (call.args.get("text") or call.body or "").strip()
+        if not text:
+            return ToolResult(False, "note needs 'text' (a lesson/strategy to remember)")
+        if notebook is None:
+            return ToolResult(True, "noted (ephemeral - no persistent notebook this run)")
+        saved = notebook.append(text)
+        return ToolResult(True, f"saved to notebook: {text[:80]}" if saved
+                          else "already in notebook (skipped duplicate)")
+
     return ToolResult(False, f"unknown tool: {name!r} "
-                      "(use write_file|read_file|list_files|search|run|see|finish)")
+                      "(use write_file|read_file|list_files|search|run|see|note|finish)")
 
 
 # ---------------------------------------------------------------- model seam
@@ -253,10 +264,11 @@ _SYSTEM = """You are Icarus, a tool-driving coding agent. You act by emitting to
 
 Respond with EXACTLY ONE fenced tool block and NOTHING ELSE (no prose outside the block):
 ```tool
-name: <write_file|read_file|list_files|search|run|see|finish>
+name: <write_file|read_file|list_files|search|run|see|note|finish>
 path: <relative path>      # write_file / read_file / list_files / search (dir) / see (image)
 query: <text or regex>     # search
 question: <what to look for>  # see (describe/inspect an image)
+text: <lesson to remember>   # note (save a durable lesson for future tasks)
 cmd: <shell command>       # run
 summary: <what you did>    # finish
 body:
@@ -279,17 +291,22 @@ def _extract_plan(reply: str) -> str:
 
 def run_agent(model: AgentModel, task: str, workspace: Path, *,
               max_steps: int = 12, run_timeout: float = 60.0,
-              vision: "Optional[VisionModel]" = None) -> AgentResult:
+              vision: "Optional[VisionModel]" = None,
+              notebook: "Optional[Notebook]" = None, use_notebook: bool = True) -> AgentResult:
     """Drive the plan->act->reflect loop until the agent finishes, gets stuck, or runs out of steps.
 
     Returns an :class:`AgentResult` including the stated plan (the approach artifact) and the full
-    transcript (the trajectory the fresh critic and the scorecard can inspect)."""
+    transcript (the trajectory the fresh critic and the scorecard can inspect). ``use_notebook=False``
+    strips cross-task memory to measure unaided capability (the dependence-gap discipline)."""
     workspace = Path(workspace)
     workspace.mkdir(parents=True, exist_ok=True)
-    messages: list[dict[str, str]] = [
-        {"role": "system", "content": _SYSTEM},
-        {"role": "user", "content": f"TASK:\n{task}\n\nEmit your first tool call now."},
-    ]
+    messages: list[dict[str, str]] = [{"role": "system", "content": _SYSTEM}]
+    if notebook is not None and use_notebook:
+        nb = notebook.read().strip()
+        if nb:
+            messages.append({"role": "user", "content":
+                             "NOTEBOOK - lessons you saved from past tasks; use them:\n" + nb[:2000]})
+    messages.append({"role": "user", "content": f"TASK:\n{task}\n\nEmit your first tool call now."})
     plan = ""
     consecutive_bad = 0
     steps = 0
@@ -312,7 +329,7 @@ def run_agent(model: AgentModel, task: str, workspace: Path, *,
         if call.name == "finish":
             return AgentResult(State.DONE, steps, plan, messages, str(workspace), True)
 
-        result = exec_tool(call, workspace, run_timeout=run_timeout, vision=vision)
+        result = exec_tool(call, workspace, run_timeout=run_timeout, vision=vision, notebook=notebook)
         status = "OK" if result.ok else "ERROR"
         messages.append({"role": "user", "content": f"[{call.name}] {status}\n{result.output}"})
 

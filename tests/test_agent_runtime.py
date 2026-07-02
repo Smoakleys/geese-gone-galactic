@@ -7,6 +7,7 @@ end-to-end with no Ollama/GPU. The live OllamaAgentModel is exercised separately
 from __future__ import annotations
 
 from harness.icarus.agent import (
+    Notebook,
     ScriptedAgentModel,
     State,
     ToolCall,
@@ -123,3 +124,37 @@ def test_see_disabled_without_vision(tmp_path):
 def test_see_missing_image(tmp_path):
     r = exec_tool(ToolCall("see", {"path": "nope.png"}), tmp_path, vision=_StubVision())
     assert not r.ok
+
+
+def test_notebook_append_and_dedup(tmp_path):
+    nb = Notebook(tmp_path / "nb.md")
+    assert nb.append("look_at requires a node in the tree before calling it")
+    assert not nb.append("look_at requires a node in the tree before calling it")  # dup
+    assert not nb.append("   ")  # empty
+    assert len(nb.entries()) == 1
+
+
+def test_note_tool_saves_to_notebook(tmp_path):
+    nb = Notebook(tmp_path / "nb.md")
+    r = exec_tool(ToolCall("note", {"text": "always run code before finishing"}),
+                  tmp_path, notebook=nb)
+    assert r.ok and "saved" in r.output.lower()
+    assert "always run code" in nb.read()
+
+
+def test_note_ephemeral_without_notebook(tmp_path):
+    r = exec_tool(ToolCall("note", {"text": "x"}), tmp_path)
+    assert r.ok and "ephemeral" in r.output.lower()
+
+
+def test_run_agent_injects_notebook_unless_stripped(tmp_path):
+    nb = Notebook(tmp_path / "nb.md")
+    nb.append("REMEMBER-THIS-LESSON about geese")
+    replies = ['```tool\nname: finish\nsummary: done\n```']
+    res = run_agent(ScriptedAgentModel(replies), "task", tmp_path, notebook=nb, use_notebook=True)
+    joined = "\n".join(m["content"] for m in res.transcript)
+    assert "REMEMBER-THIS-LESSON" in joined
+    # strip-to-test: disabling the notebook removes the injected memory
+    res2 = run_agent(ScriptedAgentModel(replies), "task", tmp_path, notebook=nb, use_notebook=False)
+    joined2 = "\n".join(m["content"] for m in res2.transcript)
+    assert "REMEMBER-THIS-LESSON" not in joined2

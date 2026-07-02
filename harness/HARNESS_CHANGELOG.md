@@ -207,3 +207,11 @@ without a matching entry. Reverts are one command via the token in `harness/reve
 - Live-verified: qwen2.5vl:7b described the Godot iso render ("a green square, diagonal orientation,
   on a gray background") - Icarus can now see what it builds, the prerequisite for the visual-gate loop.
 - Gate untouched. Tested offline (scripted vision stub + fs/search tools). See tests/test_agent_runtime.py.
+
+## harness-mod-14 - Icarus gains a durable notebook (cross-task memory)
+- harness/icarus/agent/notebook.py: a plain-markdown Notebook (read/append/entries, cheap de-dup).
+  New `note` tool lets Icarus save a lesson/strategy; run_agent injects the notebook at task start so
+  the agent stops re-learning the same things. exec_tool/run_agent gained a `notebook` param and a
+  `use_notebook` flag - use_notebook=False strips the memory to measure UNAIDED capability (the
+  dependence-gap discipline: every crutch we add, we can remove to check the skill actually stuck).
+- Gate untouched. Tested offline: notebook append/de-dup, the note tool, injection + strip-to-test.
