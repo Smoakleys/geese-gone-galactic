@@ -60,6 +60,18 @@ def extract_tunnel_url(text: str) -> Optional[str]:
     return m.group(0) if m else None
 
 
+def cloudflared_path() -> Optional[str]:
+    """Locate cloudflared: PATH first, else the bundled ops/bin/cloudflared[.exe] we download."""
+    found = shutil.which("cloudflared")
+    if found:
+        return found
+    for name in ("cloudflared.exe", "cloudflared"):
+        local = _REPO / "ops" / "bin" / name
+        if local.exists():
+            return str(local)
+    return None
+
+
 def _announce(url: str, token: str) -> None:
     """Print the live URL+token and, if the notifier is configured, email it to the Owner."""
     banner = f"Remote control live: {url}   (access token: {token})"
@@ -92,9 +104,10 @@ def main(argv: Optional[list[str]] = None) -> int:  # pragma: no cover - orchest
     threading.Thread(target=server.serve_forever, daemon=True).start()
     print(f"[serve_remote] dashboard on http://127.0.0.1:{port}/  (token-protected)")
 
-    if args.no_tunnel or shutil.which("cloudflared") is None:
+    cfd = cloudflared_path()
+    if args.no_tunnel or cfd is None:
         if not args.no_tunnel:
-            print("[serve_remote] cloudflared not found on PATH — serving locally only.")
+            print("[serve_remote] cloudflared not found (PATH or ops/bin) — serving locally only.")
             print("  Install it (Windows): winget install --id Cloudflare.cloudflared")
             print("  Then re-run, or see docs/REMOTE_SETUP.md for a stable named tunnel.")
         print(f"[serve_remote] local URL: http://127.0.0.1:{port}/?token={token}")
@@ -102,7 +115,7 @@ def main(argv: Optional[list[str]] = None) -> int:  # pragma: no cover - orchest
         return 0
 
     proc = subprocess.Popen(
-        ["cloudflared", "tunnel", "--url", f"http://127.0.0.1:{port}"],
+        [cfd, "tunnel", "--url", f"http://127.0.0.1:{port}"],
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
     announced = False
     try:
