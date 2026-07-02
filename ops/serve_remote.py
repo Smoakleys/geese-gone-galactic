@@ -72,6 +72,31 @@ def cloudflared_path() -> Optional[str]:
     return None
 
 
+def _render_showcase_base(out_path: Path) -> Optional[Path]:
+    """Render a representative goose base to a PNG so the site shows the game, not just numbers.
+
+    Prefers the biggest accepted pond in the workspace; falls back to the canonical full base.
+    Returns the path, or None if rendering isn't available (e.g. no Pillow) — the site then just
+    omits the image.
+    """
+    try:
+        import json
+        from game.onepond.render import StubScreenshotWorker
+        from game.onepond.tickets import POND_CONFIGS
+
+        accepted = _REPO / ".autopilot" / "game" / "accepted"
+        configs = list(accepted.glob("*/onepond_config.json")) if accepted.exists() else []
+        if configs:
+            config = json.loads(max(configs, key=lambda p: p.stat().st_size).read_text())
+        else:
+            config = POND_CONFIGS["T-POND-06"]  # the full sanctuary, all building types
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        return StubScreenshotWorker(tile_px=28, margin=16).render(config, out_path)
+    except Exception as e:
+        print(f"[serve_remote] (no base image: {e})")
+        return None
+
+
 def _announce(url: str, token: str) -> None:
     """Print the live URL+token and, if the notifier is configured, email it to the Owner."""
     banner = f"Remote control live: {url}   (access token: {token})"
@@ -98,8 +123,9 @@ def main(argv: Optional[list[str]] = None) -> int:  # pragma: no cover - orchest
     token = resolve_token()
     store_path = Path(args.store)
     store_path.parent.mkdir(parents=True, exist_ok=True)
+    base_image = _render_showcase_base(store_path.parent.parent / "base.png")
     server = make_server(RunStore(store_path), "127.0.0.1", args.port,
-                         token=token, sentinel_dir=_REPO / "ops")
+                         token=token, sentinel_dir=_REPO / "ops", base_image=base_image)
     port = server.server_port
     threading.Thread(target=server.serve_forever, daemon=True).start()
     print(f"[serve_remote] dashboard on http://127.0.0.1:{port}/  (token-protected)")
