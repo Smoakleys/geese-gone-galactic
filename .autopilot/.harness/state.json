@@ -84,7 +84,7 @@
     "T-POND-09.onepond_total_tier": 5.0,
     "T-POND-09.onepond_victories": 4.0
   },
-  "heartbeat": 1782968785.0191946,
+  "heartbeat": 1782969070.6974528,
   "metrics": {
     "accepted": 9,
     "escape_hatch_builds": 0,
@@ -109,7 +109,7 @@
       "reason": "committed",
       "rounds": 1,
       "ticket_id": "T-POND-01",
-      "ts": 1782968781.4733336
+      "ts": 1782969028.536848
     },
     {
       "committed": true,
@@ -118,7 +118,7 @@
       "reason": "committed",
       "rounds": 1,
       "ticket_id": "T-POND-02",
-      "ts": 1782968781.6351786
+      "ts": 1782969028.7209854
     },
     {
       "committed": true,
@@ -127,7 +127,7 @@
       "reason": "committed",
       "rounds": 1,
       "ticket_id": "T-POND-03",
-      "ts": 1782968781.8187377
+      "ts": 1782969028.9102247
     },
     {
       "committed": true,
@@ -136,7 +136,7 @@
       "reason": "committed",
       "rounds": 1,
       "ticket_id": "T-POND-04",
-      "ts": 1782968782.2285392
+      "ts": 1782969029.3378441
     },
     {
       "committed": true,
@@ -145,7 +145,7 @@
       "reason": "committed",
       "rounds": 1,
       "ticket_id": "T-POND-05",
-      "ts": 1782968782.3920805
+      "ts": 1782969029.5230293
     },
     {
       "committed": true,
@@ -154,7 +154,7 @@
       "reason": "committed",
       "rounds": 1,
       "ticket_id": "T-POND-06",
-      "ts": 1782968782.5604572
+      "ts": 1782969029.7040522
     },
     {
       "committed": true,
@@ -163,7 +163,7 @@
       "reason": "committed",
       "rounds": 1,
       "ticket_id": "T-POND-07",
-      "ts": 1782968783.214867
+      "ts": 1782969030.383957
     },
     {
       "committed": true,
@@ -172,7 +172,7 @@
       "reason": "committed",
       "rounds": 1,
       "ticket_id": "T-POND-08",
-      "ts": 1782968783.3775287
+      "ts": 1782969030.5671287
     },
     {
       "committed": true,
@@ -181,15 +181,15 @@
       "reason": "committed",
       "rounds": 1,
       "ticket_id": "T-POND-09",
-      "ts": 1782968783.5398977
+      "ts": 1782969030.7503607
     }
   ],
   "stage_c_proposals": [],
-  "started_at": 1782968781.3025043,
+  "started_at": 1782969028.34909,
   "status": {
-    "activity": "Campaigns merged (PR #53): hatch->train->campaign loop complete; One Pond 9/9, 151 tests, 15 checks",
-    "last_change": "Add campaigns (the Command building) \u00e2\u20ac\u201d the hatch->train->campaign loop (#53)",
-    "tests": "151",
-    "updated": "2026-07-02 00:06:25"
+    "activity": "Building campaign spoils: victories yield bread (closing the economy<->war loop)",
+    "last_change": "harness-mod-11: idempotent re-accept (re-running an unchanged ticket isn't a failure) (#54)",
+    "tests": "152",
+    "updated": "2026-07-02 00:11:10"
   }
 }

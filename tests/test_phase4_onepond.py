@@ -311,6 +311,20 @@ def test_command_wins_campaigns_by_spending_soldiers():
     assert w.soldiers_total >= w.victories * CAMPAIGN_COST  # cumulative army covers the spend
 
 
+def test_campaign_spoils_feed_the_economy():
+    from game.onepond.world import CAMPAIGN_REWARD
+    rep = simulate_solvency({"start_bread": 18, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "bakery", "x": 1, "y": 0},
+        {"type": "hatchery", "x": 2, "y": 0}, {"type": "training_grounds", "x": 3, "y": 0},
+        {"type": "command", "x": 4, "y": 0}]})
+    assert rep["victories"] >= 1
+    assert rep["spoils"] == rep["victories"] * CAMPAIGN_REWARD   # each win pays bread spoils
+    # A pond with no command wins nothing and earns no spoils.
+    none = simulate_solvency({"start_bread": 12, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0}]})
+    assert none["spoils"] == 0
+
+
 def test_campaign_viable_check_certifies_and_gates(tmp_path):
     from game.onepond.checks import CampaignViableCheck
     assert certify(CampaignViableCheck()).certified

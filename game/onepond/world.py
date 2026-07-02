@@ -33,6 +33,7 @@ LAUNCH_RATE = 1  # geese each launchpad sends galactic per tick, drawn from the 
 PREDATOR_RATE = 1  # geese each un-fenced predator eats per tick, from the standing flock
 TRAIN_RATE = 1  # geese each training grounds musters into soldiers per tick, from the flock
 CAMPAIGN_COST = 5  # soldier-geese spent per campaign victory at the command building
+CAMPAIGN_REWARD = 3  # bread spoils won per campaign victory (the reason to wage war)
 MAX_TIER = 6  # buildings upgrade T1..T6 (VISION era ladder lives in the tiers, not the map)
 
 
@@ -58,6 +59,7 @@ class World:
     soldiers: int = 0  # standing soldier-geese (mustered, not yet spent on a campaign)
     soldiers_total: int = 0  # cumulative soldiers ever trained (never decremented — army raised)
     victories: int = 0  # campaigns won by spending soldiers at the command building
+    spoils: int = 0     # cumulative bread won as campaign spoils (the war->economy payoff)
     predators: int = 0  # foxes prowling the pond; each un-fenced one eats a goose per tick
     eaten: int = 0      # geese lost to predators over the run (a failure signal, not a score)
     tick_count: int = 0
@@ -144,6 +146,10 @@ class World:
             campaigns = min(self.command_capacity, self.soldiers // CAMPAIGN_COST)
             self.soldiers -= campaigns * CAMPAIGN_COST
             self.victories += campaigns
+            # Spoils of war feed the economy — the payoff that makes campaigning worthwhile.
+            won_bread = campaigns * CAMPAIGN_REWARD
+            self.bread = min(self.capacity, self.bread + won_bread)
+            self.spoils += won_bread
             # Launch after predation + training: each launchpad sends remaining geese galactic.
             launched = min(self.launch_capacity, self.geese)
             self.geese -= launched
@@ -161,6 +167,7 @@ class World:
             "soldiers": self.soldiers,
             "soldiers_total": self.soldiers_total,
             "victories": self.victories,
+            "spoils": self.spoils,
             "predators": self.predators,
             "eaten": self.eaten,
             "tick_count": self.tick_count,
@@ -176,6 +183,7 @@ class World:
                 soldiers=int(data.get("soldiers", 0)),
                 soldiers_total=int(data.get("soldiers_total", 0)),
                 victories=int(data.get("victories", 0)),
+                spoils=int(data.get("spoils", 0)),
                 predators=int(data.get("predators", 0)), eaten=int(data.get("eaten", 0)),
                 tick_count=int(data.get("tick_count", 0)))
         w.buildings = [Building(b["type"], int(b["x"]), int(b["y"]), int(b.get("tier", 1)))
@@ -226,6 +234,7 @@ def simulate_solvency(config: dict, horizon: int = 20) -> dict:
         "soldiers": world.soldiers,
         "soldiers_total": world.soldiers_total,
         "victories": world.victories,
+        "spoils": world.spoils,
         "train_capacity": world.train_capacity,
         "command_capacity": world.command_capacity,
         "launch_capacity": world.launch_capacity,
