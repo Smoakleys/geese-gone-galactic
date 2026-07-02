@@ -300,6 +300,40 @@ def test_army_viable_check_certifies_and_gates(tmp_path):
     assert ok.result == Result.PASS and ok.metrics["onepond_soldiers"] > 0
 
 
+def test_command_wins_campaigns_by_spending_soldiers():
+    from game.onepond.world import CAMPAIGN_COST
+    w = build_world({"start_bread": 18, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "bakery", "x": 1, "y": 0},
+        {"type": "hatchery", "x": 2, "y": 0}, {"type": "training_grounds", "x": 3, "y": 0},
+        {"type": "command", "x": 4, "y": 0}]})
+    w.tick(20)
+    assert w.victories >= 1                         # soldiers were spent to win campaigns
+    assert w.soldiers_total >= w.victories * CAMPAIGN_COST  # cumulative army covers the spend
+
+
+def test_campaign_viable_check_certifies_and_gates(tmp_path):
+    from game.onepond.checks import CampaignViableCheck
+    assert certify(CampaignViableCheck()).certified
+
+    def _run(config):
+        art = tmp_path / "art"; art.mkdir(exist_ok=True)
+        (art / "onepond_config.json").write_text(json.dumps(config))
+        return CampaignViableCheck().run(art, make_ticket())
+
+    # No command building -> out of scope -> SKIP.
+    assert _run({"start_bread": 12, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "hatchery", "x": 1, "y": 0}]}).result == Result.SKIP
+    # Command building but no soldiers to spend -> idle war room -> FAIL.
+    assert _run({"start_bread": 12, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "command", "x": 1, "y": 0}]}).result == Result.FAIL
+    # Full pipeline feeds the command building -> campaigns won -> PASS + victories floor.
+    ok = _run({"start_bread": 18, "buildings": [
+        {"type": "bakery", "x": 0, "y": 0}, {"type": "bakery", "x": 1, "y": 0},
+        {"type": "hatchery", "x": 2, "y": 0}, {"type": "training_grounds", "x": 3, "y": 0},
+        {"type": "command", "x": 4, "y": 0}]})
+    assert ok.result == Result.PASS and ok.metrics["onepond_victories"] > 0
+
+
 def test_water_access_check_certifies_and_gates(tmp_path):
     from game.onepond.checks import WaterAccessCheck
     assert certify(WaterAccessCheck()).certified
@@ -532,6 +566,7 @@ def test_harness_builds_one_pond_end_to_end(git_repo, tmp_path):
     assert any(k.endswith(".onepond_watered_hatcheries") for k in floors)  # water access ran too
     assert any(k.endswith(".onepond_total_tier") for k in floors)          # tier progression floor
     assert any(k.endswith(".onepond_soldiers") for k in floors)            # army-viability ran too
+    assert any(k.endswith(".onepond_victories") for k in floors)           # campaign-viability ran too
     assert run_regression_suite(gatekeeper, registry) == []
 
     # Cold audit (acceptance is not forever): re-verify the committed tree mechanically AND with

@@ -103,6 +103,18 @@ POND_CONFIGS: dict[str, dict] = {
             {"type": "training_grounds", "x": 5, "y": 1},
         ],
     },
+    "T-POND-09": {
+        # Wage war: a Command building spends soldier-geese to win campaigns. Two bakeries fund a
+        # hatchery -> training grounds -> command pipeline that raises and spends an army, solvent.
+        "grid": [8, 8], "start_bread": 18,
+        "buildings": [
+            {"type": "bakery", "x": 1, "y": 1},
+            {"type": "bakery", "x": 2, "y": 1},
+            {"type": "hatchery", "x": 3, "y": 1},
+            {"type": "training_grounds", "x": 4, "y": 1},
+            {"type": "command", "x": 5, "y": 1},
+        ],
+    },
 }
 
 _TITLES = {
@@ -114,6 +126,7 @@ _TITLES = {
     "T-POND-06": "Sink a well; water the flock in the complete pond (every building type)",
     "T-POND-07": "Upgrade the base: tier-2 bakery + hatchery (buildings evolve T1->T6)",
     "T-POND-08": "Raise an army: a Training Grounds musters geese into soldier-geese",
+    "T-POND-09": "Wage war: a Command building spends soldier-geese to win campaigns",
 }
 
 # Tickets that must also send geese to space earn a launch-viability acceptance criterion.
@@ -127,6 +140,8 @@ _PREDATOR_TICKETS = {"T-POND-05", "T-POND-06"}
 _WATER_TICKETS = {"T-POND-06"}
 # Ponds that build a training grounds must actually raise an army — the army-viability gate.
 _ARMY_TICKETS = {"T-POND-08"}
+# Ponds that build a command building must actually win campaigns — the campaign-viability gate.
+_CAMPAIGN_TICKETS = {"T-POND-09"}
 
 
 def _ticket(tid: str) -> Ticket:
@@ -159,6 +174,11 @@ def _ticket(tid: str) -> Ticket:
             id="AC_ARMY", text="the training grounds musters an army: at least one soldier-goose "
                                "is raised within 20 ticks", stage=Stage.A,
             check_hint="onepond_army_viable"))
+    if tid in _CAMPAIGN_TICKETS:
+        criteria.append(AcceptanceCriterion(
+            id="AC_WAR", text="the command building wins the war: at least one campaign is won "
+                              "within 20 ticks", stage=Stage.A,
+            check_hint="onepond_campaign_viable"))
     if tid in _LAUNCH_TICKETS:
         criteria.append(AcceptanceCriterion(
             id="AC3", text="the pond sends geese galactic: at least one goose is launched to "
@@ -178,7 +198,7 @@ def _ticket(tid: str) -> Ticket:
 def onepond_tickets() -> list[Ticket]:
     return [_ticket(tid) for tid in
             ("T-POND-01", "T-POND-02", "T-POND-03", "T-POND-04", "T-POND-05", "T-POND-06",
-             "T-POND-07", "T-POND-08")]
+             "T-POND-07", "T-POND-08", "T-POND-09")]
 
 
 def onepond_generation_client() -> ScriptedGenerationClient:

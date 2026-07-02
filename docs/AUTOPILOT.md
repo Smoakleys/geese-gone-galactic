@@ -148,6 +148,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
       check mints `onepond_total_tier` (the base's development level) as a monotonic ratchet floor
       so an upgraded base can never regress in tech. New ticket T-POND-07 upgrades a bakery +
       hatchery to T2 and is driven to acceptance — One Pond now **7/7 at autonomy 1.0**.
+- [x] Toward the real game — **soldier training** (Training Grounds musters geese→soldiers; `onepond_army_viable`, T-POND-08) and **campaigns** (Command building spends soldiers→victories; `onepond_campaign_viable`, T-POND-09). The vision's hatch→train→campaign military loop now runs end to end through the harness — One Pond **9/9 at autonomy 1.0**, 15 certified checks.
 
 ## External-dependency gates (honest status)
 - **Godot + Xvfb screenshot** (Phase 0/4): no Godot binary on this box; the screenshot worker
@@ -158,7 +159,7 @@ Repo: https://github.com/Smoakleys/geese-gone-galactic — commit authority live
   only when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted clients.
 
 ## Test baseline
-As of building tiers (toward the real game): `python -m pytest tests/ -q` → 149 passed.
+As of building tiers (toward the real game): `python -m pytest tests/ -q` → 151 passed.
 
 ## What remains (all external-hardware-gated, seams in place)
 - Real Godot binary + Xvfb to swap `GodotXvfbWorker` in for real One Pond screenshots.
