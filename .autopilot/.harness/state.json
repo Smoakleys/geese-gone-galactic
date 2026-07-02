@@ -84,7 +84,7 @@
     "T-POND-09.onepond_total_tier": 5.0,
     "T-POND-09.onepond_victories": 4.0
   },
-  "heartbeat": 1782969373.5369163,
+  "heartbeat": 1782996968.907559,
   "metrics": {
     "accepted": 9,
     "escape_hatch_builds": 0,
@@ -187,9 +187,9 @@
   "stage_c_proposals": [],
   "started_at": 1782969028.34909,
   "status": {
-    "activity": "Core game loop complete (tiers/soldiers/campaigns/spoils), 154 tests, 9/9. Awaiting direction on era-expansion axis.",
-    "last_change": "Render the new buildings (training grounds, command) \u00e2\u20ac\u201d keep the visual gate honest (#56)",
-    "tests": "154",
-    "updated": "2026-07-02 00:16:13"
+    "activity": "PIVOT: Icarus is REAL (local qwen3-coder:30b builds via the harness, PR #58). Next: install Godot + first real Icarus->Godot ticket. Python economy = toy being replaced.",
+    "last_change": "Wire the REAL Icarus: a local Ollama model behind the builder seam (#58)",
+    "tests": "155",
+    "updated": "2026-07-02 07:56:08"
   }
 }

@@ -4,15 +4,26 @@ The Stop hook points the agent here every turn. Keep it current: when you finish
 increment, tick it and add the next. This is guidance, not the stop condition — the
 ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 
-## Now
-- [ ] **Extend One Pond further** — a 7th mechanic, a second harvested check via Stage C, or a
-      new deterministic check for a different failure mode, driven to acceptance at autonomy 1.0.
+## Now — the pivot: use the harness for its real job (see docs/HANDOFF.md §5)
+**Icarus is real (PR #58). Stop extending the python toy. Build the real Godot One Pond via Icarus.**
+- [ ] **Install Godot** (headless) — download Godot 4 win64 to gitignored `ops/bin/` (like
+      `cloudflared`), confirm `--headless --version`, prove a headless scene-load + screenshot.
+- [ ] **First real Icarus→Godot ticket:** author a bounded ticket (a Godot 4 project opening a
+      fixed 2.5-iso scene = empty grassy pond ground; headless run exits 0), route it THROUGH
+      `LLMBuilder(OllamaGenerationClient("qwen3-coder:30b"))`, add the deterministic godot
+      compile/scene-load check, drive to acceptance. First non-toy, Icarus-built, gated commit.
+- [ ] **Visual gate on the LOCAL vision model** `qwen2.5vl:7b` (Ollama images): decomposed,
+      default-NO reviewer scoring an iso screenshot vs the design bar; keep the CV floor beneath.
+- [ ] **Build "One Pond" for real,** one Icarus ticket at a time: Nest/Bakery/Pond low-poly assets
+      (free/local text/image→3D first, curated fallback) → Godot → iso-screenshot → gated; bread
+      tick; place-a-building. Each cycle: 1 ticket THROUGH Icarus + 1 Icarus improvement.
+- [ ] **Retire the python economy toy** (`game/onepond` soldiers/campaigns/eras/launchpad/tiers)
+      as the Godot slice takes over, keeping tests green.
 
 ## Candidate increments (pick by value, not order)
-- [ ] Extend One Pond through the harness: a 4th mechanic, more tickets, a new
-      harvested check. Drive to acceptance at autonomy 1.0.
-- [ ] Quality hardening: hunt real correctness bugs across `harness/`, `control/`,
-      `game/`; fix with tests (high-confidence work only).
+- [ ] Improve Icarus each cycle (prompt/packet/tooling/**model**-swap or ensemble) toward higher
+      first-pass PASS-rate; log in `harness/HARNESS_CHANGELOG.md` / an Icarus-improvements note.
+- [ ] Quality hardening: hunt real correctness bugs across `harness/`, `control/`; fix with tests.
 - [ ] External drop-ins IF hardware/keys appear: real Godot+Xvfb (`GodotXvfbWorker`),
       GPU text-to-3D worker (`harness/gen3d`), live `AnthropicChatClient`
       (`ANTHROPIC_API_KEY`). Each is a drop-in behind an existing tested seam.
