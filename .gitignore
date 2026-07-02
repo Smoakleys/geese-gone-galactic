@@ -34,3 +34,8 @@ ops/dashboard_token.local
 
 # Bundled cloudflared binary (downloaded, not source)
 ops/bin/
+
+# Persistent autopilot workspace the remote site serves (runtime run data, its own git repo)
+/.autopilot/
+# Serve-remote console log
+ops/serve_remote.log

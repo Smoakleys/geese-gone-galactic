@@ -55,6 +55,16 @@ def render_html(store: RunStore) -> str:
         f"<tr><td><code>{k}</code></td><td>{v:g}</td></tr>"
         for k, v in sorted(floors.items())
     ) or "<tr><td colspan=2><em>no floors minted yet</em></td></tr>"
+    status = snap.get("status", {})
+    st_activity = status.get("activity", "(idle — no live session status yet)")
+    st_bits = []
+    if status.get("tests"):
+        st_bits.append(f"{status['tests']} tests")
+    if status.get("last_change"):
+        st_bits.append(f"last change: {status['last_change']}")
+    if status.get("updated"):
+        st_bits.append(f"updated {status['updated']}")
+    st_detail = "  |  ".join(st_bits)
     proposals = snap.get("stage_c_proposals", [])
     prop_rows = "".join(
         f"<tr><td>{p.get('kind','')}</td><td><code>{p.get('suggested_check_id','')}</code></td>"
@@ -71,8 +81,11 @@ def render_html(store: RunStore) -> str:
  form{{display:inline}} button{{padding:.5rem 1rem;margin-right:.4rem;cursor:pointer}}
  .kpi{{display:flex;gap:2rem;margin:1rem 0}} .kpi div{{font-size:1.4rem}}
  small{{color:#666}}
+ .live{{background:#f3f7f3;border:1px solid #cdd;border-radius:8px;padding:.8rem 1rem;margin:1rem 0}}
+ .live .act{{font-size:1.15rem;font-weight:600}}
 </style></head><body>
 <h1>Geese Gone Galactic — harness control</h1>
+<div class="live"><div class="act">{st_activity}</div><small>{st_detail}</small></div>
 <p>Mode: <span class="mode">{snap['mode']}</span> &nbsp; Heartbeat: {age_str}</p>
 <div class="kpi">
  <div>{snap['autonomy_rate']*100:.0f}%<br><small>autonomy rate</small></div>
