@@ -383,6 +383,13 @@ def test_stub_render_of_pond_passes_visual_gate(tmp_path):
     assert ReferenceAnchoredScorer().score(out).passed  # visual gate sees a real pond
 
 
+def test_every_building_type_has_a_distinct_render_tile():
+    # The visual layer must keep pace with the model: every building type gets its own colour
+    # (no silent gray fallback), so the visual gate scores the real base, new buildings included.
+    from game.onepond.render import _TILE
+    assert set(_TILE) == set(BUILDING_TYPES)
+
+
 def test_stub_render_of_sanctuary_pond_draws_fences_and_predators(tmp_path):
     pytest.importorskip("PIL")
     from game.onepond.render import StubScreenshotWorker, _PREDATOR
