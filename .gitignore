@@ -25,3 +25,6 @@ Thumbs.db
 # Autonomous-mode sentinels (runtime state, never committed)
 ops/AUTOPILOT_ON
 ops/STOP
+
+# Notifier runtime state (last-emailed commit marker; secret config is *.local.json above)
+ops/.notify_state.json

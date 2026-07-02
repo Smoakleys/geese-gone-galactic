@@ -1,0 +1,9 @@
+{
+  "_comment": "Copy this to ops/notify_config.local.json (gitignored) and fill in the app password. Do NOT commit the .local.json.",
+  "smtp_host": "smtp.gmail.com",
+  "smtp_port": 465,
+  "username": "bridgerhumphreys03@gmail.com",
+  "app_password": "PASTE-16-CHAR-GMAIL-APP-PASSWORD-HERE",
+  "from": "bridgerhumphreys03@gmail.com",
+  "to": "bridgerhumphreys03@gmail.com"
+}
