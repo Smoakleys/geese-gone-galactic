@@ -197,3 +197,13 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   "exactly one tool block, nothing else" form and `OllamaAgentModel` falls back to `thinking` when
   `content` is empty. Occasional reasoning-only turns are recovered by the loop's reflect step;
   higher-reliability tool emission (native tool-calls) is a future measured improvement.
+
+## harness-mod-13 - Icarus gains eyes + code exploration (see / list_files / search)
+- harness/icarus/agent/: three new tools on the runtime. `list_files` and `search` (regex with a
+  literal fallback) let Icarus explore a codebase instead of writing blind. `see` - a new `VisionModel`
+  seam (`vision.py` = `OllamaVisionModel` on qwen2.5vl:7b) - lets Icarus LOOK at an image and reason
+  about it. `exec_tool`/`run_agent` gained an optional `vision` param; `see` is disabled fail-safe when
+  no vision model is wired. All sandbox-scoped, output-capped, never-raise.
+- Live-verified: qwen2.5vl:7b described the Godot iso render ("a green square, diagonal orientation,
+  on a gray background") - Icarus can now see what it builds, the prerequisite for the visual-gate loop.
+- Gate untouched. Tested offline (scripted vision stub + fs/search tools). See tests/test_agent_runtime.py.

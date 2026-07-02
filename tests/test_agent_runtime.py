@@ -73,3 +73,53 @@ def test_unknown_tool_is_error_not_crash(tmp_path):
     r = exec_tool(ToolCall("frobnicate", {}), tmp_path)
     assert not r.ok
     assert "unknown tool" in r.output.lower()
+
+
+def test_list_files(tmp_path):
+    (tmp_path / "a.py").write_text("print('hi')\n")
+    (tmp_path / "sub").mkdir()
+    (tmp_path / "sub" / "b.txt").write_text("x\n")
+    r = exec_tool(ToolCall("list_files", {}), tmp_path)
+    assert r.ok
+    assert "a.py" in r.output
+    assert "sub/b.txt" in r.output
+
+
+def test_search_finds_and_misses(tmp_path):
+    (tmp_path / "a.py").write_text("import os\nx = NEEDLE + 1\n")
+    hit = exec_tool(ToolCall("search", {"query": "NEEDLE"}), tmp_path)
+    assert hit.ok
+    assert "a.py:2" in hit.output and "NEEDLE" in hit.output
+    miss = exec_tool(ToolCall("search", {"query": "zzz_no_match"}), tmp_path)
+    assert miss.ok and "no matches" in miss.output
+
+
+def test_search_bad_regex_falls_back_to_literal(tmp_path):
+    (tmp_path / "a.txt").write_text("value = a[b unclosed\n")
+    r = exec_tool(ToolCall("search", {"query": "a[b"}), tmp_path)  # invalid regex -> literal match
+    assert r.ok and "a.txt" in r.output
+
+
+class _StubVision:
+    def describe(self, image_path, question):
+        return f"A green hexagon on gray. (asked: {question})"
+
+
+def test_see_uses_vision(tmp_path):
+    (tmp_path / "img.png").write_bytes(b"\x89PNGfake")
+    r = exec_tool(ToolCall("see", {"path": "img.png", "question": "what shape?"}),
+                  tmp_path, vision=_StubVision())
+    assert r.ok
+    assert "green hexagon" in r.output.lower()
+    assert "what shape?" in r.output
+
+
+def test_see_disabled_without_vision(tmp_path):
+    (tmp_path / "img.png").write_bytes(b"x")
+    r = exec_tool(ToolCall("see", {"path": "img.png"}), tmp_path)
+    assert not r.ok and "vision" in r.output.lower()
+
+
+def test_see_missing_image(tmp_path):
+    r = exec_tool(ToolCall("see", {"path": "nope.png"}), tmp_path, vision=_StubVision())
+    assert not r.ok

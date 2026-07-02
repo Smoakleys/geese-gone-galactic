@@ -96,9 +96,10 @@ def _safe_path(workspace: Path, rel: str) -> Optional[Path]:
     return p
 
 
-def exec_tool(call: ToolCall, workspace: Path, *, run_timeout: float = 60.0) -> ToolResult:
+def exec_tool(call: ToolCall, workspace: Path, *, run_timeout: float = 60.0,
+              vision: "Optional[VisionModel]" = None) -> ToolResult:
     """Execute one tool call in the sandboxed workspace. Never raises — a tool failure is an
-    observation the agent reflects on, not a crash."""
+    observation the agent reflects on, not a crash. ``vision`` enables the ``see`` tool."""
     workspace = Path(workspace)
     name = call.name
 
@@ -135,7 +136,70 @@ def exec_tool(call: ToolCall, workspace: Path, *, run_timeout: float = 60.0) -> 
             tail += "\n[stderr]\n" + proc.stderr
         return ToolResult(proc.returncode == 0, f"exit={proc.returncode}\n{tail.strip()[:_MAX_OUTPUT]}")
 
-    return ToolResult(False, f"unknown tool: {name!r} (use write_file|read_file|run|finish)")
+    if name == "list_files":
+        rel = (call.args.get("path", ".") or ".").strip()
+        base = _safe_path(workspace, rel)
+        if base is None or not base.exists():
+            return ToolResult(False, f"no such path: {rel!r}")
+        root = workspace.resolve()
+        files: list[str] = []
+        for p in sorted(base.rglob("*")):
+            if p.is_file():
+                files.append(str(p.relative_to(root)).replace("\\", "/"))
+                if len(files) >= 200:
+                    files.append("... (truncated)")
+                    break
+        return ToolResult(True, ("\n".join(files) if files else "(no files)")[:_MAX_OUTPUT])
+
+    if name == "search":
+        query = (call.args.get("query", "") or call.args.get("q", "")).strip()
+        if not query:
+            return ToolResult(False, "search needs a 'query'")
+        rel = (call.args.get("path", ".") or ".").strip()
+        base = _safe_path(workspace, rel)
+        if base is None or not base.exists():
+            return ToolResult(False, f"no such path: {rel!r}")
+        try:
+            pat = re.compile(query)
+        except re.error:
+            pat = re.compile(re.escape(query))
+        root = workspace.resolve()
+        hits: list[str] = []
+        for p in sorted(base.rglob("*")):
+            if not p.is_file():
+                continue
+            try:
+                text = p.read_text(encoding="utf-8", errors="ignore")
+            except OSError:
+                continue
+            for i, line in enumerate(text.splitlines(), 1):
+                if pat.search(line):
+                    relp = str(p.relative_to(root)).replace("\\", "/")
+                    hits.append(f"{relp}:{i}: {line.strip()[:160]}")
+                    if len(hits) >= 50:
+                        break
+            if len(hits) >= 50:
+                hits.append("... (truncated)")
+                break
+        return ToolResult(True, ("\n".join(hits) if hits else f"no matches for {query!r}")[:_MAX_OUTPUT])
+
+    if name == "see":
+        rel = (call.args.get("path", "") or "").strip()
+        p = _safe_path(workspace, rel)
+        if p is None or not p.is_file():
+            return ToolResult(False, f"no such image in workspace: {rel!r}")
+        if vision is None:
+            return ToolResult(False, "no vision model available (the 'see' tool is disabled)")
+        question = (call.args.get("question") or call.body
+                    or "Describe this image in detail. What objects and layout do you see?")
+        try:
+            desc = vision.describe(str(p), question)
+        except Exception as e:  # a vision failure is an observation, not a crash
+            return ToolResult(False, f"vision error: {type(e).__name__}: {e}")
+        return ToolResult(True, (desc or "(vision returned nothing)")[:_MAX_OUTPUT])
+
+    return ToolResult(False, f"unknown tool: {name!r} "
+                      "(use write_file|read_file|list_files|search|run|see|finish)")
 
 
 # ---------------------------------------------------------------- model seam
@@ -144,6 +208,12 @@ def exec_tool(call: ToolCall, workspace: Path, *, run_timeout: float = 60.0) -> 
 class AgentModel(Protocol):
     """Chat seam: given the running message list, return the model's next reply."""
     def complete(self, messages: list[dict[str, str]]) -> str: ...
+
+
+@runtime_checkable
+class VisionModel(Protocol):
+    """Vision seam (Icarus's eyes): describe an image, optionally answering a question about it."""
+    def describe(self, image_path: str, question: str) -> str: ...
 
 
 class ScriptedAgentModel:
@@ -183,8 +253,10 @@ _SYSTEM = """You are Icarus, a tool-driving coding agent. You act by emitting to
 
 Respond with EXACTLY ONE fenced tool block and NOTHING ELSE (no prose outside the block):
 ```tool
-name: <write_file|read_file|run|finish>
-path: <relative path>      # write_file / read_file
+name: <write_file|read_file|list_files|search|run|see|finish>
+path: <relative path>      # write_file / read_file / list_files / search (dir) / see (image)
+query: <text or regex>     # search
+question: <what to look for>  # see (describe/inspect an image)
 cmd: <shell command>       # run
 summary: <what you did>    # finish
 body:
@@ -206,7 +278,8 @@ def _extract_plan(reply: str) -> str:
 
 
 def run_agent(model: AgentModel, task: str, workspace: Path, *,
-              max_steps: int = 12, run_timeout: float = 60.0) -> AgentResult:
+              max_steps: int = 12, run_timeout: float = 60.0,
+              vision: "Optional[VisionModel]" = None) -> AgentResult:
     """Drive the plan->act->reflect loop until the agent finishes, gets stuck, or runs out of steps.
 
     Returns an :class:`AgentResult` including the stated plan (the approach artifact) and the full
@@ -239,7 +312,7 @@ def run_agent(model: AgentModel, task: str, workspace: Path, *,
         if call.name == "finish":
             return AgentResult(State.DONE, steps, plan, messages, str(workspace), True)
 
-        result = exec_tool(call, workspace, run_timeout=run_timeout)
+        result = exec_tool(call, workspace, run_timeout=run_timeout, vision=vision)
         status = "OK" if result.ok else "ERROR"
         messages.append({"role": "user", "content": f"[{call.name}] {status}\n{result.output}"})
 
