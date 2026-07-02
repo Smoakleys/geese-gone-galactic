@@ -25,12 +25,14 @@ BUILDING_TYPES: dict[str, dict] = {
     "fence":     {"cost": 2, "bread_delta": 0, "geese_delta": 0},   # neutralizes one prowling predator
     "well":      {"cost": 2, "bread_delta": 0, "geese_delta": 0},   # waters nearby hatcheries
     "training_grounds": {"cost": 4, "bread_delta": -1, "geese_delta": 0},  # musters geese into soldiers
+    "command":   {"cost": 5, "bread_delta": -1, "geese_delta": 0},  # spends soldiers to win campaigns
 }
 GRANARY_CAPACITY_BONUS = 20
 BASE_CAPACITY = 20
 LAUNCH_RATE = 1  # geese each launchpad sends galactic per tick, drawn from the on-pond flock
 PREDATOR_RATE = 1  # geese each un-fenced predator eats per tick, from the standing flock
 TRAIN_RATE = 1  # geese each training grounds musters into soldiers per tick, from the flock
+CAMPAIGN_COST = 5  # soldier-geese spent per campaign victory at the command building
 MAX_TIER = 6  # buildings upgrade T1..T6 (VISION era ladder lives in the tiers, not the map)
 
 
@@ -53,7 +55,9 @@ class World:
     bread: int = 10
     geese: int = 0
     launched: int = 0  # geese sent galactic — the score that makes it Geese Gone Galactic
-    soldiers: int = 0  # geese mustered into soldier-geese at the training grounds (the army)
+    soldiers: int = 0  # standing soldier-geese (mustered, not yet spent on a campaign)
+    soldiers_total: int = 0  # cumulative soldiers ever trained (never decremented — army raised)
+    victories: int = 0  # campaigns won by spending soldiers at the command building
     predators: int = 0  # foxes prowling the pond; each un-fenced one eats a goose per tick
     eaten: int = 0      # geese lost to predators over the run (a failure signal, not a score)
     tick_count: int = 0
@@ -113,6 +117,11 @@ class World:
         return sum(b.tier for b in self.buildings if b.type == "training_grounds") * TRAIN_RATE
 
     @property
+    def command_capacity(self) -> int:
+        """Campaigns a pond can win per tick — each command building's throughput scales w/ tier."""
+        return sum(b.tier for b in self.buildings if b.type == "command")
+
+    @property
     def effective_predators(self) -> int:
         """Predators left prowling after fences neutralize them one-for-one (never negative)."""
         return max(0, self.predators - self.fences) * PREDATOR_RATE
@@ -130,6 +139,11 @@ class World:
             trained = min(self.train_capacity, self.geese)
             self.geese -= trained
             self.soldiers += trained
+            self.soldiers_total += trained
+            # Campaigns: each command building spends CAMPAIGN_COST soldiers to win a campaign.
+            campaigns = min(self.command_capacity, self.soldiers // CAMPAIGN_COST)
+            self.soldiers -= campaigns * CAMPAIGN_COST
+            self.victories += campaigns
             # Launch after predation + training: each launchpad sends remaining geese galactic.
             launched = min(self.launch_capacity, self.geese)
             self.geese -= launched
@@ -145,6 +159,8 @@ class World:
             "geese": self.geese,
             "launched": self.launched,
             "soldiers": self.soldiers,
+            "soldiers_total": self.soldiers_total,
+            "victories": self.victories,
             "predators": self.predators,
             "eaten": self.eaten,
             "tick_count": self.tick_count,
@@ -158,6 +174,8 @@ class World:
         w = cls(grid_w=int(gw), grid_h=int(gh), bread=int(data.get("bread", 10)),
                 geese=int(data.get("geese", 0)), launched=int(data.get("launched", 0)),
                 soldiers=int(data.get("soldiers", 0)),
+                soldiers_total=int(data.get("soldiers_total", 0)),
+                victories=int(data.get("victories", 0)),
                 predators=int(data.get("predators", 0)), eaten=int(data.get("eaten", 0)),
                 tick_count=int(data.get("tick_count", 0)))
         w.buildings = [Building(b["type"], int(b["x"]), int(b["y"]), int(b.get("tier", 1)))
@@ -206,7 +224,10 @@ def simulate_solvency(config: dict, horizon: int = 20) -> dict:
         "geese": world.geese,
         "launched": world.launched,
         "soldiers": world.soldiers,
+        "soldiers_total": world.soldiers_total,
+        "victories": world.victories,
         "train_capacity": world.train_capacity,
+        "command_capacity": world.command_capacity,
         "launch_capacity": world.launch_capacity,
         "predators": world.predators,
         "effective_predators": world.effective_predators,

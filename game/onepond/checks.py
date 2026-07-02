@@ -378,15 +378,59 @@ class ArmyViableCheck(Check):
                                artifacts=[str(cfg_path)])
         if int(report["train_capacity"]) < 1:
             return CheckResult(self.id, Result.SKIP, "no training grounds; army not in scope")
-        if int(report["soldiers"]) < 1:
+        raised = int(report.get("soldiers_total", report["soldiers"]))  # cumulative: some may be spent
+        if raised < 1:
             return CheckResult(self.id, Result.FAIL,
                                f"empty muster: a training grounds but no soldiers raised over "
                                f"{SOLVENCY_HORIZON} ticks (feed it geese from a hatchery)",
                                artifacts=[str(cfg_path)])
         return CheckResult(
             self.id, Result.PASS,
-            f"army mustered: {report['soldiers']} soldier-geese over {SOLVENCY_HORIZON} ticks",
-            metrics={"onepond_soldiers": float(report["soldiers"])},
+            f"army mustered: {raised} soldier-geese over {SOLVENCY_HORIZON} ticks",
+            metrics={"onepond_soldiers": float(raised)},
+        )
+
+
+class CampaignViableCheck(Check):
+    """A pond that builds a command building must actually win campaigns.
+
+    Completing the vision's military loop: hatch -> train soldiers -> the Command building spends
+    soldiers to win campaigns. A command building that never launches a successful campaign (no
+    training grounds / hatchery feeding it soldiers) is a dead war room. Scoped to ponds with a
+    command building, this fails any that win zero campaigns over the horizon and mints
+    ``onepond_victories`` as a ratchet floor so hard-won progress can never silently regress.
+    """
+
+    id = "onepond_campaign_viable"
+    targets: list[str] = ["*"]
+    cost = CheckCost.DYNAMIC
+
+    def __init__(self) -> None:
+        base = _FIXTURES / "campaign_viable"
+        self.good_fixtures = [base / "good"]
+        self.bad_fixtures = [base / "bad"]
+
+    def run(self, artifact_dir: Path, ticket: Ticket) -> CheckResult:
+        cfg_path = _find_config(Path(artifact_dir))
+        if cfg_path is None:
+            return CheckResult(self.id, Result.SKIP, f"no {CONFIG_NAME} in artifact")
+        try:
+            config = json.loads(cfg_path.read_text())
+            report = simulate_solvency(config, horizon=SOLVENCY_HORIZON)
+        except (PlacementError, KeyError, ValueError, TypeError, AttributeError) as e:
+            return CheckResult(self.id, Result.FAIL, f"config will not simulate: {e}",
+                               artifacts=[str(cfg_path)])
+        if int(report.get("command_capacity", 0)) < 1:
+            return CheckResult(self.id, Result.SKIP, "no command building; campaigns not in scope")
+        if int(report.get("victories", 0)) < 1:
+            return CheckResult(self.id, Result.FAIL,
+                               f"idle war room: a command building but no campaigns won over "
+                               f"{SOLVENCY_HORIZON} ticks (raise soldiers to spend)",
+                               artifacts=[str(cfg_path)])
+        return CheckResult(
+            self.id, Result.PASS,
+            f"{report['victories']} campaign(s) won over {SOLVENCY_HORIZON} ticks",
+            metrics={"onepond_victories": float(report["victories"])},
         )
 
 
@@ -403,5 +447,6 @@ def build_onepond_registry(lock_dir: Path):
     reg.register(CohesionCheck())              # harvested from a Stage-C proposal (auto_cohesion_check)
     reg.register(WaterAccessCheck())
     reg.register(ArmyViableCheck())
+    reg.register(CampaignViableCheck())
     reg.certify_all()                          # re-certify the whole set, rewrite the lock
     return reg
