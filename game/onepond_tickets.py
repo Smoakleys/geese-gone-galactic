@@ -110,6 +110,20 @@ def one_pond_tickets() -> "list[Ticket]":
                 AcceptanceCriterion(id="AC2", text="production(b, g) == b * (3 + g), and 0 when b == 0",
                                     stage=Stage.B, rubric_ref="onepond/granary"),
             ]),
+        Ticket(
+            id="OP-8",
+            title=("pond_economy.py: net bread per tick, using the granary synergy. tick_bread(buildings) "
+                   "takes a list of building dicts each with a 'kind' key, counts the bakeries, granaries, "
+                   "and nests, and returns the NET bread change for one tick: "
+                   "bakeries * (3 + granaries) - nests. It may be negative. An empty list returns 0. "
+                   "Pure Python, returns an int."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="tick_bread counts kinds and returns "
+                                    "bakeries*(3+granaries) - nests", stage=Stage.B, rubric_ref="onepond/economy2"),
+            ]),
     ]
     for t in tickets:
         t.freeze()
