@@ -584,3 +584,13 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   a second finish (or if it already verified, or wrote nothing) is accepted. Advisory, never a hard block
   (won't trap a task that legitimately needs no run). Embodies the plan's "self-verifies before it submits"
   (Part 2A). Regression test: write->finish gets nudged once then DONE; write->run->finish is not nudged.
+
+## harness-mod-62 - Salvage a VERIFIED run as DONE, not STUCK (observed on gpt-oss)
+- harness/icarus/agent/runtime.py: running the REAL gpt-oss:20b on a scene task, it built + rendered a good
+  gate-passing village but then emitted a PROSE summary instead of a `finish` tool call, so the loop hit the
+  3-strikes no-tool-block guard and returned STUCK -- dinging the autonomy metric even though the work was
+  done + verified (AgentBuilder harvests + gates the artifact regardless). Fix: on that guard, if the agent
+  had already VERIFIED (used run/render/see), return DONE (implicit finish) instead of STUCK; only STUCK if
+  it never got anywhere. Safe: the gate still decides commit-quality independent of this state. Also nudged
+  the no-tool-block message toward `finish`. Regression test: no-tool-block after a render -> DONE; with no
+  verification -> STUCK.

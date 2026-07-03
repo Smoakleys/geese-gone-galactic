@@ -356,3 +356,21 @@ def test_finish_after_verifying_is_not_nudged(tmp_path):
     res = run_agent(ScriptedAgentModel([w, run, fin]), "task", tmp_path, max_steps=5)
     assert not any("[VERIFY]" in m["content"] for m in res.transcript if m["role"] == "user")
     assert res.state == State.DONE
+
+
+def test_verified_then_prose_is_salvaged_as_done(tmp_path):
+    # gpt-oss behaviour: build+render, then emit prose (no tool call). If it VERIFIED, salvage as DONE.
+    from harness.icarus.agent.runtime import run_agent, ScriptedAgentModel, State
+    w = _tool("name: write_file", "path: scene.gd", "body:", "print(1)")
+    rnd = _tool("name: run", "cmd: python scene.gd")
+    prose = "The scene is complete and looks great!"      # no tool block
+    res = run_agent(ScriptedAgentModel([w, rnd, prose, prose, prose]), "task", tmp_path, max_steps=8)
+    assert res.state == State.DONE and res.finished
+
+
+def test_no_verification_then_prose_is_stuck(tmp_path):
+    # never ran/rendered, just prose -> genuinely STUCK (not salvaged).
+    from harness.icarus.agent.runtime import run_agent, ScriptedAgentModel, State
+    prose = "I think this should work."
+    res = run_agent(ScriptedAgentModel([prose, prose, prose]), "task", tmp_path, max_steps=8)
+    assert res.state == State.STUCK
