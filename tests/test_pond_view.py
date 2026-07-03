@@ -23,16 +23,23 @@ def _played_state() -> dict:
     return step(state)
 
 
+def _build_body(gd: str) -> str:
+    # the composed scene is camera + helper DEFINITIONS + the build() call body; count calls in build()
+    return gd[gd.index("func build"):]
+
+
 def test_state_to_scene_gd_has_land_pond_and_a_box_per_building():
     gd = pond_state_to_scene_gd(_played_state())
-    assert "func build" in gd and "add_plane" in gd
-    assert gd.count("add_box") == 4          # one per placed building
-    assert "DirectionalLight3D" in gd        # composed through the LIT template
+    assert "func build" in gd
+    body = _build_body(gd)
+    assert body.count("add_box(") == 4          # one call per placed building
+    assert body.count("add_plane(") == 2        # land + pond
+    assert "DirectionalLight3D" in gd           # composed through the LIT template
 
 
 def test_empty_pond_still_composes_land_and_water():
-    gd = pond_state_to_scene_gd({"bread": 0, "buildings": []})
-    assert gd.count("add_plane") == 2 and gd.count("add_box") == 0
+    body = _build_body(pond_state_to_scene_gd({"bread": 0, "buildings": []}))
+    assert body.count("add_plane(") == 2 and body.count("add_box(") == 0
 
 
 @pytest.mark.skipif(godot_path() is None, reason="Godot binary not installed")
