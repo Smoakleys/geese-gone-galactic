@@ -35,3 +35,22 @@ lessons are promoted back here (so it never fills with a struggling model's conf
   file has no such separate resource, so that errors.
 - Verify by rendering: if the render is a uniform gray (the default background) the camera saw nothing —
   re-check the camera is current, added to the tree before `look_at`, and framing the object.
+
+## Building GOOD-looking scenes — use the one-call PROP helpers (don't hand-place blobs)
+
+The scene template gives you high-level helpers that build a whole MODELLED prop in one call. PREFER these
+over stacking raw spheres/boxes yourself — they already look like real geese and buildings (a body of
+primitives placed by an artist's hand), so your scene reads as a cozy village, not cubes:
+- `add_building(root, "bakery"|"granary"|"nest"|"well"|"fence", Vector3(x, 0, z))` — a modelled building
+  (roofed house, silo, nest+eggs, roofed well, fence). There are also direct `add_bakery(root, pos)` etc.
+- `add_goose(root, Vector3(x, 0, z), s, f)` — a stylized goose: `s` scales it (0.4–0.5 for a goose in a
+  pond scene, 1.0 for a hero close-up), `f` is facing (-1.0 faces -X, 1.0 faces +X). Put a goose beside a
+  nest or on the pond.
+- A good pond scene: `add_plane(root, Vector2(20,20), Color(0.42,0.62,0.32))` grass +
+  `add_plane(root, Vector2(7,7), Color(0.28,0.52,0.72), 0.02)` pond, then a few `add_building(...)` spread
+  ~3 units apart so they don't overlap, and an `add_goose(...)` by each nest. Frame with ortho `size`
+  ~12–16 so the props are big enough to see (a huge size makes them tiny dots).
+- Palette: soft muted colours read better than pure primaries — grass `Color(0.42,0.62,0.32)`, pond
+  `Color(0.28,0.52,0.72)`, not `Color.GREEN`/`Color.BLUE`.
+- These helpers use lit materials (there is a sun + ambient), so do NOT set unshaded — the shading is what
+  gives the low-poly shapes their 3D depth.
