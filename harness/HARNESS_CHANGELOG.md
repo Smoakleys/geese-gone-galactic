@@ -481,3 +481,12 @@ without a matching entry. Reverts are one command via the token in `harness/reve
 - harness/icarus/eval/capability.py: added `gen_pond_outcome` (the layered bread->water->safety->thriving
   evaluation, a composed multi-branch rule harder than the arithmetic tasks; deterministic checker) +
   registered it. The sealed battery now covers the full One Pond logic surface. Verifier tested. 307 tests.
+
+## harness-mod-50 - FIX: python_behavior was silently SKIPPED in the live pipeline
+- harness/checks/behavior.py: `targets` was `["*.py"]`, but registry._applies matches `targets` against
+  `ticket.kind` (e.g. "system"), NOT filenames -> the behavioural check never applied to any real ticket
+  and was SKIPPED in every live Stage-A run. A behaviourally-broken module could pass the gate (found via
+  an OP-14 build that committed a module raising AttributeError on its own examples). Fixed to `["*"]`.
+  Added a regression test that runs the check THROUGH registry.run_stage_a (prior tests only called
+  check.run() directly and missed the _applies filter). The reviewer had been the actual enforcer; now the
+  deterministic behavioural gate is too, as originally intended. 309 tests.
