@@ -50,3 +50,29 @@ def test_cutout_keeps_interior_white_of_an_enclosed_shape():
     out = Image.open(io.BytesIO(cutout(buf.getvalue()))).convert("RGBA")
     assert out.getpixel((0, 0))[3] == 0                        # outside cleared
     assert out.getpixel((15, 15))[3] == 255                    # enclosed white kept
+
+
+def test_cutout_handles_edge_case_images():
+    # cutout runs on every generated asset -- it must not crash on odd inputs (verified by probing).
+    import io
+    from PIL import Image
+    from ops.generate_art import cutout
+
+    def png(im):
+        b = io.BytesIO(); im.save(b, "PNG"); return b.getvalue()
+
+    # all-white -> fully transparent; all-colored -> nothing cleared; 1x1 + RGB -> no crash
+    allwhite = Image.open(io.BytesIO(cutout(png(Image.new("RGBA", (16, 16), (255, 255, 255, 255)))))).convert("RGBA")
+    assert allwhite.getpixel((8, 8))[3] == 0
+    colored = Image.open(io.BytesIO(cutout(png(Image.new("RGBA", (16, 16), (40, 120, 60, 255)))))).convert("RGBA")
+    assert colored.getpixel((0, 0))[3] == 255                       # no white -> nothing removed
+    for im in (Image.new("RGBA", (1, 1), (255, 255, 255, 255)), Image.new("RGB", (8, 8), (255, 255, 255))):
+        cutout(png(im))                                             # must not raise
+
+
+def test_cutout_raises_cleanly_on_non_image_bytes():
+    from PIL import UnidentifiedImageError
+    from ops.generate_art import cutout
+    import pytest as _pt
+    with _pt.raises(UnidentifiedImageError):                        # a caller can guard; it doesn't hang/segfault
+        cutout(b"definitely not a png")
