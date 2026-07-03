@@ -19,6 +19,8 @@ from game.godot.scene_template import materialize_templated_scene
 from harness.icarus.agent.ollama import OllamaAgentModel
 from harness.icarus.agent.vision import OllamaVisionModel
 from harness.icarus.agent_builder import AgentBuilder, visual_router
+from harness.review.llm_reviewer import LLMReviewer
+from harness.review.model_client import OllamaChatClient
 
 
 def default_icarus_builder(workdir, *, fast: str = "gpt-oss:20b", big: str = "qwen3:30b",
@@ -37,3 +39,12 @@ def default_icarus_builder(workdir, *, fast: str = "gpt-oss:20b", big: str = "qw
         render_fn=render_gdscript,
         post_build=materialize_templated_scene,   # compose templated content.gd -> scene.gd before gating
         max_steps=max_steps, run_timeout=run_timeout)
+
+
+def default_reviewer(model_id: str = "gpt-oss:20b") -> LLMReviewer:
+    """A real LOCAL Stage-B reviewer for the live pipeline (replaces the StubReviewer used in demos).
+
+    Fresh-context adversarial review each round (structural independence), default-FAIL + fail-closed.
+    Validated catching a subtle bug the stub waved through (docs/SCORECARD.md, gpt-oss:20b in ~4s). Point
+    it at a model DIFFERENT from the builder where possible; gpt-oss:20b is the fast default critic."""
+    return LLMReviewer(OllamaChatClient(model_id=model_id))
