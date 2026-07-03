@@ -466,3 +466,8 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   SAFE/UNSAFE, deterministic checker) and registered it in `default_generators()`. Grows the sealed
   unaided battery to cover predator safety (a core One Pond mechanic that previously had no generator),
   per the plan's "grow the battery with each mechanic". Verifier tested pass+fail. 297 tests.
+
+## harness-mod-47 - Grow the capability battery: gen_granary
+- harness/icarus/eval/capability.py: added `gen_granary` (bakeries*(3+granaries) synergy formula,
+  deterministic checker) + registered in `default_generators()`. Covers the granary-synergy mechanic in
+  the sealed unaided battery. Verifier tested pass+fail. 298 tests.
