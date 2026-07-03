@@ -140,10 +140,16 @@ def exec_tool(call: ToolCall, workspace: Path, *, run_timeout: float = 60.0,
                                   capture_output=True, text=True, timeout=run_timeout)
         except subprocess.TimeoutExpired:
             return ToolResult(False, f"command timed out after {run_timeout:.0f}s: {cmd}")
-        tail = (proc.stdout or "")
+        combined = (proc.stdout or "")
         if proc.stderr:
-            tail += "\n[stderr]\n" + proc.stderr
-        return ToolResult(proc.returncode == 0, f"exit={proc.returncode}\n{tail.strip()[:_MAX_OUTPUT]}")
+            combined += "\n[stderr]\n" + proc.stderr
+        # Keep the END, not the start: a Python traceback's `SomeError: message` and a Godot error are the
+        # LAST lines, and stderr is appended after stdout — so `[:cap]` on long output cut the actual error
+        # off entirely and Icarus couldn't fix what it never saw. Tail-truncate so the error always shows.
+        out = combined.strip()
+        if len(out) > _MAX_OUTPUT:
+            out = "...(head truncated; showing the end where errors/results appear)...\n" + out[-_MAX_OUTPUT:]
+        return ToolResult(proc.returncode == 0, f"exit={proc.returncode}\n{out}")
 
     if name == "list_files":
         rel = (call.args.get("path", ".") or ".").strip()
