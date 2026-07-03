@@ -39,8 +39,14 @@ pushes back once on a `finish` when no `write_file`/`run` happened this task. Me
 debugging seeds: **2/4 → 2/4 — no rise**, and it caused a *regression* (a previously-passing off-by-one
 flipped to FAIL — the nudge made Icarus over-edit into a new bug). Per the plan's rule (keep only if the
 unaided score rises), it was **reverted**. Honest conclusion: a simple nudge does not lift gpt-oss:20b's
-debugging. The likelier real lever is **routing debug-heavy tickets to the 30B** (the same model-size win
-that fixed visuals) or a genuine trace/diff step — a bigger change for a focused cycle, not a prompt tweak.
+debugging.
+
+**CONFIRMED + IMPLEMENTED (2026-07-03) — the real lever is model size.** Measured qwen3:30b on the same
+4 debugging seeds: **4/4** (vs gpt-oss:20b 2/4). Model SIZE fixes debugging, exactly as it fixed visuals.
+Implemented in `visual_router` (harness-mod-35): fix-it/debug tickets now route to the 30B. So **debugging
+is no longer a standing weakness when the ticket is routed** — unaided 2/4 → 4/4 on that route, kept per
+the plan. Net picture: the fast model handles fresh logic quickly; the 30B handles the harder
+visual + debugging work; the router picks per ticket.
 
 ## Caveat
 An earlier routed full-battery run measured 4/6, but it was the victim of GPU contention (two 30B tasks

@@ -60,11 +60,16 @@ class ModelRouter:
 
 
 _VISUAL_KEYWORDS = ["render", "scene", "godot", "gdscript", "3d", "camera", "mesh", "visual", "sprite"]
+# Debugging is the 2nd domain where model SIZE is the lever (measured: 30B 4/4 vs gpt-oss:20b 2/4 on the
+# same fix-it seeds; see docs/SCORECARD.md). Route fix-it tickets to the big model, same as visuals.
+_DEBUG_KEYWORDS = ["fix the bug", "broken", "off-by-one", "debug", "fix it", "wrong value"]
 
 
 def visual_router(fast: AgentModel, big: AgentModel) -> ModelRouter:
-    """Route visual/render/Godot tickets to the bigger model (`big`); everything else to `fast`."""
-    return ModelRouter(default=fast, rules=[(_VISUAL_KEYWORDS, big)])
+    """Route the tickets where model SIZE is the proven lever — visual/Godot AND debugging (fix-it) —
+    to the bigger model (`big`); fresh logic/coding stays on the fast `fast`. Both routes are
+    measured wins (visuals 3/3, debugging 4/4 on the 30B; see docs/SCORECARD.md)."""
+    return ModelRouter(default=fast, rules=[(_VISUAL_KEYWORDS + _DEBUG_KEYWORDS, big)])
 
 
 class AgentBuilder(Builder):
