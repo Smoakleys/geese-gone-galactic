@@ -454,3 +454,9 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   'baker') a subjective reviewer misses. Reads examples from artifact_dir/_behavior.json (certifies vs
   fixtures) else ticket.behavior. SKIP with no examples; fail-closed on missing module / crash / mismatch.
   Certified good/bad fixtures. 274 tests.
+
+## harness-mod-45 - Wire PythonBehaviorCheck into the default pipeline
+- harness/checks/builtin.py: default_registry now registers PythonBehaviorCheck. Any ticket carrying
+  `behavior` examples (e.g. OP-8) now gets a DETERMINISTIC exact-output gate in the live pipeline -- the
+  'baker'/'bakery'-class typo is caught mechanically at Stage A, not left to subjective review.
+  Behaviour-less tickets SKIP it (no effect on existing tickets/tests). 274 tests.
