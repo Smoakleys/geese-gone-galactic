@@ -38,9 +38,14 @@ game with it. Where things stand:
   `game/pond` API (economy w/ granary synergy, placement, sim, predator safety, dynamic events, progression
   rank, score, hints, planning, a text-command interface, save/load, state→scene bridge) + a logic→visual
   renderer (`game/godot/pond_view.py: render_pond_state`). Every module is behaviour-locked by a test.
-- **Visuals are 3D-LIT** (`game/godot/scenes/`): OP-1..OP-36 scenes incl. detailed geese, a flock, and the
-  complete lit world (`detail_world.gd`). The scene template now adds a sun + lit materials (3D depth); the
-  honest ceiling is real 3D art (see memory [[ggg-abstract-visuals-fail-judges]]).
+- **Visuals are a real cozy low-poly VILLAGE** (rebuilt 2026-07-03 on Bridger's "these are cubes" feedback,
+  PRs #329-344): `game/godot/models.py` emits modelled props — a stylized goose (ellipsoid body, smooth
+  interpolated S-neck, cone beak, eyes, wings, tail), roofed bakery, silo granary, nest+eggs, well, fence,
+  trees — on a soft palette, with 8x MSAA + 1024px rendering. `pond_view` + every scene render a village,
+  not cubes; Icarus builds them via one-call `add_building`/`add_goose` template helpers (+ its notebook).
+  **Vision-validated**: qwen2.5vl reads the village as "swans, nests, trees, houses, water" and the goose as
+  "a swan" (docs/SCORECARD.md) — SUPERSEDES the old-blob pessimism in [[ggg-abstract-visuals-fail-judges]].
+  The `godot_render` gate now uses region green-fraction (not whole-frame mean) so a natural palette passes.
 - **CAPSTONE + session hardening**: the authored backlog committed at autonomy 1.0 through the full gate.
   Honest UNAIDED north star re-measured **13/16 = 0.81** (2026-07-03, no regression). This session found +
   fixed ~11 real bugs by probing (2 render-gate gaps; 3 agent context-truncation blindfolds — reviewer,
