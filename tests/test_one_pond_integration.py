@@ -51,6 +51,7 @@ def test_full_game_plays_to_a_thriving_outcome():
 
 
 def test_full_game_can_be_lost_by_starvation():
+    from game.pond.pond_outcome import pond_outcome
     state = {"bread": 2, "buildings": [{"kind": "nest", "x": 0, "y": 0}]}   # a goose, no bakery
     for _ in range(5):
         state = step(state)                              # -1/tick, clamped at 0
