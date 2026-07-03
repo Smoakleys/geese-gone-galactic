@@ -102,6 +102,21 @@ def test_trim_context_keeps_setup_and_recent_bounds_growth():
     assert len(trimmed) <= 2 + 1 + _CONTEXT_KEEP_RECENT                          # growth bounded
 
 
+def test_trim_context_keeps_the_notebook_across_a_long_run():
+    # harness-mod-53's benefit must PERSIST: the notebook is an early setup message (before the first
+    # assistant reply), so it lives in `head` and survives trimming -- Icarus keeps its lessons all run,
+    # not just step 1. (If a refactor only kept system+task, the lessons would silently vanish after step 1.)
+    from harness.icarus.agent.runtime import _trim_context
+    msgs = [{"role": "system", "content": "sys"},
+            {"role": "user", "content": "NOTEBOOK - lessons: use .position not .translation in Godot 4"},
+            {"role": "user", "content": "TASK: build a scene"}]
+    for i in range(12):
+        msgs.append({"role": "assistant", "content": f"reply {i}"})
+        msgs.append({"role": "user", "content": f"obs {i}"})
+    joined = "\n".join(m["content"] for m in _trim_context(msgs, "plan"))
+    assert "NOTEBOOK" in joined and "translation" in joined   # lessons still present after 12 steps
+
+
 def test_trim_context_leaves_short_runs_untouched():
     from harness.icarus.agent.runtime import _trim_context
     short = [{"role": "system", "content": "s"}, {"role": "user", "content": "t"},
