@@ -97,6 +97,19 @@ def one_pond_tickets() -> "list[Ticket]":
                                     "string is a BUG -- one statement per building with the right colour + "
                                     "grid position", stage=Stage.B, rubric_ref="onepond/scene"),
             ]),
+        Ticket(
+            id="OP-7",
+            title=("granary.py: a bakery-synergy building. production(bakeries, granaries) returns the "
+                   "total bread produced per tick: each bakery makes a base of 3, and each granary adds "
+                   "+1 to EVERY bakery, so the total is bakeries * (3 + granaries). With 0 bakeries the "
+                   "total is 0 regardless of granaries. Pure Python, returns an int."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="production(b, g) == b * (3 + g), and 0 when b == 0",
+                                    stage=Stage.B, rubric_ref="onepond/granary"),
+            ]),
     ]
     for t in tickets:
         t.freeze()
