@@ -445,3 +445,12 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   a reviewer that can't answer never waves work through. Lets LLMReviewer run a real subjective review
   unattended (the gap OP-6's \n bug exposed). Point it at a model different from the builder for an
   independent critic. Test covers the fail-closed contract. 257 tests.
+
+## harness-mod-44 - Deterministic behavioural check for logic tickets (end the criterion whack-a-mole)
+- harness/models.py: Ticket gains an optional `behavior` field (list of {module, call, expect}); NOT part
+  of criteria_hash.
+- harness/checks/behavior.py: PythonBehaviorCheck runs each example against the produced module and
+  requires the EXACT result -- makes exact-output correctness mechanical, catching typos (OP-6 \n, OP-8
+  'baker') a subjective reviewer misses. Reads examples from artifact_dir/_behavior.json (certifies vs
+  fixtures) else ticket.behavior. SKIP with no examples; fail-closed on missing module / crash / mismatch.
+  Certified good/bad fixtures. 274 tests.
