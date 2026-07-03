@@ -30,3 +30,13 @@ def test_command_demo_runs_as_a_script():
                        capture_output=True, text=True, cwd=str(repo), timeout=60)
     assert r.returncode == 0, r.stderr
     assert "built bakery" in r.stdout and "Pond:" in r.stdout
+
+
+def test_save_and_load_commands_round_trip(tmp_path):
+    # the command interface can persist + resume: build, save, then load into a fresh session recovers it.
+    save = tmp_path / "pond.save"
+    played = play(["build bakery", "build nest", f"save {save}"], verbose=False)
+    assert save.exists()
+    reloaded = play([f"load {save}", "tick"], verbose=False)   # fresh session loads the save, then ticks
+    assert len(reloaded["buildings"]) == 2                      # bakery + nest recovered
+    assert reloaded["bread"] == played["bread"] + 2             # continued from save: +3 bakery, -1 nest
