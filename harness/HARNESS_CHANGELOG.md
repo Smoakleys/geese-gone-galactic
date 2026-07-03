@@ -603,3 +603,13 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   finish now; otherwise keep improving"). Advisory, fires once, doesn't force finishing. Complements mod-61
   (don't finish BEFORE verifying) + mod-62 (salvage verified-then-prose as DONE). Regression test: a
   successful render observation contains [DONE?] exactly once.
+
+## harness-mod-64 - Reject a PLACEHOLDER write body (found in the unaided measurement's empty-output fails)
+- harness/icarus/agent/runtime.py: inspecting the clean 12/20=0.60 measurement's failures showed a real
+  pattern -- gpt-oss sometimes writes a file whose body is the protocol's `body:` PLACEHOLDER copied
+  literally (`granary.py` = `<code>`, `score.py` = `<file contents>`), so the solution runs but prints
+  nothing (a whole class of `got ''` empty-output failures). exec_tool's write_file now rejects a body that
+  is just a `<...>` token with "that body is a PLACEHOLDER ... write the ACTUAL file contents", forcing a
+  real retry instead of silently accepting a do-nothing file. Real one-line code (`print(1)`) is unaffected.
+  Regression test: `<code>`/`<file contents>` rejected, real code accepted. Found by the probe-why-it-fails
+  method applied to the north-star measurement.

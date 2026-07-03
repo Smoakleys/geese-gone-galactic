@@ -102,6 +102,16 @@ def _safe_path(workspace: Path, rel: str) -> Optional[Path]:
     return p
 
 
+_PLACEHOLDER_BODY = re.compile(r"^\s*<[^\n>]{0,60}>\s*$")
+
+
+def _is_placeholder_body(body: str) -> bool:
+    """True if a write_file body is just a `<...>` placeholder token (e.g. `<code>`, `<file contents>`,
+    `<your code here>`) -- a common gpt-oss confusion with the protocol's `body:` example that produces a
+    file which does nothing. Real one-line code (`print(1)`) is not matched."""
+    return bool(_PLACEHOLDER_BODY.match(body))
+
+
 def exec_tool(call: ToolCall, workspace: Path, *, run_timeout: float = 60.0,
               vision: "Optional[VisionModel]" = None,
               notebook: "Optional[Notebook]" = None,
@@ -120,6 +130,12 @@ def exec_tool(call: ToolCall, workspace: Path, *, run_timeout: float = 60.0,
         if p is None:
             return ToolResult(False, f"path escapes the workspace: {rel!r}")
         content = call.body or ""
+        if _is_placeholder_body(content):
+            # gpt-oss sometimes copies the protocol's `body:` PLACEHOLDER (`<code>`, `<file contents>`)
+            # literally instead of writing real content -> the file "runs" but prints nothing (a whole class
+            # of empty-output failures in the battery). Reject it so it must write the ACTUAL code.
+            return ToolResult(False, "that body is a PLACEHOLDER, not real content. Write the ACTUAL file "
+                              "contents after `body:` (real code, e.g. `print(...)`), NOT a `<...>` token.")
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(content, encoding="utf-8")
         return ToolResult(True, f"wrote {rel} ({len(content)} bytes)")
