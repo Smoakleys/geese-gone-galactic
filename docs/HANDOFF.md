@@ -37,8 +37,10 @@ Icarus is a **real, measured agent**, and the whole loop is proven end-to-end:
   `godot_parse`, `godot_render`, and **`python_behavior`** — deterministic exact-output gating from a
   ticket's `behavior` examples), a **real local Stage-B reviewer** (`game/icarus_builder.py:
   default_reviewer()` = `LLMReviewer(OllamaChatClient)`, fail-closed), sole-commit-authority Gatekeeper,
-  monotonic ratchet. **Proven capstone**: Icarus → full gate → committed, rendered pond scene; and
-  spec-driven rebuilds where the behavioural check FORCES a pinned requirement before commit.
+  monotonic ratchet. **Proven capstone (docs/SCORECARD.md)**: the ENTIRE authored backlog (OP-1 scene +
+  OP-2..OP-9 logic) built + committed **9/9 at autonomy 1.0 in ~8 min, unattended**, through the full
+  gate — with a behavioural-check-forced rework on one ticket. Spec-driven: pin a criterion + a `behavior`
+  example, and the gate mechanically forces it before commit.
 - **Ops**: control site + `ops/watchdog.py` (emails on staleness) + a **continuation Stop hook**
   (installed in the user settings; forces this loop to keep going). Emails per increment via
   `ops/notify.py iter`. See [[ggg-notify-and-remote-control]].
