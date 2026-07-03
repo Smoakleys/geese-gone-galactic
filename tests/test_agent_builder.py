@@ -53,6 +53,19 @@ def test_agent_builder_gave_up_when_no_files(tmp_path):
     assert (tmp_path / "decision_log.jsonl").exists()  # log still written
 
 
+def test_post_build_exception_does_not_crash_the_build(tmp_path):
+    # A post_build hook that raises (e.g. compose_scene choking on malformed content) must NOT crash the
+    # build -- it's caught and gating still runs on whatever was produced. Locks that robustness path.
+    replies = ["```tool\nname: write_file\npath: content.gd\nbody:\nfunc build(root): pass\n```",
+               "```tool\nname: finish\nsummary: done\n```"]
+
+    def boom(root):
+        raise ValueError("post_build compose failed")
+
+    res = AgentBuilder(ScriptedAgentModel(replies), post_build=boom).build(_packet(tmp_path))
+    assert res.status == BuildStatus.COMPLETED       # content.gd was produced; build returned, didn't crash
+
+
 def test_agent_builder_id_reflects_model():
     b = AgentBuilder(ScriptedAgentModel([]))
     assert b.id.startswith("icarus-agent:")
