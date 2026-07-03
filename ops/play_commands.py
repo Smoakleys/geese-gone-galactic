@@ -76,7 +76,7 @@ def play(commands: "list[str]", verbose: bool = True) -> dict:
     return state
 
 
-def interactive() -> None:  # pragma: no cover - a stdin loop, not unit-tested
+def interactive() -> None:
     """Play One Pond by typing commands live. 'quit' exits. This is the actual playable game loop."""
     state: dict = {"bread": 30, "buildings": []}
     print("One Pond -- commands: build <kind> | event harvest/fox/flood | tick | status | "
