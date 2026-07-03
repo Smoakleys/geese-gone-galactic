@@ -414,3 +414,10 @@ without a matching entry. Reverts are one command via the token in `harness/reve
 - MEASURED: the FAST resident gpt-oss:20b builds real pond scenes 4/4 at ~19s/scene -- ~10x faster than
   the offloaded 30B (3/3 ~200s) AND reliable. The visual speed problem is solved by scaffolding, not a
   bigger model. See docs/SPEED.md. 239 tests.
+
+## harness-mod-39 - Route templated scene tasks to the fast model
+- harness/icarus/agent_builder.py: visual_router now routes TEMPLATED scene tasks (mention add_plane/
+  add_box/content.gd/func build) to the FAST resident model -- checked before the visual rule, so a
+  helper-based scene doesn't wrongly hit the offloaded 30B just because it says "camera". Open-ended
+  visuals + debugging still route to the 30B. Locks in the speed win (fast templated scenes 4/4 @ ~19s).
+  Test covers templated->fast vs open-ended->big. 240 tests.
