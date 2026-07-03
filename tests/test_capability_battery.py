@@ -69,6 +69,71 @@ def test_bakery_scene_verifier_needs_a_building(tmp_path, monkeypatch):
     assert not bad and "building" in detail
 
 
+def test_color_fraction_finds_regions_channel_means_miss(tmp_path):
+    from PIL import Image
+    from game.godot.capture import color_fraction
+
+    g = tmp_path / "g.png"
+    Image.new("RGB", (40, 40), (0, 255, 0)).save(g)
+    assert color_fraction(g, "green") > 0.9 and color_fraction(g, "blue") < 0.1
+
+    gray = tmp_path / "gray.png"
+    Image.new("RGB", (40, 40), (100, 100, 100)).save(gray)
+    assert color_fraction(gray, "green") < 0.05 and color_fraction(gray, "blue") < 0.05
+
+    # green land + blue water in one frame: channel MEANS wash out, region fractions still find both
+    split = Image.new("RGB", (40, 40), (0, 255, 0))
+    for y in range(20):
+        for x in range(40):
+            split.putpixel((x, y), (0, 0, 255))
+    sp = tmp_path / "split.png"
+    split.save(sp)
+    assert color_fraction(sp, "green") > 0.4 and color_fraction(sp, "blue") > 0.4
+
+
+def test_pond_scene_verifier_needs_land_water_and_building(tmp_path, monkeypatch):
+    import game.godot.capture as cap
+    from PIL import Image
+    from harness.icarus.eval.capability import gen_pond_scene
+    inst = gen_pond_scene(Random(0))
+    ws = tmp_path / inst.id
+    ws.mkdir()
+    (ws / "scene.gd").write_text("extends Node3D\n")
+
+    def good(gd, out, **k):  # grey bg + green land + blue pond + brown building
+        im = Image.new("RGB", (80, 80), (100, 100, 100))
+        for y in range(20, 80):
+            for x in range(80):
+                im.putpixel((x, y), (0, 200, 0))
+        for y in range(35, 55):
+            for x in range(25, 55):
+                im.putpixel((x, y), (0, 0, 200))
+        for y in range(58, 70):
+            for x in range(58, 72):
+                im.putpixel((x, y), (139, 69, 19))
+        im.save(out)
+        return True, "rendered"
+
+    monkeypatch.setattr(cap, "render_gdscript", good)
+    ok, detail = inst.verify(ws)
+    assert ok, detail
+
+    def no_water(gd, out, **k):  # land + building, no pond
+        im = Image.new("RGB", (80, 80), (100, 100, 100))
+        for y in range(20, 80):
+            for x in range(80):
+                im.putpixel((x, y), (0, 200, 0))
+        for y in range(58, 70):
+            for x in range(58, 72):
+                im.putpixel((x, y), (139, 69, 19))
+        im.save(out)
+        return True, "rendered"
+
+    monkeypatch.setattr(cap, "render_gdscript", no_water)
+    bad, detail = inst.verify(ws)
+    assert not bad and "water" in detail
+
+
 def test_placement_verifier(tmp_path):
     import re
 

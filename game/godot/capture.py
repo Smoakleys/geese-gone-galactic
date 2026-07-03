@@ -80,6 +80,22 @@ def image_variance(png: Path) -> float:
     return max(ImageStat.Stat(Image.open(png).convert("RGB")).stddev)
 
 
+def color_fraction(png: Path, kind: str, margin: int = 20) -> float:
+    """Fraction of pixels where the ``kind`` channel ('red'|'green'|'blue') strictly dominates the other
+    two by ``margin``. Region-based on purpose: channel MEANS wash out in a multi-terrain scene (green
+    land + a blue pond in one frame average to muddy grey), but per-pixel dominance still finds each
+    region. Grey background and equal-channel pixels count for nothing."""
+    from PIL import Image
+    idx = {"red": 0, "green": 1, "blue": 2}[kind]
+    a, b = (idx + 1) % 3, (idx + 2) % 3
+    im = Image.open(png).convert("RGB")
+    total = im.width * im.height
+    data = im.tobytes()
+    hits = sum(1 for i in range(0, len(data), 3)
+               if data[i + idx] > max(data[i + a], data[i + b]) + margin)
+    return hits / total if total else 0.0
+
+
 def significant_colors(png: Path, min_fraction: float = 0.02, quant: int = 48) -> int:
     """Count distinct (coarsely-quantised) colours each covering >= ``min_fraction`` of the image.
 

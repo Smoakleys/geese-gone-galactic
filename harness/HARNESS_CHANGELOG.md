@@ -353,3 +353,10 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   decision log had only plan/outcome, so recurring subjective failures from Icarus's runs never reached
   Stage C - the taste->gate flywheel (a core anti-complacency tooth) was inert for the real agent. Now
   it harvests. Test proves a handed-down defect is harvestable. 217 tests.
+
+## harness-mod-30 - Pond scene task + region-based colour detection (breadth)
+- game/godot/capture.py: color_fraction(png, kind) - per-pixel channel-dominance fraction, so a scene
+  with green land AND a blue pond (whose channel MEANS wash out to muddy grey) is still gradeable.
+- harness/icarus/eval/capability.py: gen_pond_scene - the namesake One Pond scene (green land + blue
+  water pond + a building), gated by green-land fraction + blue-water fraction + significant_colors>=3.
+  Offline-tested (monkeypatched renders); live build routes to the 30B. 220 tests.

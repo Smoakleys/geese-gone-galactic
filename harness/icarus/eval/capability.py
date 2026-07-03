@@ -362,6 +362,40 @@ def gen_bakery_scene(rng: Random) -> TaskInstance:
         "bare plane.", verify)
 
 
+def gen_pond_scene(rng: Random) -> TaskInstance:
+    """The namesake One Pond scene: green LAND + a blue WATER pond + a building. Visual, routes to 30B."""
+    def verify(ws: Path) -> "tuple[bool, str]":
+        from game.godot.capture import color_fraction, render_gdscript, significant_colors
+        gd_file = ws / "scene.gd"
+        if not gd_file.exists():
+            return False, "scene.gd not found"
+        out = ws / "_render.png"
+        ok, detail = render_gdscript(gd_file, out)
+        if not ok:
+            return False, detail
+        try:
+            land = color_fraction(out, "green")
+            water = color_fraction(out, "blue")
+            cols = significant_colors(out)
+        except Exception as e:
+            return False, f"could not read render: {e}"
+        if land < 0.12:
+            return False, f"no green land (green fraction {land:.2f})"
+        if water < 0.04:
+            return False, f"no blue pond water (blue fraction {water:.2f})"
+        if cols < 3:
+            return False, f"land + water but no building ({cols} colour regions)"
+        return True, f"land {land:.2f} + water {water:.2f} + building ({cols} regions)"
+
+    return TaskInstance(
+        f"pond_scene_{rng.randint(1000, 9999)}", "render",
+        "Write a Godot 4 GDScript scene.gd (extends Node3D). In _ready(): a current orthogonal Camera3D "
+        "aimed at the origin; a large GREEN UNSHADED land plane (PlaneMesh); a smaller BLUE UNSHADED water "
+        "plane (the pond) laid on top of the land near the centre (raised very slightly so it shows above "
+        "the grass); and a distinctly coloured (brown) UNSHADED building box beside the pond. The render "
+        "must show green land WITH a blue pond and a building.", verify)
+
+
 def default_generators() -> "list[Callable[[Random], TaskInstance]]":
     return [gen_sum, gen_reverse, gen_json, gen_fizzbuzz,
             gen_fix_bug, gen_read_sum, gen_find_secret, gen_economy, gen_placement,
