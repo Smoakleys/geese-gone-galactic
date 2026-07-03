@@ -4,6 +4,20 @@ North star: Icarus's **UNAIDED** pass rate on novel, procedurally-generated task
 best-of-N, ≤1 self-repair). Instances rotate each run (non-memorizable by construction). Updated when
 capability moves. Generators + deterministic verifiers live in `harness/icarus/eval/capability.py`.
 
+## VISUAL validation — the new models PASS an independent vision judge (2026-07-03)
+After Bridger's "these are cubes + a pixelly goose" feedback, the visuals were rebuilt as real modelled
+props (`game/godot/models.py`: roofed buildings + a stylized goose) with AA + 1024px + a soft palette
+(PRs #329-340). Measured OBJECTIVELY with the local vision model `qwen2.5vl:7b` on the renders (the plan's
+see-screenshot judge) — the honest test the OLD blob art FAILED (it saw "a green square with a blue square
+and an orange shape", see memory ggg-abstract-visuals-fail-judges):
+- **Village scene** → *"a serene rural scene with swans, nests, trees, houses, and a small water body
+  surrounded by greenery"* — every element recognised.
+- **Hero goose** (after smoothing the neck from beads to an interpolated tube, harness/visual iteration) →
+  *"This is a swan."* (The beaded-neck version read as "a white snake-like creature" — acted on that
+  feedback rather than moving on.)
+This is the plan's "gym, not cheat sheet" done honestly on visuals: the model, not the gate, was fixed.
+A subjective vision-on-render scene gate is now viable (props are recognisable) — a future harness lever.
+
 ## CLEAN re-measurement — 15/16 = 0.94, debugging improved (2026-07-03, Step D done right)
 Re-ran seed=7 UNAIDED with **zero concurrent load** (the contamination lesson applied): **15/16 = 0.94**,
 up from the clean 13/16 = 0.81 baseline. The notable signal: **BOTH debugging tasks PASSED** — `fix_bug`
