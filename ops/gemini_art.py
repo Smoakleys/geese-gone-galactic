@@ -44,6 +44,14 @@ STYLE = (
     "other objects, no text, high quality, cohesive tileset"
 )
 
+# A REAL reference screenshot to grade my output against (visual-review-discipline step 2: never judge in a
+# vacuum). Deliberately NOT the single-asset style -- a full polished scene, so I compare composition + scale.
+REFERENCE_PROMPT = (
+    "a screenshot of a polished professional cozy farm-island mobile game like Hay Day or Cozy Grove, "
+    "3/4 top-down isometric, lush island with well-spaced cute buildings, animals, and trees, warm soft "
+    "lighting, high production value, no text or UI overlay"
+)
+
 # Each prop, described the SAME way (one perspective) so a village composites coherently.
 ASSETS: "dict[str, str]" = {
     "goose": "a plump friendly white cartoon goose with an orange beak",
@@ -88,31 +96,52 @@ def build_prompt(desc: str) -> str:
     return desc.strip() + STYLE
 
 
-def generate(desc: str, out_png: Path, key: str, *, model: "str | None" = None, timeout: float = 120.0) -> bool:
-    """Generate one asset via the Gemini image API. Returns True on success (image written)."""
-    model = model or model_id()
+def _image_request(prompt: str, key: str, model: str, timeout: float, retries: int = 3) -> bytes:
+    """POST a prompt to the Gemini image API, with backoff; returns raw PNG bytes or raises."""
+    import time
     url = (f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}")
-    payload = {
-        "contents": [{"parts": [{"text": build_prompt(desc)}]}],
-        "generationConfig": {"responseModalities": ["IMAGE", "TEXT"]},
-    }
+    payload = {"contents": [{"parts": [{"text": prompt}]}],
+               "generationConfig": {"responseModalities": ["IMAGE", "TEXT"]}}
     req = urllib.request.Request(url, data=json.dumps(payload).encode(),
                                  headers={"Content-Type": "application/json", "User-Agent": "ggg"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        data = json.load(r)
-    for part in data.get("candidates", [{}])[0].get("content", {}).get("parts", []):
-        inline = part.get("inlineData") or part.get("inline_data")
-        if inline and inline.get("data"):
-            out_png.parent.mkdir(parents=True, exist_ok=True)
-            out_png.write_bytes(base64.b64decode(inline["data"]))
-            return True
-    return False
+    last = None
+    for attempt in range(retries):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                data = json.load(r)
+            for part in data.get("candidates", [{}])[0].get("content", {}).get("parts", []):
+                inline = part.get("inlineData") or part.get("inline_data")
+                if inline and inline.get("data"):
+                    return base64.b64decode(inline["data"])
+            raise ValueError("no image in response")
+        except Exception as e:  # noqa: BLE001 -- flaky endpoint; back off + retry
+            last = e
+            if attempt < retries - 1:
+                time.sleep(2 * (attempt + 1))
+    raise last if last else RuntimeError("image request failed")
+
+
+def generate(desc: str, out_png: Path, key: str, *, model: "str | None" = None, timeout: float = 120.0) -> bool:
+    """Generate one asset via the Gemini image API (locked viewpoint). Returns True on success."""
+    data = _image_request(build_prompt(desc), key, model or model_id(), timeout)
+    out_png.parent.mkdir(parents=True, exist_ok=True)
+    out_png.write_bytes(data)
+    return True
+
+
+def generate_reference(out_png: Path, key: str, *, model: "str | None" = None, timeout: float = 120.0) -> bool:
+    """Generate a REAL cozy-game reference screenshot to grade my composited scene against (the discipline)."""
+    data = _image_request(REFERENCE_PROMPT, key, model or model_id(), timeout)
+    out_png.parent.mkdir(parents=True, exist_ok=True)
+    out_png.write_bytes(data)
+    return True
 
 
 def main(argv: "list[str] | None" = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--only", nargs="*", default=None)
     ap.add_argument("--check", action="store_true")
+    ap.add_argument("--reference", action="store_true", help="also generate a real-game reference to grade against")
     args = ap.parse_args(argv)
     key = load_key()
     if not key:
@@ -123,6 +152,12 @@ def main(argv: "list[str] | None" = None) -> int:
     if args.check:
         print(f"key loaded ({len(key)} chars); model {model_id()}")
         return 0
+    if args.reference:
+        try:
+            generate_reference(ART_DIR / "reference_game.png", key)
+            print("reference: OK -> reference_game.png (compare your scene against this)")
+        except Exception as e:  # noqa: BLE001
+            print(f"reference: FAILED {type(e).__name__}: {e}")
     names = args.only or list(ASSETS)
     ok = 0
     for name in names:
