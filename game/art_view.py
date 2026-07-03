@@ -47,13 +47,19 @@ def _scaled(name: str, target_h: int):
     return im.resize((max(1, int(w * s)), max(1, int(h * s)))) if s != 1 else im
 
 
-def _placeholder(draw, cx: int, by: int, kind: str) -> None:
-    """A soft coloured blob when an art asset isn't generated yet (keeps the view renderable)."""
-    col = {"bakery": (196, 90, 70), "granary": (210, 170, 110), "nest": (120, 80, 50),
-           "well": (150, 150, 150), "fence": (140, 92, 56), "tree": (80, 140, 70),
-           "goose": (245, 245, 240)}.get(kind, (180, 180, 180))
+def _placeholder(canvas, cx: int, by: int, kind: str) -> None:
+    """A soft, semi-transparent tinted hint when an art asset isn't generated yet -- unobtrusive (blends
+    into the scene) rather than a jarring solid blob, so a still-missing asset doesn't spoil the view."""
+    from PIL import Image, ImageDraw
+    col = {"bakery": (196, 120, 90), "granary": (200, 170, 120), "nest": (150, 110, 80),
+           "well": (170, 175, 178), "fence": (150, 110, 80), "tree": (110, 160, 100),
+           "goose": (245, 245, 240)}.get(kind, (170, 175, 178))
     r = _SIZES.get(kind, 120) // 3
-    draw.ellipse([cx - r, by - 2 * r, cx + r, by], fill=col)
+    layer = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+    d.ellipse([cx - r, by - r // 2, cx + r, by], fill=(60, 90, 55, 60))          # a soft ground shadow
+    d.ellipse([cx - r, by - 2 * r, cx + r, by - r // 3], fill=col + (150,))       # a soft tinted mound
+    canvas.alpha_composite(layer)
 
 
 def compose_pond_art(state: dict, out_png: "str | Path", *, size: "tuple[int, int]" = (1200, 900)) -> Path:
@@ -114,7 +120,7 @@ def compose_pond_art(state: dict, out_png: "str | Path", *, size: "tuple[int, in
         if spr is not None:
             canvas.alpha_composite(spr, (sx - spr.width // 2, sy - spr.height))   # anchor at the feet
         else:
-            _placeholder(draw, sx, sy, kind)
+            _placeholder(canvas, sx, sy, kind)
 
     out_png = Path(out_png)
     out_png.parent.mkdir(parents=True, exist_ok=True)
