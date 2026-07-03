@@ -1,0 +1,45 @@
+"""Play a scripted One Pond game and print a readable transcript.
+
+A runnable showcase of the Icarus-built game core (everything in `game.pond` was produced by the local
+agent through the harness gate). It follows the hint system to build a thriving pond, printing the advice,
+status, score, and outcome at each step. Run: `python ops/play_onepond.py`.
+"""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from game.pond import (  # noqa: E402  (path set above)
+    add_building, pond_advice, pond_outcome, pond_score, pond_status, step,
+)
+
+REACH = 2
+GRID = 8
+PLAN = [("bakery", 0, 0), ("well", 1, 0), ("granary", 0, 1), ("nest", 4, 4), ("fence", 4, 5)]
+
+
+def play(verbose: bool = True) -> dict:
+    state: dict = {"bread": 20, "buildings": []}
+    if verbose:
+        print("=== One Pond (built by Icarus) ===")
+    for kind, x, y in PLAN:
+        if verbose:
+            print(f"  hint: {pond_advice(state, REACH):<15} | placing {kind} at ({x},{y})")
+        state = add_building(state, kind, x, y, GRID)
+    if verbose:
+        print(f"  hint: {pond_advice(state, REACH)}")
+        print("--- running 3 ticks ---")
+    for _ in range(3):
+        state = step(state)
+    st = pond_status(state, REACH)
+    if verbose:
+        print(f"  bread={state['bread']}  safe={st['safe']}  score={pond_score(state)}  "
+              f"outcome={pond_outcome(state, REACH)}")
+    return state
+
+
+if __name__ == "__main__":
+    play()
