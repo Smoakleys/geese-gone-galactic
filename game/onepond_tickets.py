@@ -42,6 +42,11 @@ def one_pond_tickets() -> "list[Ticket]":
                 AcceptanceCriterion(id="AC2", text="a tick(state) that adds bakery bread and subtracts "
                                     "goose bread, returning the new state",
                                     stage=Stage.B, rubric_ref="onepond/economy"),
+            ],
+            behavior=[
+                {"module": "bread_tick.py",
+                 "call": "tick({'bakery_bread': 5, 'goose_bread': 3})['bakery_bread']", "expect": 6},
+                {"module": "bread_tick.py", "call": "tick({'goose_bread': 0})['goose_bread']", "expect": 0},
             ]),
         Ticket(
             id="OP-3", title="placement.py: validate a building layout on the pond grid",
@@ -51,6 +56,11 @@ def one_pond_tickets() -> "list[Ticket]":
                                     stage=Stage.A, check_hint="python_syntax"),
                 AcceptanceCriterion(id="AC2", text="is_valid(cells, n) rejects out-of-bounds or "
                                     "overlapping placements", stage=Stage.B, rubric_ref="onepond/placement"),
+            ],
+            behavior=[
+                {"module": "placement.py", "call": "is_valid([(0, 0), (1, 1)], 4)", "expect": True},
+                {"module": "placement.py", "call": "is_valid([(0, 0), (0, 0)], 4)", "expect": False},
+                {"module": "placement.py", "call": "is_valid([(5, 0)], 4)", "expect": False},
             ]),
         Ticket(
             id="OP-4",
@@ -65,6 +75,14 @@ def one_pond_tickets() -> "list[Ticket]":
                                     stage=Stage.A, check_hint="python_syntax"),
                 AcceptanceCriterion(id="AC2", text="step ticks bread by building counts; add_building "
                                     "validates placement", stage=Stage.B, rubric_ref="onepond/state"),
+            ],
+            behavior=[
+                {"module": "pond_state.py",
+                 "call": "step({'bread': 0, 'buildings': [{'kind': 'bakery', 'x': 0, 'y': 0}]})['bread']",
+                 "expect": 3},
+                {"module": "pond_state.py",
+                 "call": "len(add_building({'bread': 0, 'buildings': []}, 'bakery', 9, 9, 4)['buildings'])",
+                 "expect": 0},
             ]),
         Ticket(
             id="OP-5",
@@ -78,6 +96,11 @@ def one_pond_tickets() -> "list[Ticket]":
                                     stage=Stage.A, check_hint="python_syntax"),
                 AcceptanceCriterion(id="AC2", text="is_safe true only when every nest is within reach of a "
                                     "fence", stage=Stage.B, rubric_ref="onepond/predator"),
+            ],
+            behavior=[
+                {"module": "predator.py", "call": "is_safe([(0, 0)], [(0, 0)], 2)", "expect": True},
+                {"module": "predator.py", "call": "is_safe([(9, 9)], [(0, 0)], 2)", "expect": False},
+                {"module": "predator.py", "call": "is_safe([], [(0, 0)], 2)", "expect": True},
             ]),
         Ticket(
             id="OP-6",
@@ -109,6 +132,11 @@ def one_pond_tickets() -> "list[Ticket]":
                                     stage=Stage.A, check_hint="python_syntax"),
                 AcceptanceCriterion(id="AC2", text="production(b, g) == b * (3 + g), and 0 when b == 0",
                                     stage=Stage.B, rubric_ref="onepond/granary"),
+            ],
+            behavior=[
+                {"module": "granary.py", "call": "production(2, 1)", "expect": 8},
+                {"module": "granary.py", "call": "production(4, 0)", "expect": 12},
+                {"module": "granary.py", "call": "production(0, 5)", "expect": 0},
             ]),
         Ticket(
             id="OP-8",
