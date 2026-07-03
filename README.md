@@ -1,8 +1,14 @@
 # Geese Gone Galactic (v3)
 
+![A played One Pond, rendered as art](docs/img/hero.png)
+
+*A played pond rendered by the game — real painterly art (`render` → `game/art_view.py`), composited from
+free image-model sprites (`ops/generate_art.py`) by the game's own state.*
+
 A strict, self-improving **harness** that bootstraps a local AI *agent* (**Icarus**, on Ollama) and uses
-it to build the game — logic *and* visuals — with every piece held to an un-gameable quality gate.
-Engine: **Godot** (3D low-poly, 2.5D fixed iso camera). Pond era only.
+it to build the game — logic *and* visuals — with every piece held to an un-gameable quality gate. The
+game's look is **generated cozy-game art** (a floating island of cottages, geese and trees); the older
+low-poly Godot view is kept as `render3d`. Pond era only.
 
 **Icarus built a real, playable game.** The "One Pond" core is **28 agent-authored Python modules**
 (`game/pond/`) — a granary-synergy bread economy, placement, simulation, predator safety, water access, a
