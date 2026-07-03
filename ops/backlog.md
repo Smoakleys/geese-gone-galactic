@@ -58,8 +58,14 @@ Icarus improvement** (keep only if the unaided battery score rises).
       docs (the reviewer was the real enforcer). See [[ggg-test-checks-through-registry]].
 
 ## Now — optional; the mission is comprehensively proven. Pick by value.
-- [ ] **More authored One Pond tickets** — one Icarus ticket per cycle (population/capacity, a market),
-      each pinned + behaviour-gated + green-verified.
+- [ ] **DEEPEN THE VISUAL GAME (highest game-value direction).** Honest gap: the logic is deep (22 `game/pond`
+      modules) but the VISUAL side is THIN — only 2 static scenes (`one_pond.gd`, `one_pond_full.gd` = land +
+      water + coloured boxes). The plan's real destination is a 3D low-poly GEESE game. Author scene tickets
+      that build richer visuals via the agent's render path (goose/building shapes beyond boxes, a scene from
+      an arbitrary `pond_state`, more camera/colour variety), gated by `godot_parse` + `godot_render` + the
+      reviewer. Needs the GPU (Icarus builds scenes on the resident model), so do it when no data-gen batch runs.
+- [ ] **More authored One Pond LOGIC tickets** — each = game content + a verified self-distillation pair;
+      diversity is now good (8 task shapes), so prefer visual/new-domain tickets over more same-shape logic.
 - [x] **Retire the python economy toy** (`game/onepond`) — DECIDED: KEEP IT, documented-as-dead. Investigated
       (2026-07-03): its 3 dependent tests are ~914 lines (`test_phase4_onepond` alone is 680) that exercise
       real HARNESS governance — the check registry, flywheel harvest, cold audits, the ratchet — using the
