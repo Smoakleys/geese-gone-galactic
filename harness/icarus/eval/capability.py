@@ -239,9 +239,39 @@ def gen_gdscript(rng: Random) -> TaskInstance:
     return TaskInstance(f"gdscript_{n}", "gdscript", prompt, verify)
 
 
+def gen_render(rng: Random) -> TaskInstance:
+    """The semantic bar: a GDScript scene that must actually RENDER non-blank (not just parse)."""
+    from game.godot.binary import godot_path as _gp
+    godot = _gp() or "godot"
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        from game.godot.capture import image_variance, render_gdscript
+        gd = ws / "scene.gd"
+        if not gd.exists():
+            return False, "scene.gd not found"
+        out = ws / "_render.png"
+        ok, detail = render_gdscript(gd, out)
+        if not ok:
+            return False, detail
+        try:
+            var = image_variance(out)
+        except Exception as e:
+            return False, f"could not read render: {e}"
+        return var >= 6.0, f"render variance {var:.1f} (need >=6; ~0 means blank/black)"
+
+    prompt = (
+        "Write a Godot 4 GDScript file named scene.gd (extends Node3D). In _ready() build a VISIBLE 3D "
+        "scene: add a Camera3D (call make_current() or set current=true, orthogonal projection, "
+        "positioned away from the origin and aimed at it) and a large MeshInstance3D ground plane "
+        "(PlaneMesh) with a bright green StandardMaterial3D whose shading_mode is UNSHADED so it shows "
+        "without a light. When rendered off-screen it must NOT be blank/black. Check syntax with:\n"
+        f"  {godot} --headless --check-only --script scene.gd")
+    return TaskInstance(f"render_scene_{rng.randint(1000, 9999)}", "render", prompt, verify)
+
+
 def default_generators() -> "list[Callable[[Random], TaskInstance]]":
     return [gen_sum, gen_reverse, gen_json, gen_fizzbuzz,
-            gen_fix_bug, gen_read_sum, gen_find_secret, gen_gdscript]
+            gen_fix_bug, gen_read_sum, gen_find_secret, gen_gdscript, gen_render]
 
 
 def sample_battery(seed: int = 0, per_generator: int = 1,
@@ -256,7 +286,7 @@ def sample_battery(seed: int = 0, per_generator: int = 1,
 
 def run_battery(model: AgentModel, instances: "list[TaskInstance]", workspace_root: Path, *,
                 max_steps: int = 10, run_timeout: float = 20.0, use_notebook: bool = False,
-                notebook: "Optional[Notebook]" = None, vision=None) -> ScoreReport:
+                notebook: "Optional[Notebook]" = None, vision=None, render_fn=None) -> ScoreReport:
     """Drive the agent loop on each instance, verify the workspace, and score. Default is UNAIDED
     (no notebook) — the north-star capability measure."""
     report = ScoreReport()
@@ -268,7 +298,8 @@ def run_battery(model: AgentModel, instances: "list[TaskInstance]", workspace_ro
             inst.setup(ws)  # seed a broken file / data file the task refers to
         try:
             res = run_agent(model, inst.prompt, ws, max_steps=max_steps, run_timeout=run_timeout,
-                            use_notebook=use_notebook, notebook=notebook, vision=vision)
+                            use_notebook=use_notebook, notebook=notebook, vision=vision,
+                            render_fn=render_fn)
         except Exception as e:  # one task crashing must not kill the whole battery
             report.results.append(TaskResult(inst.id, inst.category, False, 0, False,
                                              f"agent crashed: {type(e).__name__}: {e}"))
