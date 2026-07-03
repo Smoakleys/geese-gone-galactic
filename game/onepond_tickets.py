@@ -601,6 +601,30 @@ def one_pond_tickets() -> "list[Ticket]":
                 {"module": "affordable_buildings.py", "call": "affordable_buildings(5)",
                  "expect": ["bakery", "fence", "granary", "nest", "well"]},
             ]),
+        Ticket(
+            id="OP-28",
+            title=("pond_event.py: random pond events. apply_event(state, event) returns a NEW state (do "
+                   "not mutate the input) after applying the named event to state['bread']: 'harvest' adds "
+                   "10, 'fox' subtracts 5, 'flood' halves it (integer floor division // 2), and any other "
+                   "event leaves bread unchanged. Bread never goes below 0. Keep state['buildings'] "
+                   "unchanged. Pure Python returning a dict."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="harvest +10 / fox -5 / flood //2 / else unchanged, "
+                                    "clamp >=0, new state", stage=Stage.B, rubric_ref="onepond/event"),
+            ],
+            behavior=[
+                {"module": "pond_event.py",
+                 "call": "apply_event({'bread': 10, 'buildings': []}, 'harvest')['bread']", "expect": 20},
+                {"module": "pond_event.py",
+                 "call": "apply_event({'bread': 3, 'buildings': []}, 'fox')['bread']", "expect": 0},
+                {"module": "pond_event.py",
+                 "call": "apply_event({'bread': 11, 'buildings': []}, 'flood')['bread']", "expect": 5},
+                {"module": "pond_event.py",
+                 "call": "apply_event({'bread': 8, 'buildings': []}, 'calm')['bread']", "expect": 8},
+            ]),
     ]
     for t in tickets:
         t.freeze()
