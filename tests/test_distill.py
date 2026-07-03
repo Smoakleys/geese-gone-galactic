@@ -37,3 +37,16 @@ def test_skips_uncommitted_modules(tmp_path):
     # a ticket whose module isn't in the dir yields no record (only verified successes are distilled)
     records = build_sft_records(one_pond_tickets(), tmp_path)    # empty dir
     assert records == []
+
+
+def test_regenerator_runs_as_a_script():
+    # ops/build_sft.py must actually run (verify end-to-end, not just import)
+    import subprocess
+    import sys
+    from pathlib import Path
+    repo = Path(__file__).resolve().parents[1]
+    r = subprocess.run([sys.executable, str(repo / "ops" / "build_sft.py")],
+                       capture_output=True, text=True, cwd=str(repo), timeout=60)
+    assert r.returncode == 0, r.stderr
+    assert "SFT records" in r.stdout
+    assert (repo / "data" / "onepond_sft.jsonl").exists()
