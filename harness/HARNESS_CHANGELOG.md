@@ -332,3 +332,10 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   its best model (visual/render -> 30B, logic -> fast gpt-oss:20b) - the honest score of the assembled
   Icarus, not a single model handicapped on the wrong domain. Tests cover routed scoring + the
   model-or-router guard. 214 tests.
+
+## harness-mod-27 - Faster hung-call failure + single-live-run discipline
+- harness/icarus/agent/ollama.py: default model-call timeout 600s -> 240s, so a hung Ollama call (e.g.
+  GPU contention) fails fast and the loop degrades to STUCK instead of blocking ~10 minutes.
+- docs/HANDOFF.md: recorded the "one live model run at a time on the 16GB GPU" discipline - concurrent
+  live-model tasks (esp. both needing the 30B) thrash/hang (learned the hard way: two overlapping live
+  probes stalled). 214 tests.
