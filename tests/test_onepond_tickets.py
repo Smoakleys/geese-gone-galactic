@@ -29,6 +29,28 @@ def test_op1_scene_ticket_is_templated_and_routes_to_fast():
     assert visual_router(fast, big).for_task(op1.title).model_id == "fast"   # -> the fast resident model
 
 
+def test_every_logic_ticket_behavior_matches_its_committed_module(tmp_path):
+    # the authored behaviour examples must be correct AND the committed game/pond modules must satisfy them
+    import shutil
+    from pathlib import Path
+    from harness.checks.behavior import PythonBehaviorCheck
+    from harness.models import Result
+    pond = Path(__file__).resolve().parents[1] / "game" / "pond"
+    check = PythonBehaviorCheck()
+    checked = 0
+    for t in one_pond_tickets():
+        if not t.behavior:
+            continue
+        for ex in t.behavior:
+            src = pond / ex["module"]
+            if src.exists():
+                shutil.copy(src, tmp_path / ex["module"])
+        res = check.run(tmp_path, t)
+        assert res.result == Result.PASS, (t.id, res.evidence)
+        checked += 1
+    assert checked >= 6                                    # OP-2..5, OP-7, OP-8 all carry behaviour
+
+
 def test_op8_behavior_check_catches_the_baker_typo(tmp_path):
     # the deterministic check FAILs the 'baker' typo (which slipped the reviewer) and PASSes the fix
     from harness.checks.behavior import PythonBehaviorCheck
