@@ -647,6 +647,30 @@ def one_pond_tickets() -> "list[Ticket]":
                 {"module": "parse_command.py", "call": "parse_command('quit')", "expect": ("quit", "")},
                 {"module": "parse_command.py", "call": "parse_command('   ')", "expect": ("", "")},
             ]),
+        Ticket(
+            id="OP-30",
+            title=("serialize_pond.py: save a pond to a compact string. serialize_pond(state) returns "
+                   "EXACTLY \"bread={bread}\" followed, for each building in state['buildings'] IN ORDER, "
+                   "by \";{kind}@{x},{y}\". So a pond with bread 10 and a bakery at (0,0) serialises to "
+                   "'bread=10;bakery@0,0'. An empty buildings list gives just 'bread={bread}'. Match the "
+                   "format EXACTLY (the '@' and the comma). Pure Python returning a str."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="exact 'bread=N' then ';kind@x,y' per building",
+                                    stage=Stage.B, rubric_ref="onepond/serialize"),
+            ],
+            behavior=[
+                {"module": "serialize_pond.py",
+                 "call": "serialize_pond({'bread': 10, 'buildings': [{'kind':'bakery','x':0,'y':0}]})",
+                 "expect": "bread=10;bakery@0,0"},
+                {"module": "serialize_pond.py",
+                 "call": "serialize_pond({'bread': 5, 'buildings': []})", "expect": "bread=5"},
+                {"module": "serialize_pond.py",
+                 "call": "serialize_pond({'bread': 0, 'buildings': [{'kind':'nest','x':2,'y':3},{'kind':'well','x':1,'y':0}]})",
+                 "expect": "bread=0;nest@2,3;well@1,0"},
+            ]),
     ]
     for t in tickets:
         t.freeze()
