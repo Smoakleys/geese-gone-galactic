@@ -245,20 +245,20 @@ def gen_render(rng: Random) -> TaskInstance:
     godot = _gp() or "godot"
 
     def verify(ws: Path) -> "tuple[bool, str]":
-        from game.godot.capture import brightest_mean, render_gdscript
-        gd = ws / "scene.gd"
-        if not gd.exists():
+        from game.godot.capture import green_dominance, render_gdscript
+        gd_file = ws / "scene.gd"
+        if not gd_file.exists():
             return False, "scene.gd not found"
         out = ws / "_render.png"
-        ok, detail = render_gdscript(gd, out)
+        ok, detail = render_gdscript(gd_file, out)
         if not ok:
             return False, detail
         try:
-            b = brightest_mean(out)
+            gd = green_dominance(out)
         except Exception as e:
             return False, f"could not read render: {e}"
-        # BLANK = near-black (camera saw nothing). A solid bright fill is a valid render.
-        return b >= 20.0, f"brightest-channel mean {b:.1f} (blank/black if ~0)"
+        # A real green scene is green-dominant; a gray/empty background (camera saw nothing) scores ~0.
+        return gd >= 15.0, f"green-dominance {gd:.1f} (>=15 = the green plane rendered; ~0 = empty/gray)"
 
     prompt = (
         "Write a Godot 4 GDScript file named scene.gd (extends Node3D). In _ready() add a Camera3D "

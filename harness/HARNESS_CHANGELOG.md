@@ -292,3 +292,16 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   hatch). Connects the two harnesses (agent runtime <-> gate) - the prerequisite for the first committed
   Godot artifact built by Icarus.
 - Gate untouched. Tested offline (scripted): completes+logs, gave-up-when-no-files, task construction.
+
+## harness-mod-22 - CORRECTION: render gate is green-DOMINANCE (harness-mod-20's brightness fix was wrong)
+- The render gate has now been through THREE forms, each corrected by LOOKING at real renders:
+  variance (false-FAILS a valid uniform green fill) -> brightness (false-PASSES a uniform GRAY
+  background, i.e. an EMPTY render where the camera saw nothing -> harness-mod-20's "3/3" was inflated)
+  -> green_dominance = g - max(r,b) (passes a real green scene; fails gray/empty AND black). Correct now.
+- game/godot/capture.py: added channel_means + green_dominance; render_gdscript reports mean RGB and
+  flags "looks EMPTY (uniform background)". gen_render verify uses green_dominance>=15. Regression test
+  covers green(pass) / gray(fail) / black(fail).
+- Honest correction: harness-mod-20's claim "Icarus renders 3/3, the gate was broken" was itself WRONG -
+  the failing renders were genuinely gray/empty (the look_at-before-add_child bug leaves the camera aimed
+  at the background). Unaided render capability is low; the seeded notebook (look_at lesson) is what makes
+  it render green - a real, measured improvement. 202 tests.
