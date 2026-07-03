@@ -482,6 +482,24 @@ def one_pond_tickets() -> "list[Ticket]":
                  "call": "sorted_by_distance([(0, 1), (1, 0)], (0, 0))", "expect": [(0, 1), (1, 0)]},
                 {"module": "sorted_by_distance.py", "call": "sorted_by_distance([], (0, 0))", "expect": []},
             ]),
+        Ticket(
+            id="OP-22",
+            title=("simulate_bread.py: project the bread economy. simulate_bread(start, bakeries, nests, "
+                   "ticks) simulates `ticks` ticks starting from `start` bread. EACH tick: add bakeries*3, "
+                   "subtract nests, then CLAMP to >= 0 (bread never goes negative, and clamping happens "
+                   "every tick so a formula won't do). Return the final bread as an int. Pure Python."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="iterate ticks, +bakeries*3 -nests, clamp >=0 each tick",
+                                    stage=Stage.B, rubric_ref="onepond/simulate"),
+            ],
+            behavior=[
+                {"module": "simulate_bread.py", "call": "simulate_bread(10, 2, 1, 3)", "expect": 25},
+                {"module": "simulate_bread.py", "call": "simulate_bread(2, 0, 1, 5)", "expect": 0},
+                {"module": "simulate_bread.py", "call": "simulate_bread(5, 1, 0, 2)", "expect": 11},
+            ]),
     ]
     for t in tickets:
         t.freeze()

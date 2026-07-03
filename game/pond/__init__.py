@@ -22,6 +22,7 @@ from game.pond.pond_score import pond_score
 from game.pond.pond_state import add_building, step
 from game.pond.pond_status import pond_status
 from game.pond.predator import is_safe
+from game.pond.simulate_bread import simulate_bread
 from game.pond.sorted_by_distance import sorted_by_distance
 from game.pond.predator_loss import predator_loss
 from game.pond.water_access import has_water
@@ -30,5 +31,5 @@ __all__ = [
     "tick", "production", "is_valid", "tick_bread", "pond_outcome",
     "build_body", "pond_score", "pond_advice", "add_building", "step",
     "pond_status", "is_safe", "predator_loss", "has_water", "total_cost", "pond_rank", "goose_count",
-    "report", "nearest_fence", "count_by_kind", "sorted_by_distance",
+    "report", "nearest_fence", "count_by_kind", "sorted_by_distance", "simulate_bread",
 ]
