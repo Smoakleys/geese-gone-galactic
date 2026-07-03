@@ -18,5 +18,10 @@ lessons are promoted back here (so it never fills with a struggling model's conf
   dot; too small clips into it — either way the frame is mostly empty background.
 - For a colour that shows without a light, use a `StandardMaterial3D` with
   `shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED` and set `material_override` on the MeshInstance3D.
+- Godot 4 named colours are UPPERCASE constants: `Color.GREEN`, `Color.BLUE`, `Color.GRAY` (NOT the
+  Godot-3 lowercase `Color.green`). Lowercase errors at runtime, aborts `_ready()` before the scene is
+  built, and the render is empty gray. (Diagnosed from a real blank OP-1 scene.)
+- Godot 4 uses `BoxMesh` for a cube — there is NO `CubeMesh` (that was Godot 3). `CubeMesh.new()` errors
+  at runtime and blanks the render. Use `var m := BoxMesh.new(); m.size = Vector3(...)`.
 - Verify by rendering: if the render is a uniform gray (the default background) the camera saw nothing —
   re-check the camera is current, added to the tree before `look_at`, and framing the object.
