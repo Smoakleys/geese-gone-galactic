@@ -22,6 +22,17 @@ def test_sample_battery_reproducible_and_varies():
     assert len(a) == len(default_generators())   # one per default generator
 
 
+def test_all_default_generators_wellformed_and_deterministic():
+    # every generator in the sealed battery must be reproducible and produce a real, gradeable task.
+    from harness.icarus.eval.capability import default_generators
+    for gen in default_generators():
+        a = gen(Random(7))
+        b = gen(Random(7))
+        assert a.id == b.id, gen.__name__                     # same seed -> same instance
+        assert a.category and a.prompt and len(a.prompt) > 20, gen.__name__
+        assert callable(a.verify), gen.__name__
+
+
 def test_sum_verifier_pass_and_fail(tmp_path):
     inst = gen_sum(Random(0))
     a, b = (int(x) for x in inst.id.split("_")[1:])
