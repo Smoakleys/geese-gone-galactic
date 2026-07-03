@@ -198,6 +198,32 @@ def one_pond_tickets() -> "list[Ticket]":
                 {"module": "pond_status.py",
                  "call": "pond_status({'bread': 7, 'buildings': []}, 2)['bread']", "expect": 7},
             ]),
+        Ticket(
+            id="OP-10",
+            title=("pond_outcome.py: evaluate the pond. pond_outcome(state, reach) returns a STRING: "
+                   "'lost' if state['bread'] <= 0; otherwise 'unsafe' if any building of kind 'nest' is "
+                   "NOT within Manhattan distance `reach` (abs(dx)+abs(dy) <= reach) of some building of "
+                   "kind 'fence'; otherwise 'thriving'. No nests counts as safe. Buildings are dicts with "
+                   "'kind','x','y'. Pure Python returning a str."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="returns 'lost' / 'unsafe' / 'thriving' per bread then "
+                                    "predator safety", stage=Stage.B, rubric_ref="onepond/outcome"),
+            ],
+            behavior=[
+                {"module": "pond_outcome.py", "call": "pond_outcome({'bread': 0, 'buildings': []}, 2)",
+                 "expect": "lost"},
+                {"module": "pond_outcome.py",
+                 "call": "pond_outcome({'bread': 5, 'buildings': [{'kind':'nest','x':9,'y':9}]}, 2)",
+                 "expect": "unsafe"},
+                {"module": "pond_outcome.py",
+                 "call": "pond_outcome({'bread': 5, 'buildings': [{'kind':'nest','x':0,'y':0},{'kind':'fence','x':1,'y':0}]}, 2)",
+                 "expect": "thriving"},
+                {"module": "pond_outcome.py", "call": "pond_outcome({'bread': 5, 'buildings': []}, 2)",
+                 "expect": "thriving"},
+            ]),
     ]
     for t in tickets:
         t.freeze()
