@@ -386,3 +386,20 @@ def test_successful_verify_cues_finish_once(tmp_path):
     res = run_agent(ScriptedAgentModel([w, r1, r2, fin]), "task", tmp_path, max_steps=8)
     cues = [m for m in res.transcript if m["role"] == "user" and "[DONE?]" in m["content"]]
     assert len(cues) == 1                          # cued once, after the first successful verify
+
+
+def test_tool_sandbox_rejects_path_traversal(tmp_path):
+    # SECURITY: a tool call must not read/write/list OUTSIDE its workspace (verified by probing). The agent
+    # runs model-authored file ops, so an escape would be a real sandbox breach.
+    from harness.icarus.agent.runtime import exec_tool, ToolCall
+    escapes = [
+        ToolCall("write_file", {"path": "../../escaped.txt"}, "pwned"),
+        ToolCall("write_file", {"path": "C:/Windows/Temp/ggg_escape.txt"}, "pwned"),
+        ToolCall("read_file", {"path": "../../../../etc/passwd"}),
+        ToolCall("list_files", {"path": "../../.."}),
+    ]
+    for call in escapes:
+        res = exec_tool(call, tmp_path)
+        assert not res.ok, call.args                         # rejected, never OK
+        assert ("escapes the workspace" in res.output or "no such" in res.output), res.output
+    assert not (tmp_path.parent.parent / "escaped.txt").exists()   # nothing written outside
