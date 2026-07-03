@@ -492,6 +492,50 @@ def gen_pond_scene(rng: Random) -> TaskInstance:
         "must show green land WITH a blue pond and a building.", verify)
 
 
+def gen_pond_from_template(rng: Random) -> TaskInstance:
+    """SPEED path: Icarus writes ONLY the build(root) content; the camera template is provided so the
+    FAST resident model can build a real scene (see docs/SPEED.md). Verified by composing + rendering."""
+    def verify(ws: Path) -> "tuple[bool, str]":
+        from game.godot.capture import color_fraction, green_dominance, render_gdscript, significant_colors
+        from game.godot.scene_template import compose_scene
+        cand = None
+        for p in sorted(ws.rglob("*.gd")):
+            try:
+                if "func build" in p.read_text():
+                    cand = p
+                    break
+            except OSError:
+                pass
+        if cand is None:
+            return False, "no .gd file with a build(root) function"
+        scene = compose_scene(cand.read_text())
+        sp = ws / "_composed_scene.gd"
+        sp.write_text(scene)
+        out = ws / "_render.png"
+        ok, detail = render_gdscript(sp, out)
+        if not ok:
+            return False, f"composed scene failed to render: {detail}"
+        try:
+            land, water, cols = green_dominance(out), color_fraction(out, "blue"), significant_colors(out)
+        except Exception as e:
+            return False, f"could not read render: {e}"
+        if land < 15:
+            return False, f"no green land (dominance {land:.0f})"
+        if water < 0.04:
+            return False, f"no blue water pond (blue {water:.2f})"
+        if cols < 3:
+            return False, f"land + water but no building ({cols} regions)"
+        return True, f"land {land:.0f} + water {water:.2f} + building ({cols} regions) [templated]"
+
+    return TaskInstance(
+        f"pondtmpl_{rng.randint(1000, 9999)}", "render",
+        "Write content.gd containing ONLY a Godot 4 function `func build(root: Node3D) -> void:` that adds "
+        "to `root`: (1) a large GREEN unshaded ground plane (PlaneMesh ~16x16), (2) a smaller BLUE unshaded "
+        "water pond (PlaneMesh, raised slightly on z so it shows over the grass), and (3) a distinctly "
+        "coloured building box (BoxMesh) beside the pond. Do NOT add a Camera3D or _ready() -- those are "
+        "provided for you. Use Color.GREEN / Color.BLUE and BoxMesh (Godot 4 API).", verify)
+
+
 def default_generators() -> "list[Callable[[Random], TaskInstance]]":
     return [gen_sum, gen_reverse, gen_json, gen_fizzbuzz,
             gen_fix_bug, gen_fix_range_bug, gen_read_sum, gen_find_secret, gen_economy, gen_placement,
