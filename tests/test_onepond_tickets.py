@@ -19,6 +19,16 @@ def test_one_pond_tickets_well_formed_and_reference_real_gates():
                 assert c.check_hint in real_stage_a_checks, (t.id, c.check_hint)
 
 
+def test_op1_scene_ticket_is_templated_and_routes_to_fast():
+    from harness.icarus.agent import ScriptedAgentModel
+    from harness.icarus.agent_builder import visual_router
+    op1 = {t.id: t for t in one_pond_tickets()}["OP-1"]
+    assert "add_plane" in op1.title and "content.gd" in op1.title      # templated
+    fast, big = ScriptedAgentModel([]), ScriptedAgentModel([])
+    fast.model_id, big.model_id = "fast", "big"
+    assert visual_router(fast, big).for_task(op1.title).model_id == "fast"   # -> the fast resident model
+
+
 def test_one_pond_tickets_are_frozen():
     # freeze() ran in the factory; a frozen ticket exposes its criteria hash for the gatekeeper.
     for t in one_pond_tickets():
