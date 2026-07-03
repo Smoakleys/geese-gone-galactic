@@ -95,6 +95,20 @@ def test_strip_provenance_removes_header_keeps_code():
     assert _strip_provenance(plain) == plain
 
 
+def test_committed_corpus_is_diverse():
+    # a fine-tune corpus dominated by one task type teaches a narrow model; guard that the committed SFT
+    # data spans many distinct sources (generators + authored tickets), so the training signal stays broad.
+    from pathlib import Path
+    data = Path(__file__).resolve().parents[1] / "data"
+    sources = set()
+    for p in data.glob("*_sft.jsonl"):
+        for ln in p.read_text(encoding="utf-8").splitlines():
+            if ln.strip():
+                m = json.loads(ln).get("meta", {})
+                sources.add(m.get("generator") or f"ticket:{m.get('ticket')}")
+    assert len(sources) >= 15, f"corpus too narrow ({len(sources)} distinct sources): {sorted(sources)}"
+
+
 def test_generate_training_data_plumbing(tmp_path):
     # offline: the solution-picker reads the agent's produced file (the live agent path is smoke-tested
     # separately -- it kept 2/2 gate-passing gen_sum solutions).
