@@ -100,7 +100,7 @@ class AgentBuilder(Builder):
                            use_notebook=self._use_notebook, render_fn=self._render_fn)
 
         log = root / _LOG_NAME
-        self._write_decision_log(log, result)
+        self._write_decision_log(log, result, packet.defects)
 
         produced = [p for p in root.rglob("*") if p.is_file() and p.name != _LOG_NAME]
         note = f"agent {result.state.value} in {result.steps} step(s); {len(produced)} file(s)"
@@ -110,7 +110,7 @@ class AgentBuilder(Builder):
         return BuildResult(BuildStatus.COMPLETED, str(root), str(log), notes=note)
 
     @staticmethod
-    def _write_decision_log(log: Path, result) -> None:
+    def _write_decision_log(log: Path, result, defects=()) -> None:
         # The decision log must reach Stage C (harvesting) but never Stage B (reviewer isolation).
         with log.open("w", encoding="utf-8") as fh:
             fh.write(json.dumps({"step": "plan", "choice": (result.plan or "")[:400],
@@ -119,3 +119,10 @@ class AgentBuilder(Builder):
             fh.write(json.dumps({"step": "outcome", "choice": result.state.value,
                                  "rationale": f"finished={result.finished}, steps={result.steps}",
                                  "alternatives_considered": []}) + "\n")
+            # Record the defects handed down for rework as {"defect": {...}} lines, so Stage C can
+            # harvest recurring subjective failures from Icarus's runs (the flywheel tooth works).
+            for d in defects or ():
+                fh.write(json.dumps({"defect": {
+                    "criterion": str(getattr(d, "criterion", "review")),
+                    "detail": str(getattr(d, "detail", "")),
+                }}) + "\n")

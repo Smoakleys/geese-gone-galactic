@@ -31,6 +31,21 @@ def test_agent_builder_completes_and_logs(tmp_path):
     assert (tmp_path / "decision_log.jsonl").exists()
 
 
+def test_agentbuilder_logs_rework_defects_for_stage_c(tmp_path):
+    from pathlib import Path
+
+    from harness.review.decision_log_review import load_defect_records
+    t = Ticket(id="T", title="do X", kind=TicketKind.SYSTEM, acceptance_criteria=[])
+    pkt = BuildPacket(ticket=t, writable_root=str(tmp_path),
+                      defects=[Defect(criterion="cohesion", severity="blocking",
+                                      detail="base reads as scattered", repro="r")])
+    replies = ['```tool\nname: write_file\npath: x.py\nbody:\nprint(1)\n```',
+               '```tool\nname: finish\nsummary: x\n```']
+    res = AgentBuilder(ScriptedAgentModel(replies)).build(pkt)
+    recs = load_defect_records(Path(res.decision_log_path), t.id)
+    assert any(r.criterion == "cohesion" and "scattered" in r.detail for r in recs)
+
+
 def test_agent_builder_gave_up_when_no_files(tmp_path):
     replies = ['```tool\nname: finish\nsummary: produced nothing\n```']
     res = AgentBuilder(ScriptedAgentModel(replies)).build(_packet(tmp_path))

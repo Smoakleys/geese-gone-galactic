@@ -346,3 +346,10 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   (ground visible) + significant_colors>=3 (a building region present, not a bare plane). Verify tested
   offline via synthetic renders (monkeypatched); live confirmation runs when the GPU is free (one live
   run at a time). 216 tests.
+
+## harness-mod-29 - The flywheel works with the real agent (AgentBuilder logs rework defects)
+- AgentBuilder._write_decision_log now records the defects Icarus was handed for rework as
+  {"defect": {...}} lines (the format Stage C's load_defect_records harvests). Previously the agent's
+  decision log had only plan/outcome, so recurring subjective failures from Icarus's runs never reached
+  Stage C - the taste->gate flywheel (a core anti-complacency tooth) was inert for the real agent. Now
+  it harvests. Test proves a handed-down defect is harvestable. 217 tests.
