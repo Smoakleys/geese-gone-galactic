@@ -160,6 +160,14 @@ def test_compose_scene_sanitizes_preload_and_prefixed_helper_calls():
     assert "h.add_plane" not in scene and "add_plane(root" in scene   # prefix stripped to a direct call
 
 
+def test_compose_scene_strips_python_keyword_arguments():
+    # GDScript has no kwargs; a small model writes add_plane(..., y=0.1) which is a parse error.
+    from game.godot.scene_template import compose_scene
+    build = compose_scene("func build(root):\n\tadd_plane(root, Vector2(4, 4), Color.GREEN, y=0.1)\n")
+    body = build.split("func build")[1]
+    assert "y=" not in body and "0.1" in body      # keyword name stripped, value kept positionally
+
+
 def test_agentbuilder_requires_model_or_router():
     import pytest
     with pytest.raises(ValueError):
