@@ -36,6 +36,14 @@ def test_parse_none_when_no_block():
     assert parse_tool_call("no tool here") is None
 
 
+def test_parse_is_crash_proof_on_garbage():
+    # A local model can emit anything; the parser must never raise (a crash would derail the agent loop).
+    for junk in ("", "```tool\n```", "```tool\n\x00\x01 random :: :\n```", "```tool\nname:\n```"):
+        parse_tool_call(junk)  # just must not raise
+    # a block with no name is not a usable call
+    assert parse_tool_call("```tool\npath: x.py\n```") is None
+
+
 def test_trim_context_keeps_setup_and_recent_bounds_growth():
     from harness.icarus.agent.runtime import _CONTEXT_KEEP_RECENT, _trim_context
     msgs = [{"role": "system", "content": "sys"}, {"role": "user", "content": "TASK: do X"}]
