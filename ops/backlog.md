@@ -19,13 +19,22 @@ Icarus improvement** (keep only if the unaided battery score rises).
 - [x] **Debugging weakness fixed by routing** (30B: 4/4 vs 2/4) — measured; unproven nudge lever reverted.
 - [x] **Full pipeline run on authored tickets** (`game/onepond_tickets.py`) → commit @ autonomy 1.0.
 
+## DONE (PRs #107–138) — speed + One Pond core + real reviewer
+- [x] **Speed solved** (docs/SPEED.md): 30B is a hardware ceiling; scene TEMPLATE + fast resident model
+      builds scenes ~19s; full backlog commits ~68s @ autonomy 1.0. Trim/keep_alive/step-cap shipped.
+- [x] **Real LOCAL Stage-B reviewer** (`OllamaChatClient` + `default_reviewer()`), fail-closed, VALIDATED
+      catching a subtle bug the stub missed. Lesson: a reviewer only enforces what the criteria state
+      (tightened OP-6 AC2 as proof).
+- [x] **One Pond core** — six Icarus-built modules `game/pond/{bread_tick,placement,pond_state,predator,
+      pond_scene}.py` (+ `game/godot/scenes/one_pond.gd`), composed + tested; OP-1..OP-6 authored.
+
 ## Now — keep building One Pond, one Icarus ticket per cycle
-- [ ] **More authored tickets** (`game/onepond_tickets.py`): a Nest scene, a well/fence building, a
-      predator-safety rule — drive each through the live pipeline to a committed artifact.
+- [ ] **Use `default_reviewer()` in the live pipeline by default** (not just demos); run the full backlog
+      under real review + precise criteria, and watch a bad build get reworked.
+- [ ] **More authored tickets**: building variety (granary/well), a scene that reflects placed buildings
+      (compose `pond_scene.build_body` from state), a playable tick loop.
 - [ ] **Retire the python economy toy** (`game/onepond` soldiers/campaigns/eras/launchpad/tiers) — the
       real slice is `game/pond` + `game/godot`; quarantine the toy's floors (baseline_reset), keep green.
-- [ ] **A stronger Stage-B reviewer** (local advisory or a cloud key) so scene/logic tickets get a real
-      subjective judgement, not the StubReviewer used in the live demos.
 - [ ] **Promote proven notebook lessons** into the curated seed; grow the battery with each mechanic.
 
 ## Candidate increments (pick by value, not order)
