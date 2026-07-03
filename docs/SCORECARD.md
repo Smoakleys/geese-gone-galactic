@@ -4,6 +4,20 @@ North star: Icarus's **UNAIDED** pass rate on novel, procedurally-generated task
 best-of-N, ≤1 self-repair). Instances rotate each run (non-memorizable by construction). Updated when
 capability moves. Generators + deterministic verifiers live in `harness/icarus/eval/capability.py`.
 
+## Harness improvements — observed effect on SCENE building (2026-07-03, Step D)
+Five agent-runtime fixes this session (harness-mod-52..56), three of them context-truncation blindfolds
+that silently dropped exactly the content Icarus needed: the reviewer saw only 2KB of a scene; Icarus saw
+only 2KB of its NOTEBOOK (missing the Godot-4 `.translation` lesson); the `run` tool showed only the first
+2KB of output (hiding the error at the end). Plus helper-return (a null-capture crash class) and fast-path
+self-verify (render+see templated content mid-loop).
+
+**Observed effect (aided scene path):** OP-35 (pond world + a detailed goose) ESCALATED on its first
+attempt pre-fix — Icarus wrote the Godot-3 `.translation` (the very lesson truncated out of its notebook)
+and `_ready()` crashed. After the fixes, OP-36 (a HARDER scene: two detailed geese) built **clean on the
+first attempt** — full notebook injected, no `.translation` crash, gate + reviewer passed. Anecdotal (n=1
+each, stochastic model) but directionally consistent: the fixes give Icarus the lessons + errors it needs.
+Structurally proven by targeted tests (the `.translation` lesson now demonstrably reaches the prompt).
+
 ## Fresh re-measurement — 2026-07-03 (unaided, gpt-oss:20b, no notebook, seed=7, 16 logic tasks)
 
 **Unaided logic battery: 13/16 = 0.81** — a fresh, honest run of the north star, squarely in the
