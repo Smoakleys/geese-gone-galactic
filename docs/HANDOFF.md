@@ -28,8 +28,11 @@ You are a fresh Claude session on **Geese Gone Galactic (GGG)**. Read this top t
   the ERROR at the end (stderr is appended last) — starving Icarus's debug loop. All fixed + proven; the
   agent now sees full artifacts, all its lessons, and the actual errors. Probing WHY things fail was the
   session's most productive method.
-- **Capability**: unaided logic re-measured **13/16 = 0.81** (no regression across the session); corpus of
-  **81 verified self-distillation pairs** ready for QLoRA.
+- **Capability**: unaided logic re-measured CLEAN at **15/16 = 0.94** (band ~0.81–0.94), and the session's
+  agent fixes show a measured effect — the debugging task `fix_bug` went fail→PASS, consistent with
+  harness-mod-54 (Icarus now sees the actual error, not a truncated head). n=1 caveat noted in SCORECARD.
+  Corpus of **73 CLEANED self-distillation pairs** (provenance + hardcoded-literal answers stripped) ready
+  for QLoRA. **Measure CLEAN — no concurrent pytest/builds — or the number is noise** ([[ggg-probe-why-it-fails]]).
 - **Two open frontiers, both need external input:** (a) the VISUALS fork — real 3D art (tooling-blocked
   here) vs own the abstract lit style; (b) the QLoRA fine-tune — needs cloud/CUDA GPU (local RDNA4 training
   not viable; no stack installed). See ops/backlog.md.
