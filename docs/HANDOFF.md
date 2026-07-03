@@ -38,11 +38,12 @@ Icarus is a **real, measured agent**, and the whole loop is proven end-to-end:
   ticket's `behavior` examples; NOTE it was silently SKIPPED live from harness-mod-45 until fixed in
   harness-mod-50, see docs/SCORECARD.md), a **real local Stage-B reviewer** (`game/icarus_builder.py:
   default_reviewer()` = `LLMReviewer(OllamaChatClient)`, fail-closed), sole-commit-authority Gatekeeper,
-  monotonic ratchet. **Proven capstone (docs/SCORECARD.md)**: the ENTIRE authored backlog (OP-1 scene +
-  OP-2..OP-9 logic) built + committed **9/9 at autonomy 1.0 in ~8 min, unattended**, through the full
-  gate — with a REVIEWER-forced rework on one ticket (the behavioural check was skipped then; it genuinely
-  gates now). Spec-driven: pin a criterion + a `behavior` example, and the gate now mechanically forces it
-  before commit.
+  monotonic ratchet. **Proven capstone (docs/SCORECARD.md)**: the deepened **14-ticket** backlog (OP-1
+  scene + OP-2..OP-14 logic) committed **14/14 at autonomy 1.0 in 626s, unattended**, through the full
+  gate with the behavioural check GENUINELY active for the first time (post-harness-mod-50 — it was
+  silently skipped in the earlier 9/9 + 11/11 runs, where the reviewer was the enforcer). OP-13 needed a
+  gate-forced rework, landed in budget. Spec-driven: pin a criterion + a `behavior` example, and the gate
+  now mechanically forces it before commit — verified through `run_stage_a`, not just asserted.
 - **Ops**: control site + `ops/watchdog.py` (emails on staleness) + a **continuation Stop hook**
   (installed in the user settings; forces this loop to keep going). Emails per increment via
   `ops/notify.py iter`. See [[ggg-notify-and-remote-control]].
