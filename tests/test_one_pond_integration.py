@@ -161,6 +161,21 @@ def test_the_whole_game_composes_over_a_realistic_playthrough():
     assert pond_score(state) == 49                           # 27 bread + 10+5+3+2+2 buildings
 
 
+def test_all_modules_handle_the_empty_pond_gracefully():
+    # the degenerate state (no bread, no buildings) must not crash any module and must read consistently.
+    from game.pond import (pond_outcome, pond_status, pond_score, pond_advice, has_water,
+                           predator_loss, total_cost)
+    empty = {"bread": 0, "buildings": []}
+    assert pond_outcome(empty, 2) == "lost"                 # no bread
+    assert pond_status(empty, 2) == {"bread": 0, "safe": True}
+    assert pond_score(empty) == 0
+    assert pond_advice(empty, 2) == "build a bakery"        # start here
+    assert has_water([], 2) is True                         # no bakeries -> watered
+    assert predator_loss(empty, 2) == 0
+    assert total_cost([]) == 0
+    assert step(empty)["bread"] == 0                        # nothing produced, clamps at 0
+
+
 def _nests_and_fences(state):
     nests = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "nest"]
     fences = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "fence"]
