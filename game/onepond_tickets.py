@@ -541,6 +541,25 @@ def one_pond_tickets() -> "list[Ticket]":
                 AcceptanceCriterion(id="AC3", text="reads as an iso pond with a white goose beside it",
                                     stage=Stage.B, rubric_ref="onepond/goose"),
             ]),
+        Ticket(
+            id="OP-25",
+            title=("Write content.gd with ONLY `func build(root: Node3D) -> void:` using the helpers "
+                   "add_plane(root, size, color, y=0.0) and add_box(root, size, color, pos). Build One "
+                   "Pond with a FLOCK of geese: a GREEN land plane Vector2(16, 16); a BLUE pond "
+                   "Vector2(6, 6) at y=0.1; and THREE white geese at DIFFERENT spots beside the pond. Each "
+                   "goose is a WHITE body box about Vector3(1, 0.7, 1.6) + a WHITE head box Vector3(0.5, "
+                   "0.7, 0.5) above the front of that body + a small ORANGE beak box Color(1, 0.5, 0). "
+                   "Space the three geese apart. Use Color.GREEN/Color.BLUE/Color.WHITE (Godot 4). No "
+                   "Camera3D, no _ready(), don't redefine the helpers."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="scene.gd parses under godot --check-only",
+                                    stage=Stage.A, check_hint="godot_parse"),
+                AcceptanceCriterion(id="AC2", text="renders a visible (non-blank) scene",
+                                    stage=Stage.A, check_hint="godot_render"),
+                AcceptanceCriterion(id="AC3", text="reads as an iso pond with a flock of white geese",
+                                    stage=Stage.B, rubric_ref="onepond/flock"),
+            ]),
     ]
     for t in tickets:
         t.freeze()
