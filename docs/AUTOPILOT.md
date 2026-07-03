@@ -1,5 +1,10 @@
 # Autopilot — autonomous build state
 
+> **⚠️ ARCHIVED v1 build log — NOT the current resume point.** The real resume docs are `CLAUDE.md` →
+> `docs/HANDOFF.md` (v3, Pond-era). The checklist below is the v1 history and describes ABANDONED
+> directions (soldier training, campaigns, a military loop) that are **out of scope** in v3 — Pond era only,
+> NO military/rockets/eras. Kept for history; do not resume from here or treat its military items as current.
+
 This file is the resume point for an unattended build of the GGG harness. Any session (a
 budget refresh, a fresh context, a new agent) should read this first and continue the next
 unchecked item. The user's standing order: **build all phases without waiting for input**; he

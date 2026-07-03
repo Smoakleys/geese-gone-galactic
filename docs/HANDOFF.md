@@ -44,7 +44,7 @@ destination.** North star = Icarus's **unaided problem-solving on novel work**, 
 if Icarus genuinely can't do something, do it, document the *approach*, and fold it back into the
 harness. See memory [[ggg-v3-icarus-agent-harness]] and [[work-continuously-expand-icarus]].
 
-## 2. What is BUILT (the foundation is complete — 211 tests green)
+## 2. What is BUILT (the foundation — historical; live count is in §0, now 389 tests)
 Icarus is a **real, measured agent**, and the whole loop is proven end-to-end:
 - **Agent runtime** (`harness/icarus/agent/`): a plan→act→reflect loop with tools —
   `write_file/read_file/list_files/search/run/see (vision)/render/note (notebook)/finish` — a lean
