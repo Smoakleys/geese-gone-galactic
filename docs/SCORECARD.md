@@ -4,6 +4,15 @@ North star: Icarus's **UNAIDED** pass rate on novel, procedurally-generated task
 best-of-N, ≤1 self-repair). Instances rotate each run (non-memorizable by construction). Updated when
 capability moves. Generators + deterministic verifiers live in `harness/icarus/eval/capability.py`.
 
+## CONTAMINATED re-run — do NOT read as a regression (2026-07-03)
+A seed=7 re-run scored **10/16**, but it is INVALID: I ran pytest (which spawns Godot) + git commits
+REPEATEDLY *during* the battery, and the GPU/IO contention degraded it — `place_n8` literally
+`PermissionError`-CRASHED (a file conflict), `pondtick`/`granary` returned EMPTY (agent timed out under
+load), `fixrange` regressed. Remove those ~3 contention artifacts and it matches the clean **13/16 = 0.81**
+baseline; the run-tool fix's effect on debugging is INCONCLUSIVE from a contaminated run (fixbug/fixrange
+need a clean measure). **Methodology lesson (binds future measurements): run a capability battery CLEAN —
+no concurrent pytest / builds / GPU work — or the number is noise.** The valid unaided figure stays 0.81.
+
 ## Harness improvements — observed effect on SCENE building (2026-07-03, Step D)
 Five agent-runtime fixes this session (harness-mod-52..56), three of them context-truncation blindfolds
 that silently dropped exactly the content Icarus needed: the reviewer saw only 2KB of a scene; Icarus saw
