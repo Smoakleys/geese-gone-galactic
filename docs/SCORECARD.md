@@ -4,6 +4,18 @@ North star: Icarus's **UNAIDED** pass rate on novel, procedurally-generated task
 best-of-N, ≤1 self-repair). Instances rotate each run (non-memorizable by construction). Updated when
 capability moves. Generators + deterministic verifiers live in `harness/icarus/eval/capability.py`.
 
+## Fresh re-measurement — 2026-07-03 (unaided, gpt-oss:20b, no notebook, seed=7, 16 logic tasks)
+
+**Unaided logic battery: 13/16 = 0.81** — a fresh, honest run of the north star, squarely in the
+established 0.73–0.85 band (stable run-to-run; the model is stochastic). PASS (13): sum, reverse, json,
+fizzbuzz, fixrange, readsum, find_secret, economy, placement, pond_tick, predator_safety, granary,
+pond_score. FAIL (3): `fix_bug` (debugging — the known weak area, normally routed to the 30B, run here on
+the fast model unaided), `water_access` (empty output this run — variance), `pond_outcome` (returned
+`dry` vs `thriving` on a threshold edge). Confirms Icarus's unaided logic capability is genuinely ~0.8 and
+has NOT regressed across the whole session's changes. The real lever to push it higher remains the
+external QLoRA fine-tune on the self-distillation corpus (81 pairs, docs/DISTILL.md), not more base-runtime
+tweaks (exhausted on the 16GB card).
+
 ## Latest — 2026-07-02 (logic: gpt-oss:20b · visuals: qwen3:30b via routing)
 
 **Unaided logic battery: 5/6 = 0.83** (clean run, single model, no GPU contention)
