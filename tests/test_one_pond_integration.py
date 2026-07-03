@@ -142,6 +142,25 @@ def test_predators_drain_an_unsafe_pond_over_time():
     assert unsafe["bread"] < safe["bread"]
 
 
+def test_the_whole_game_composes_over_a_realistic_playthrough():
+    # every mechanic together: placement + water + synergy economy + predators + status + outcome + score + advice
+    from game.pond import (pond_advice, pond_outcome, pond_score, pond_status, predator_loss, has_water)
+    state = {"bread": 15, "buildings": []}
+    for kind, x, y in [("bakery", 0, 0), ("well", 1, 0), ("granary", 0, 1), ("nest", 4, 4), ("fence", 4, 5)]:
+        state = add_building(state, kind, x, y, 8)
+    assert has_water(state["buildings"], 2)                  # the bakery is watered
+    assert pond_advice(state, 2) == "looking good"           # nothing left to fix
+
+    for _ in range(4):
+        state = step(state)                                  # 1 bakery*(3+1 granary) - 1 nest = +3/tick
+        state["bread"] = max(state["bread"] - predator_loss(state, 2), 0)   # fenced nest -> no loss
+
+    assert state["bread"] == 27                              # 15 + 4*3, predators took nothing
+    assert pond_status(state, 2)["safe"] is True
+    assert pond_outcome(state, 2) == "thriving"
+    assert pond_score(state) == 49                           # 27 bread + 10+5+3+2+2 buildings
+
+
 def _nests_and_fences(state):
     nests = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "nest"]
     fences = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "fence"]
