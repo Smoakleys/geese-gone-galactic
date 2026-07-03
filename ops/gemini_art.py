@@ -121,9 +121,17 @@ def _image_request(prompt: str, key: str, model: str, timeout: float, retries: i
     raise last if last else RuntimeError("image request failed")
 
 
-def generate(desc: str, out_png: Path, key: str, *, model: "str | None" = None, timeout: float = 120.0) -> bool:
-    """Generate one asset via the Gemini image API (locked viewpoint). Returns True on success."""
+def generate(desc: str, out_png: Path, key: str, *, model: "str | None" = None, timeout: float = 120.0,
+             cut: bool = True) -> bool:
+    """Generate one asset via the Gemini image API (locked viewpoint). Cuts the white background to
+    transparency so it's composite-ready (the prompt asks for a plain white bg). Returns True on success."""
     data = _image_request(build_prompt(desc), key, model or model_id(), timeout)
+    if cut:
+        try:
+            from ops.generate_art import cutout
+            data = cutout(data)                           # flood-fill the white border -> transparent
+        except Exception:  # noqa: BLE001 -- if cutout fails, keep the raw image rather than lose it
+            pass
     out_png.parent.mkdir(parents=True, exist_ok=True)
     out_png.write_bytes(data)
     return True

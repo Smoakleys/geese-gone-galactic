@@ -49,3 +49,20 @@ def test_image_request_retries_then_raises(monkeypatch):
     with _pt.raises(OSError):
         g._image_request("p", "key", "model", timeout=1, retries=3)
     assert calls["n"] == 3                                              # retried the full budget
+
+
+def test_generate_cuts_white_background_to_transparency(tmp_path, monkeypatch):
+    # Gemini assets come on a white bg (per the prompt); generate() must cut them out so they composite.
+    import io
+    from PIL import Image
+    import ops.gemini_art as g
+
+    def fake_image(prompt, key, model, timeout, retries=3):
+        buf = io.BytesIO()
+        Image.new("RGBA", (24, 24), (255, 255, 255, 255)).save(buf, "PNG")   # all-white
+        return buf.getvalue()
+    monkeypatch.setattr(g, "_image_request", fake_image)
+    out = tmp_path / "goose.png"
+    assert g.generate("a goose", out, "key")
+    corner = Image.open(out).convert("RGBA").getpixel((0, 0))
+    assert corner[3] == 0                                                     # white bg cut to transparent
