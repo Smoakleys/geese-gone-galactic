@@ -85,6 +85,17 @@ def test_model_router_routes_templated_scenes_to_fast():
     assert r.for_task("render a Godot scene from scratch with a Camera3D").model_id == "big"
 
 
+def test_all_onepond_tickets_route_to_the_fast_model():
+    # INTEGRATION guard: every real One Pond ticket must route to FAST -- templated scenes (via the
+    # template rule, which must beat the visual rule despite mentioning scene/camera/Node3D) and logic (the
+    # default). A title edit that dropped the template keywords would silently mis-route a scene to the slow
+    # 30B -- a real perf regression the synthetic unit tests above wouldn't catch.
+    from game.onepond_tickets import one_pond_tickets
+    r = visual_router(_model("fast", []), _model("big", []))
+    mis = [t.id for t in one_pond_tickets() if r.for_task(t.title).model_id != "fast"]
+    assert not mis, f"tickets mis-routed to the slow big model: {mis}"
+
+
 def test_model_router_routes_debugging_to_big():
     # measured: the 30B fixes debugging (4/4) where the fast model doesn't (2/4) -> route fix-it to big
     fast = _model("fast", [])
