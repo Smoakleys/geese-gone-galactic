@@ -378,3 +378,8 @@ without a matching entry. Reverts are one command via the token in `harness/reve
 - harness/icarus/eval/capability.py: gen_water_access - every goose nest must be within a Manhattan
   reach of the pond's water (SAFE/UNSAFE), a distinct SPATIAL mechanic (vs the count-based economy /
   placement tasks). Icarus's logic strength; on the default battery. Regression test covers it. 229 tests.
+
+## harness-mod-34 - Second debugging task (off-by-one) to characterize the weakness
+- harness/icarus/eval/capability.py: gen_fix_range_bug - a DIFFERENT debugging task (fix an off-by-one
+  range bug summing 1..n, vs fix_bug's wrong-operator bug), so the scorecard's debugging weakness can be
+  read as general vs one-bug-type. On the default battery. Regression test covers the verifier. 230 tests.
