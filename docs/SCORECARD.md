@@ -28,6 +28,20 @@ builds the game — now holds for visuals, not just logic. HONEST caveat: the lo
 gpt-oss emitted prose instead of a final tool call after rendering; the scene is still produced + gated
 (materialize_templated_scene harvests it regardless). Lead: harden the loop's prose-not-a-tool-call exit.
 
+## CLEAN unaided re-measurement — 12/20 = 0.60 on a FRESH seed (2026-07-03, post mod-60-63)
+Ran the unaided battery (`use_notebook=False`, no best-of-N, ≤1 self-repair) on the **20 LOGIC** generators,
+fresh **seed 4242** (never distilled from), after this session's runtime changes (mod-60-63). Result:
+**12/20 = 0.60**. This is LOWER than the 15/16 = 0.94 below, but **not directly comparable and not a
+regression from mod-60-63**:
+- Different seed + 4 extra tasks (more game-logic instances) = a different, harder 20-task set; n=1 stochastic.
+- mod-60-63 change the agent's DONE/STUCK **state**, not the solution it writes; `verify` checks the SOLUTION
+  independently, so they *cannot* produce these failures. 5 of the 8 fails are `got ''` (empty output) — the
+  small 16 GB model didn't produce a working solution for those specific instances (readsum/readsorted/
+  pondtick/granary/pondscore), a genuine model limit, not a harness change.
+- HONEST read: unaided pass@1 is genuinely **stochastic in a ~0.6–0.9 band** on the 16 GB card; this run
+  landed low. mod-60-63's logic is validated by scripted tests; their aggregate effect is within this noise.
+  The real capability lever remains the **fine-tune** (compute-blocked), not runtime tweaks (largely exhausted).
+
 ## CLEAN re-measurement — 15/16 = 0.94, debugging improved (2026-07-03, Step D done right)
 Re-ran seed=7 UNAIDED with **zero concurrent load** (the contamination lesson applied): **15/16 = 0.94**,
 up from the clean 13/16 = 0.81 baseline. The notable signal: **BOTH debugging tasks PASSED** — `fix_bug`
