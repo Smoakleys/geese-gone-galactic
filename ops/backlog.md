@@ -57,11 +57,22 @@ Icarus improvement** (keep only if the unaided battery score rises).
       added a guard against the class, and CORRECTED the overstated "behavioural-gate" claims across all
       docs (the reviewer was the real enforcer). See [[ggg-test-checks-through-registry]].
 
-## Now — VISUALS are the priority + PERSISTENCE is the standing rule (Bridger, 2026-07-03).
-**Bridger's direction (2026-07-03):** the visuals were cubes + a pixelly goose — not acceptable; put ALL
-emphasis on fixing them. AND: stop task-switching away from hard problems — be creative + STUBBORN until
-solved; that persistence IS the goal of improving Icarus. See memory [[be-stubborn-not-avoidant]] +
-[[ggg-visuals-priority]]. Do NOT drift back to easy logic/corpus wins while visuals or any hard problem is open.
+## Now — VISUALS PIVOTED TO REAL GENERATED ART; PERSISTENCE is the standing rule (Bridger, 2026-07-03).
+**Bridger's direction (2026-07-03):** visuals are THE priority. He rejected primitive shapes TWICE ("still
+insanely shape based. Not art."). AND: stop task-switching away from hard problems — be creative + STUBBORN
+until solved. See memory [[be-stubborn-not-avoidant]] + [[ggg-visuals-priority]].
+
+**REAL-ART PIVOT DONE this session (PRs #351-362):** the game's look is now genuine painterly art, NOT
+primitives. `ops/generate_art.py` generates each prop via a FREE image model (Pollinations, no key) into
+`assets/art/`; `game/art_view.py: compose_pond_art(state, png)` composites them by state into a gorgeous
+cozy ISLAND (cottages, granary, geese nesting, apple trees, lily-pad pond, fence); wired as the `art`
+command + into play_onepond + README. 7/9 assets committed (goose/bakery/granary/nest/ground/tree/fence);
+**well + pond keep 500'ing on the flaky free endpoint — retry `python ops/generate_art.py --only well pond`
+when it recovers** (they degrade to soft placeholders meanwhile). The Godot mesh path below is SUPERSEDED
+for the look (kept as fallback / gate fixtures). Next visual polish: finish the 2 assets; blend the pond
+bank; per-building variety (multiple generated variants); make `art` the default render.
+
+**Earlier (superseded) low-poly-mesh campaign, PRs #329-336:**
 
 **Visual campaign DONE this session (chose: own the low-poly style, done WELL — PRs #329-336):**
 rig anti-aliasing (8x MSAA + FXAA) + 1024px (killed "pixelly"); a real stylized GOOSE (body/S-neck/beak/
