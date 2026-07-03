@@ -41,7 +41,14 @@ def render_gdscript(scene_gd: Path, out_png: Path, *, size: str = "512x512",
         if not out_png.exists():
             tail = (proc.stderr or proc.stdout or "").strip()[-200:]
             return False, f"no PNG produced (rc={proc.returncode}): {tail}"
-        return True, f"rendered (rc={proc.returncode})"
+        # Surface the deterministic blank-detector so callers (and Icarus's render tool) get a
+        # reliable "is it blank?" signal without trusting a weak vision model.
+        try:
+            var = image_variance(out_png)
+            note = f"rendered; pixel variance {var:.1f}" + (" - BLANK/black!" if var < 6.0 else " (not blank)")
+        except Exception:
+            note = f"rendered (rc={proc.returncode})"
+        return True, note
     finally:
         probe.unlink(missing_ok=True)
 

@@ -260,12 +260,12 @@ def gen_render(rng: Random) -> TaskInstance:
         return var >= 6.0, f"render variance {var:.1f} (need >=6; ~0 means blank/black)"
 
     prompt = (
-        "Write a Godot 4 GDScript file named scene.gd (extends Node3D). In _ready() build a VISIBLE 3D "
-        "scene: add a Camera3D (call make_current() or set current=true, orthogonal projection, "
-        "positioned away from the origin and aimed at it) and a large MeshInstance3D ground plane "
-        "(PlaneMesh) with a bright green StandardMaterial3D whose shading_mode is UNSHADED so it shows "
-        "without a light. When rendered off-screen it must NOT be blank/black. Check syntax with:\n"
-        f"  {godot} --headless --check-only --script scene.gd")
+        "Write a Godot 4 GDScript file named scene.gd (extends Node3D). In _ready() add a Camera3D "
+        "(current, orthogonal projection, positioned away from the origin and aimed at it) and a large "
+        "MeshInstance3D ground plane (PlaneMesh) with a bright green UNSHADED StandardMaterial3D. It must "
+        "render non-blank. Use the render tool (path=scene.gd, out=p.png); the result reports the pixel "
+        "variance - if it says BLANK, fix the scene (camera current? aimed at the plane?) and render "
+        f"again. Syntax check: {godot} --headless --check-only --script scene.gd")
     return TaskInstance(f"render_scene_{rng.randint(1000, 9999)}", "render", prompt, verify)
 
 
