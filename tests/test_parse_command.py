@@ -13,3 +13,10 @@ def test_verb_and_target_lowercased():
 def test_missing_target_and_blank():
     assert parse_command("quit") == ("quit", "")
     assert parse_command("   ") == ("", "")
+
+
+def test_robust_to_messy_whitespace():
+    # leading/trailing/collapsing spaces and tabs must not change the parsed command.
+    assert parse_command("  build   bakery  ") == ("build", "bakery")
+    assert parse_command("\tplace\twell\t") == ("place", "well")
+    assert parse_command("") == ("", "")
