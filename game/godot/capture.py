@@ -80,12 +80,16 @@ def image_variance(png: Path) -> float:
     return max(ImageStat.Stat(Image.open(png).convert("RGB")).stddev)
 
 
-def significant_colors(png: Path, min_fraction: float = 0.04, quant: int = 48) -> int:
+def significant_colors(png: Path, min_fraction: float = 0.02, quant: int = 48) -> int:
     """Count distinct (coarsely-quantised) colours each covering >= ``min_fraction`` of the image.
 
     A flat fill is 1; a ground plane on the default background is 2; a ground WITH a distinctly-coloured
     building on it is 3+. The deterministic 'the scene has more than just the ground' signal that gates
-    multi-object renders (e.g. a bakery box on the pond)."""
+    multi-object renders (e.g. a bakery box on the pond).
+
+    ``min_fraction`` is 0.02: a building seen at an iso angle can occupy only ~3% of the frame, and 0.04
+    wrongly failed a real, clearly-visible bakery box (found by looking at the render — the gate was
+    too strict, not the builder)."""
     from collections import Counter
 
     from PIL import Image
