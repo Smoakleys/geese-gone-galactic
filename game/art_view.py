@@ -26,9 +26,11 @@ _TILE_H = 86
 
 
 def _load(name: str):
-    """Load a sprite (prefer the transparent *_cutout.png), or None if absent."""
+    """Load a sprite, or None if absent. Prefers the Gemini asset (locked viewpoint, already cut out) when
+    present, then the transparent *_cutout.png, then the base .png -- so once Gemini art is generated the
+    game uses it automatically with no other wiring."""
     from PIL import Image
-    for fn in (f"{name}_cutout.png", f"{name}.png"):
+    for fn in (f"gemini_{name}.png", f"{name}_cutout.png", f"{name}.png"):
         p = ART_DIR / fn
         if p.is_file():
             try:
