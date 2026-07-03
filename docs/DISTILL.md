@@ -37,7 +37,7 @@ missing). Beyond install, the blocker is hardware: the AMD RX 9070 XT is **RDNA4
 support is bleeding-edge, and 4-bit QLoRA needs `bitsandbytes`, whose ROCm/RDNA4 support is minimal. Ollama
 *inference* works on this card; *training* is a different, uncertain path. So the fine-tune is not a
 per-cycle increment — it needs a deliberate setup (most reliably a **cloud/CUDA GPU** for a few hours), the
-data (ready: 81 pairs), and the measure-keep-or-revert gate below. The data pipeline is done and waiting;
+data (ready: ~125 clean pairs, grown via six procedural batches), and the measure-keep-or-revert gate below. The data pipeline is done and waiting;
 the compute is the gap.
 
 The training SCRIPT is already written + TURNKEY: **`ops/train_qlora.py`** (its data-loading half is
