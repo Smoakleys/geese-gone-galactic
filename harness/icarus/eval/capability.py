@@ -399,6 +399,27 @@ def gen_predator_safety(rng: Random) -> TaskInstance:
         verify)
 
 
+def gen_granary(rng: Random) -> TaskInstance:
+    """The granary-synergy rule (a One Pond mechanic): each granary boosts every bakery's output."""
+    bakeries = rng.randint(1, 5)
+    granaries = rng.randint(0, 4)
+    total = bakeries * (3 + granaries)
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        try:
+            rc, out, err = _run_py(ws, "granary.py")
+        except Exception as e:
+            return False, f"could not run granary.py: {e}"
+        return out.strip() == str(total), f"expected {total}, got {out.strip()!r}"
+
+    return TaskInstance(
+        f"granary_{bakeries}b_{granaries}g", "game-logic",
+        f"In a goose pond each bakery produces a base of 3 bread per tick, and each granary adds +1 to "
+        f"EVERY bakery's output. With {bakeries} bakeries and {granaries} granaries, print ONLY the total "
+        f"bread produced per tick. Write granary.py and run it to verify.",
+        verify)
+
+
 def gen_gdscript(rng: Random) -> TaskInstance:
     """The real domain: write valid Godot 4 GDScript, self-verifiable via godot --check-only."""
     n = rng.randint(2, 4)
@@ -580,7 +601,8 @@ def gen_pond_from_template(rng: Random) -> TaskInstance:
 def default_generators() -> "list[Callable[[Random], TaskInstance]]":
     return [gen_sum, gen_reverse, gen_json, gen_fizzbuzz,
             gen_fix_bug, gen_fix_range_bug, gen_read_sum, gen_find_secret, gen_economy, gen_placement,
-            gen_pond_tick, gen_water_access, gen_predator_safety, gen_gdscript, gen_render, gen_bakery_scene]
+            gen_pond_tick, gen_water_access, gen_predator_safety, gen_granary, gen_gdscript, gen_render,
+            gen_bakery_scene]
 
 
 def sample_battery(seed: int = 0, per_generator: int = 1,

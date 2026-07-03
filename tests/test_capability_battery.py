@@ -50,6 +50,21 @@ def test_predator_safety_verifier_pass_and_fail(tmp_path):
     assert not bad
 
 
+def test_granary_verifier_pass_and_fail(tmp_path):
+    from harness.icarus.eval.capability import gen_granary
+    inst = gen_granary(Random(4))
+    b, g = (int(x[:-1]) for x in inst.id.split("_")[1:])   # granary_{b}b_{g}g
+    total = b * (3 + g)
+    ws = tmp_path / inst.id
+    ws.mkdir()
+    (ws / "granary.py").write_text(f"print({total})\n")
+    ok, _ = inst.verify(ws)
+    assert ok
+    (ws / "granary.py").write_text(f"print({total + 1})\n")
+    bad, _ = inst.verify(ws)
+    assert not bad
+
+
 def test_bakery_scene_verifier_needs_a_building(tmp_path, monkeypatch):
     # verify passes only when the render shows ground + a building (>=3 colour regions), not a bare plane.
     import game.godot.capture as cap
