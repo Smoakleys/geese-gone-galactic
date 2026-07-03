@@ -68,3 +68,21 @@ notebook, single attempt) was strong on logic, weak on 3D visuals and multi-step
 - **Before→after:** no capability number yet — the QLoRA fine-tune is an EXTERNAL GPU step (full runbook in
   `docs/DISTILL.md`). This entry records the LEVER as built + operational; the before→after will be the
   unaided-battery delta after the first fine-tune (keep the adapter ONLY if it rises). Kept (infrastructure).
+
+## Agent context-truncation + robustness fixes, with a MEASURED effect (harness-mod-52..59, 2026-07-03)
+- **Why (diagnosed by probing WHY things failed):** three silent 2KB truncations were dropping exactly the
+  content Icarus needed — the Stage-B reviewer saw only camera+helper boilerplate (judged blind); Icarus's
+  NOTEBOOK lost its last 5 lessons incl. the Godot-4 "`.position` not `.translation`" rule (→ it made that
+  exact mistake in OP-35); the `run` tool fed back only the HEAD of command output, hiding the error at the
+  END (stderr is appended last), starving the "read the error, fix it" loop.
+- **Changed:** mod-52 reviewer artifact cap 2000→6000; mod-53 notebook cap 2000→8000 (proven to reach the
+  prompt + persist through trimming); mod-54 `run` keeps the TAIL (the error); mod-55/56 SFT data quality
+  (provenance headers + hardcoded-literal answers stripped, filtered at generation); mod-57 a tool
+  exception is an OBSERVATION, not an agent crash (found via a battery PermissionError); mod-58/59 grew the
+  procedural gym to 23 non-hardcodable generators; plus self-verify on the fast path (render composes
+  templated `content.gd` so Icarus can see it mid-loop) and scene helpers returning their node.
+- **Before→after (Step D, honest):** unaided logic re-measured CLEAN at **15/16 = 0.94** (up from the clean
+  13/16 = 0.81), and the debugging task `fix_bug` went **fail→PASS** — directly consistent with the run-tool
+  fix (mod-54). n=1 stochastic caveat recorded in SCORECARD; a first re-run scored 0.62 but was self-
+  contaminated (concurrent load) — diagnosed, not reported as a regression. **KEPT** (first measured uptick
+  from runtime changes this session; the fine-tune pipeline is now turnkey — `ops/train_qlora.py`).
