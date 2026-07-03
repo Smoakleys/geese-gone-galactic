@@ -84,9 +84,11 @@ seed set, keep the adapter ONLY if unaided rose. Grow the dataset by authoring +
 
 Drive it forward **one authored Icarus ticket per cycle** via `default_icarus_builder` + the full loop
 (each ticket = game content + a verified training pair). DISCIPLINE (learned the hard way): build the
-module FIRST, commit ticket + module + test TOGETHER, VERIFY GREEN before merging (two red-mains came from
-skipping this); and TEST GATES THROUGH `run_stage_a`, not just `check.run()` (a check was silently skipped
-for ~5 mods — harness-mod-50). Toy retirement DECIDED = keep as governance scaffolding (see ops/backlog.md).
+module FIRST, commit ticket + module + test TOGETHER, and **GATE the merge on pytest's EXIT CODE** — run
+`python -m pytest tests/ -q` as its OWN step and read green BEFORE the commit+merge command; do NOT pipe
+`pytest | tail` then merge unconditionally (THREE red-mains this session came from that; see
+[[ggg-gate-merge-on-green]]). Also TEST GATES THROUGH `run_stage_a`, not just `check.run()` (a check was
+silently skipped for ~5 mods — harness-mod-50). Toy retirement DECIDED = keep as governance scaffolding.
 
 ## 5. Workflow + invariants (unchanged)
 - Every increment: branch → `python -m pytest tests/ -q` green → PR → squash-merge via GitHub API
