@@ -38,9 +38,11 @@ commits cleanly under the complete gate — the culminating end-to-end proof.
 
 **RE-VALIDATED on the deepened backlog: 11/11 @ autonomy 1.0 in 561s.** After the game grew from 9 to 11
 tickets (water-access + well colour), the full OP-1..OP-11 backlog again committed through the full gate
-unattended. OP-11 landed after a couple of reviewer-driven rework rounds (its behaviour passed throughout;
-the subjective reviewer added friction before accepting) — the gate holding a high bar, autonomy still 1.0
-within `max_rounds`. The deeper game holds up end-to-end.
+unattended. OP-11 was the slowest ticket to land; I initially guessed "reviewer friction on correct code"
+but **measured it and that was wrong** — the local reviewer PASSES the committed `water_access.py` 5/5
+(AC2 PASS, sound evidence). So OP-11's delay was ordinary build+review latency / early build variance the
+behavioural gate correctly filtered, NOT a too-strict reviewer. Lesson (logged honestly): measure before
+asserting a cause. The deeper game holds up end-to-end at autonomy 1.0.
 
 ## Honest reading
 Icarus writes fresh logic well — all four One Pond mechanics unaided — and, via model routing, builds
