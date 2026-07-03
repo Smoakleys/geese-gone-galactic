@@ -19,10 +19,11 @@ geese). Every module was produced by the local agent through the gate and is beh
 Icarus's gate-passing solutions are also captured as self-distillation training data (`data/*_sft.jsonl`,
 see `docs/DISTILL.md`) to raise its unaided capability.
 
-**Play it:** `python ops/play_commands.py --interactive` — a live text game: type `build bakery`, `event
-harvest`, `tick`, `status`, `render pond.png` (renders your pond as **real painterly art** — a cozy island
-of cottages, geese and trees, composited from generated sprites by `game/art_view.py`; `render3d` is the
-older 3D view), `save`/`load`, `quit`. Or `python ops/play_onepond.py` for a scripted guided pond.
+**Play it in your browser:** `python ops/play_web.py` → open `http://localhost:8770` — click **Build
+Bakery / Granary / Nest / Well / Fence / Tick** and watch your cozy island grow as **real painterly art**.
+(Or the text game: `python ops/play_commands.py --interactive` — `build bakery`, `tick`, `status`,
+`render pond.png` for the art, `render3d` for the older 3D view, `save`/`load`, `quit`; or
+`python ops/play_onepond.py` for a scripted guided pond.)
 
 **The art** is generated free by an image model (`ops/generate_art.py` → `assets/art/`) — the game's look is
 real cozy-game illustration, not primitive shapes.
