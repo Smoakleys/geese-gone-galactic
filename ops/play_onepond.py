@@ -13,7 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from game.pond import (  # noqa: E402  (path set above)
-    add_building, pond_advice, pond_outcome, pond_score, pond_status, predator_loss, step,
+    add_building, pond_advice, pond_outcome, pond_score, pond_status, predator_loss, step, total_cost,
 )
 
 REACH = 2
@@ -24,9 +24,11 @@ PLAN = [("bakery", 0, 0), ("well", 1, 0), ("granary", 0, 1), ("nest", 4, 4), ("f
 def _run(plan: "list[tuple[str, int, int]]", start_bread: int, verbose: bool) -> dict:
     state: dict = {"bread": start_bread, "buildings": []}
     for kind, x, y in plan:
+        cost = total_cost([{"kind": kind}])
         if verbose:
-            print(f"  hint: {pond_advice(state, REACH):<15} | placing {kind} at ({x},{y})")
+            print(f"  hint: {pond_advice(state, REACH):<15} | placing {kind} at ({x},{y}) (-{cost} bread)")
         state = add_building(state, kind, x, y, GRID)
+        state["bread"] = max(state["bread"] - cost, 0)          # buildings cost bread to place
     if verbose:
         print(f"  hint: {pond_advice(state, REACH)}")
         print("  --- running 3 ticks ---")
