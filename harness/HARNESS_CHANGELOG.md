@@ -320,3 +320,9 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   per task) + visual_router(fast, big) (visual/render/Godot keywords -> big, else fast). AgentBuilder
   now accepts a router and selects the model per ticket, so Icarus uses fast gpt-oss:20b for logic
   tickets and the 30B for visual ones - best of both. Tested offline (routing + per-ticket selection). 209 tests.
+
+## harness-mod-25 - Placement mechanic on the scorecard (breadth phase begins)
+- harness/icarus/eval/capability.py: gen_placement - a procedural building-placement validation task
+  (in-bounds + no-overlap on the pond grid), a real One Pond mechanic in Icarus's strength (logic).
+  Regression test covers the verifier. Begins the breadth phase: growing the scorecard + the game with
+  its actual systems, one ticket at a time. 212 tests.

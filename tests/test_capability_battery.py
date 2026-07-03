@@ -35,6 +35,31 @@ def test_sum_verifier_pass_and_fail(tmp_path):
     assert not bad
 
 
+def test_placement_verifier(tmp_path):
+    import re
+
+    from harness.icarus.eval.capability import gen_placement
+    inst = gen_placement(Random(0))
+    m = re.match(r"place_n(\d+)_(.+)", inst.id)
+    n = int(m.group(1))
+    cells = [tuple(map(int, p.split("x"))) for p in m.group(2).split("_")]
+    seen, valid = set(), True
+    for x, y in cells:
+        if not (0 <= x < n and 0 <= y < n) or (x, y) in seen:
+            valid = False
+            break
+        seen.add((x, y))
+    expected = "VALID" if valid else "INVALID"
+    ws = tmp_path / inst.id
+    ws.mkdir()
+    (ws / "place.py").write_text(f"print('{expected}')\n")
+    ok, _ = inst.verify(ws)
+    assert ok
+    (ws / "place.py").write_text(f"print('{'INVALID' if expected == 'VALID' else 'VALID'}')\n")
+    bad, _ = inst.verify(ws)
+    assert not bad
+
+
 def test_economy_verifier(tmp_path):
     import re
 
