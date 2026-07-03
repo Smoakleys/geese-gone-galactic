@@ -73,6 +73,18 @@ def test_model_router_routes_visual_to_big():
     assert r.for_task("simulate the bread economy and print the total").model_id == "fast"
 
 
+def test_model_router_routes_templated_scenes_to_fast():
+    # a templated scene task (helper-based) is reliable + fast on the resident model -> route to fast,
+    # even though it mentions a camera (which would otherwise hit the big model)
+    fast = _model("fast", [])
+    big = _model("big", [])
+    r = visual_router(fast, big)
+    templated = ("Write content.gd with func build(root): call add_plane and add_box. Do NOT add a Camera3D.")
+    assert r.for_task(templated).model_id == "fast"
+    # an OPEN-ENDED scene (no helpers) still goes to big
+    assert r.for_task("render a Godot scene from scratch with a Camera3D").model_id == "big"
+
+
 def test_model_router_routes_debugging_to_big():
     # measured: the 30B fixes debugging (4/4) where the fast model doesn't (2/4) -> route fix-it to big
     fast = _model("fast", [])

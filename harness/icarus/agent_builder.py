@@ -63,13 +63,21 @@ _VISUAL_KEYWORDS = ["render", "scene", "godot", "gdscript", "3d", "camera", "mes
 # Debugging is the 2nd domain where model SIZE is the lever (measured: 30B 4/4 vs gpt-oss:20b 2/4 on the
 # same fix-it seeds; see docs/SCORECARD.md). Route fix-it tickets to the big model, same as visuals.
 _DEBUG_KEYWORDS = ["fix the bug", "broken", "off-by-one", "debug", "fix it", "wrong value"]
+# A TEMPLATED scene task (Icarus fills add_plane/add_box helpers) is reliable on the FAST resident model
+# (4/4 @ ~19s vs the offloaded 30B's ~200s; see docs/SPEED.md) -- so it must NOT route to the 30B even
+# though it mentions a camera. This rule is checked first so it wins over the visual rule.
+_TEMPLATE_KEYWORDS = ["add_plane", "add_box", "content.gd", "func build"]
 
 
 def visual_router(fast: AgentModel, big: AgentModel) -> ModelRouter:
-    """Route the tickets where model SIZE is the proven lever — visual/Godot AND debugging (fix-it) —
-    to the bigger model (`big`); fresh logic/coding stays on the fast `fast`. Both routes are
-    measured wins (visuals 3/3, debugging 4/4 on the 30B; see docs/SCORECARD.md)."""
-    return ModelRouter(default=fast, rules=[(_VISUAL_KEYWORDS + _DEBUG_KEYWORDS, big)])
+    """Route by the proven lever. TEMPLATED scene tasks → FAST (the helper template makes the resident
+    model reliable + ~10x faster). OPEN-ENDED visual/Godot AND debugging (fix-it) → the bigger model,
+    where model SIZE is the lever. Fresh logic/coding stays on `fast`. All routes are measured wins
+    (see docs/SPEED.md + docs/SCORECARD.md)."""
+    return ModelRouter(default=fast, rules=[
+        (_TEMPLATE_KEYWORDS, fast),                      # templated scenes -> fast (checked first)
+        (_VISUAL_KEYWORDS + _DEBUG_KEYWORDS, big),       # open-ended visuals / debugging -> big
+    ])
 
 
 class AgentBuilder(Builder):
