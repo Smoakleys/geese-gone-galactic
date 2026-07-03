@@ -461,6 +461,27 @@ def one_pond_tickets() -> "list[Ticket]":
                 {"module": "count_by_kind.py", "call": "count_by_kind([{'kind':'well'}])",
                  "expect": {"well": 1}},
             ]),
+        Ticket(
+            id="OP-21",
+            title=("sorted_by_distance.py: order cells by nearness. sorted_by_distance(cells, point) takes "
+                   "a list of (x, y) cell tuples and a point (x, y), and returns a NEW list of the cells "
+                   "sorted ASCENDING by Manhattan distance (abs(dx)+abs(dy)) to the point. Ties keep their "
+                   "original relative order (stable). An empty list returns []. Pure Python returning a list."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="ascending by Manhattan distance, stable on ties",
+                                    stage=Stage.B, rubric_ref="onepond/sortdist"),
+            ],
+            behavior=[
+                {"module": "sorted_by_distance.py",
+                 "call": "sorted_by_distance([(5, 5), (1, 0), (0, 2)], (0, 0))",
+                 "expect": [(1, 0), (0, 2), (5, 5)]},
+                {"module": "sorted_by_distance.py",
+                 "call": "sorted_by_distance([(0, 1), (1, 0)], (0, 0))", "expect": [(0, 1), (1, 0)]},
+                {"module": "sorted_by_distance.py", "call": "sorted_by_distance([], (0, 0))", "expect": []},
+            ]),
     ]
     for t in tickets:
         t.freeze()
