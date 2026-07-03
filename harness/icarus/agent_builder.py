@@ -35,11 +35,47 @@ def task_from_packet(packet: BuildPacket) -> str:
     return "\n".join(lines)
 
 
+class ModelRouter:
+    """Pick the best model for a task (model-as-free-variable). Rules match keywords in the task text;
+    first match wins, else the default. Validated by the render finding: a 30B renders Godot 3D scenes
+    a 14-20B model cannot, so visual tickets route to the bigger model while logic tickets keep the
+    fast one."""
+
+    def __init__(self, default: AgentModel,
+                 rules: "Optional[list[tuple[list[str], AgentModel]]]" = None) -> None:
+        self._default = default
+        self._rules = list(rules or [])
+
+    def for_task(self, task: str) -> AgentModel:
+        low = task.lower()
+        for keywords, model in self._rules:
+            if any(k in low for k in keywords):
+                return model
+        return self._default
+
+    @property
+    def model_ids(self) -> "list[str]":
+        return [getattr(m, "model_id", "?") for _, m in self._rules] + \
+               [getattr(self._default, "model_id", "?")]
+
+
+_VISUAL_KEYWORDS = ["render", "scene", "godot", "gdscript", "3d", "camera", "mesh", "visual", "sprite"]
+
+
+def visual_router(fast: AgentModel, big: AgentModel) -> ModelRouter:
+    """Route visual/render/Godot tickets to the bigger model (`big`); everything else to `fast`."""
+    return ModelRouter(default=fast, rules=[(_VISUAL_KEYWORDS, big)])
+
+
 class AgentBuilder(Builder):
-    def __init__(self, model: AgentModel, *, vision: "Optional[VisionModel]" = None,
+    def __init__(self, model: "Optional[AgentModel]" = None, *,
+                 router: "Optional[ModelRouter]" = None, vision: "Optional[VisionModel]" = None,
                  notebook: "Optional[Notebook]" = None, render_fn=None,
                  max_steps: int = 16, run_timeout: float = 90.0, use_notebook: bool = True) -> None:
+        if model is None and router is None:
+            raise ValueError("AgentBuilder needs a model or a router")
         self._model = model
+        self._router = router
         self._vision = vision
         self._notebook = notebook
         self._render_fn = render_fn
@@ -49,12 +85,16 @@ class AgentBuilder(Builder):
 
     @property
     def id(self) -> str:
+        if self._router is not None:
+            return "icarus-agent:routed(" + ",".join(self._router.model_ids) + ")"
         return f"icarus-agent:{getattr(self._model, 'model_id', 'scripted')}"
 
     def build(self, packet: BuildPacket) -> BuildResult:
         root = Path(packet.writable_root)
         root.mkdir(parents=True, exist_ok=True)
-        result = run_agent(self._model, task_from_packet(packet), root,
+        task = task_from_packet(packet)
+        model = self._router.for_task(task) if self._router is not None else self._model
+        result = run_agent(model, task, root,
                            max_steps=self._max_steps, run_timeout=self._run_timeout,
                            vision=self._vision, notebook=self._notebook,
                            use_notebook=self._use_notebook, render_fn=self._render_fn)
