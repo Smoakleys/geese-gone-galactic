@@ -18,6 +18,16 @@ and an orange shape", see memory ggg-abstract-visuals-fail-judges):
 This is the plan's "gym, not cheat sheet" done honestly on visuals: the model, not the gate, was fixed.
 A subjective vision-on-render scene gate is now viable (props are recognisable) — a future harness lever.
 
+**END-TO-END: the REAL local agent now builds a good scene ITSELF (2026-07-03).** Ran gpt-oss:20b through
+the actual runtime on a text task ("build a cozy pond scene using the helpers"), with only the notebook +
+render tool. Unprompted on specifics, it wrote a `func build(root)` calling `add_building` (bakery/granary/
+nest/well), `add_goose` beside the nest, `add_tree` x4, with the notebook's soft palette and ~3-unit
+spacing — a gate-passing village (green 0.50, 3 colours) that looks as good as the hand-authored scenes.
+So "teach Icarus the shapes" (one-call helpers + notebook) actually works: the project's core goal — ICARUS
+builds the game — now holds for visuals, not just logic. HONEST caveat: the loop ended STUCK (not DONE) —
+gpt-oss emitted prose instead of a final tool call after rendering; the scene is still produced + gated
+(materialize_templated_scene harvests it regardless). Lead: harden the loop's prose-not-a-tool-call exit.
+
 ## CLEAN re-measurement — 15/16 = 0.94, debugging improved (2026-07-03, Step D done right)
 Re-ran seed=7 UNAIDED with **zero concurrent load** (the contamination lesson applied): **15/16 = 0.94**,
 up from the clean 13/16 = 0.81 baseline. The notable signal: **BOTH debugging tasks PASSED** — `fix_bug`
