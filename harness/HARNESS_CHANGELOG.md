@@ -515,3 +515,11 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   high-signal seed is injected within num_ctx 8192. Same truncation-blindfold class as harness-mod-52
   (the reviewer). Guard test asserts the seed fits the cap so a future growth spurt can't re-truncate
   silently. This is a real agent-capability fix: Icarus's curated Godot lessons now actually reach it.
+
+## harness-mod-54 - run tool keeps the END of long output (the error), not the head
+- harness/icarus/agent/runtime.py: the `run` tool returned `combined.strip()[:_MAX_OUTPUT]` -- the FIRST
+  2000 chars. But a Python traceback's `SomeError: message` and Godot errors are the LAST lines, and
+  stderr is appended AFTER stdout, so a command with long stdout cut the actual error off entirely and
+  Icarus (whose whole loop is "read the error, fix it") never saw what failed. Now tail-truncates (keeps
+  the last _MAX_OUTPUT with a "head truncated" marker) so the error/result always shows. Real debugging-
+  capability fix. Regression test: a program printing 5000 chars then raising -> the error survives.

@@ -36,6 +36,19 @@ def test_parse_none_when_no_block():
     assert parse_tool_call("no tool here") is None
 
 
+def test_run_tool_shows_the_error_at_the_end_of_long_output(tmp_path):
+    # Icarus fixes what it can SEE: a Python traceback / Godot error is the LAST line, and stderr is
+    # appended after stdout, so head-truncating long output hid the error. Tail-truncation must keep it.
+    import sys
+    from harness.icarus.agent.runtime import exec_tool, ToolCall
+    (tmp_path / "prog.py").write_text("print('x' * 5000)\nraise ValueError('THE REAL ERROR')\n")
+    res = exec_tool(ToolCall(name="run", args={"cmd": f"{sys.executable} prog.py"}, body=None),
+                    tmp_path, run_timeout=20)
+    assert res.ok is False
+    assert "THE REAL ERROR" in res.output           # the error survived truncation
+    assert "head truncated" in res.output            # and it was the head, not the error, that was dropped
+
+
 def test_curated_notebook_fits_the_injection_cap():
     # run_agent injects nb[:_NOTEBOOK_CHAR_CAP]; if the curated seed exceeds it, later lessons are silently
     # cut from Icarus's prompt (that dropped the Godot-4 `.translation` rule -> the OP-35 bug). Guard it.
