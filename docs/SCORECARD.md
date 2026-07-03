@@ -59,6 +59,13 @@ the #1 next harness lever** (see ops/backlog.md) — the deterministic gates and
 solid, but subjective correctness currently rides on a stub in unattended runs. The buggy module was NOT
 committed.
 
+**RESOLVED (2026-07-03): a local reviewer catches it.** Built `OllamaChatClient` (harness-mod-43) — a
+local Stage-B reviewer behind the ChatClient seam, default-FAIL + fail-closed. Ran it on the buggy
+`pond_scene.py`: **gpt-oss:20b FAILed it in 4s** (flagged the backslash-n join) and qwen3:30b agreed. A
+real subjective reviewer now runs LOCALLY, unattended, no cloud key, and catches subtle behavioural bugs
+the StubReviewer waved through. Next: wire `LLMReviewer(OllamaChatClient)` (a model different from the
+builder, for independence) as the default Stage B in the live pipeline.
+
 ## Caveat
 An earlier routed full-battery run measured 4/6, but it was the victim of GPU contention (two 30B tasks
 overlapping — 31 min; the empty-output failures were starvation artifacts). Trust clean single-model
