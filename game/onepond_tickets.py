@@ -66,7 +66,8 @@ def one_pond_tickets() -> "list[Ticket]":
             id="OP-4",
             title=("pond_state.py: a One Pond simulation. A dict state holds 'bread' (int) and 'buildings' "
                    "(a list of dicts with 'kind','x','y'). step(state) returns the next state after one "
-                   "tick: each 'bakery' adds 3 bread, each 'nest' subtracts 1 (bread never below 0). "
+                   "tick: each 'bakery' adds (3 + number_of_granaries) bread (each 'granary' boosts every "
+                   "bakery), each 'nest' subtracts 1, and bread never goes below 0. "
                    "add_building(state, kind, x, y, n) adds a building only if (x,y) is in-bounds on the "
                    "n-by-n grid and not already occupied, else returns the state unchanged. Pure Python."),
             kind=TicketKind.SYSTEM,
@@ -80,6 +81,9 @@ def one_pond_tickets() -> "list[Ticket]":
                 {"module": "pond_state.py",
                  "call": "step({'bread': 0, 'buildings': [{'kind': 'bakery', 'x': 0, 'y': 0}]})['bread']",
                  "expect": 3},
+                {"module": "pond_state.py",
+                 "call": "step({'bread': 0, 'buildings': [{'kind':'bakery','x':0,'y':0},{'kind':'granary','x':1,'y':0}]})['bread']",
+                 "expect": 4},
                 {"module": "pond_state.py",
                  "call": "len(add_building({'bread': 0, 'buildings': []}, 'bakery', 9, 9, 4)['buildings'])",
                  "expect": 0},

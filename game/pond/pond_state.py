@@ -1,76 +1,84 @@
-# BUILT BY ICARUS (local agent, gpt-oss:20b) for ticket OP-4 through the full pipeline
-# (authored ticket -> agent -> python_syntax gate -> gatekeeper commit). Preserved as the agent produced
-# it; behaviour locked by tests/test_pond_state.py. The One Pond simulation composing the economy + placement.
+# BUILT BY ICARUS (gpt-oss:20b) for OP-4 (revised: granary synergy in step) via the full gate. tests/test_pond_state.py
 """
-One Pond simulation state management.
-
-State format:
-{
-    'bread': int,
-    'buildings': [
-        {'kind': str, 'x': int, 'y': int},
-        ...
-    ]
-}
+One Pond simulation module.
 
 Functions:
-- step(state): advances the simulation by one tick.
-  * Each building of kind 'bakery' adds 3 bread.
-  * Each building of kind 'nest' subtracts 1 bread (bread never goes below 0).
-  Returns the updated state.
-
-- add_building(state, kind, x, y, n):
-  Adds a building at coordinates (x, y) on an n-by-n grid if:
-    * 0 <= x < n and 0 <= y < n
-    * No existing building occupies that cell.
-  If placement is invalid, the state remains unchanged.
-  Returns the updated state.
+- step(state): returns the next state after one tick.
+- add_building(state, kind, x, y, n): adds a building if placement is valid.
 """
 
-from __future__ import annotations
+from copy import deepcopy
 
-from typing import Dict, List
+def step(state):
+    """
+    Advance the simulation by one tick.
 
-State = Dict[str, object]
-Building = Dict[str, object]
+    Parameters
+    ----------
+    state : dict
+        Must contain 'bread' (int) and 'buildings' (list of dicts with keys:
+        'kind', 'x', 'y').
 
+    Returns
+    -------
+    dict
+        New state dictionary with updated bread count.
+    """
+    # Ensure required keys exist
+    bread = int(state.get('bread', 0))
+    buildings = deepcopy(state.get('buildings', []))
 
-def step(state: State) -> State:
-    """Advance the simulation by one tick."""
-    bread = state.get('bread', 0)
-    buildings: List[Building] = state.get('buildings', [])
+    # Count building types
+    num_granaries = sum(1 for b in buildings if b['kind'] == 'granary')
+    num_bakeries   = sum(1 for b in buildings if b['kind'] == 'bakery')
+    num_nests      = sum(1 for b in buildings if b['kind'] == 'nest')
 
-    # Count effects
-    for b in buildings:
-        kind = b.get('kind')
-        if kind == 'bakery':
-            bread += 3
-        elif kind == 'nest':
-            bread -= 1
+    # Bread production and consumption
+    delta = num_bakeries * (3 + num_granaries)
+    new_bread = max(bread + delta - num_nests, 0)
 
-    # Clamp to non-negative
-    if bread < 0:
-        bread = 0
+    return {
+        'bread': new_bread,
+        'buildings': buildings
+    }
 
-    state['bread'] = bread
-    return state
+def add_building(state, kind, x, y, n):
+    """
+    Add a building to the state if placement is valid.
 
+    Parameters
+    ----------
+    state : dict
+        Current simulation state.
+    kind : str
+        Building type (e.g., 'bakery', 'granary', 'nest').
+    x, y : int
+        Coordinates on an n-by-n grid.
+    n : int
+        Grid size; coordinates must satisfy 0 <= x < n and 0 <= y < n.
 
-def add_building(state: State, kind: str, x: int, y: int, n: int) -> State:
-    """Attempt to add a building of the given kind at (x, y) on an n-by-n grid."""
+    Returns
+    -------
+    dict
+        New state with the building added if placement is valid;
+        otherwise returns the original state unchanged.
+    """
     # Validate bounds
     if not (0 <= x < n and 0 <= y < n):
-        return state
+        return deepcopy(state)
 
-    buildings: List[Building] = state.get('buildings', [])
+    buildings = deepcopy(state.get('buildings', []))
 
-    # Check for occupancy
+    # Check for existing building at same location
     for b in buildings:
-        if b.get('x') == x and b.get('y') == y:
-            return state
+        if b['x'] == x and b['y'] == y:
+            return deepcopy(state)  # placement invalid
 
     # Add new building
-    new_building: Building = {'kind': kind, 'x': x, 'y': y}
+    new_building = {'kind': kind, 'x': x, 'y': y}
     buildings.append(new_building)
-    state['buildings'] = buildings
-    return state
+
+    return {
+        'bread': int(state.get('bread', 0)),
+        'buildings': buildings
+    }
