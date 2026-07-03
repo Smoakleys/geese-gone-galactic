@@ -176,6 +176,20 @@ def test_all_modules_handle_the_empty_pond_gracefully():
     assert step(empty)["bread"] == 0                        # nothing produced, clamps at 0
 
 
+def test_game_scales_to_a_full_pond():
+    # the other edge: a densely-built pond must stay correct (sums, economy) and not crash.
+    from game.pond import pond_score, total_cost
+    state = {"bread": 100, "buildings": []}
+    for x in range(4):
+        for y in range(4):
+            state = add_building(state, "bakery", x, y, 8)
+    assert len(state["buildings"]) == 16                 # placement filled the 4x4 region
+    assert total_cost(state["buildings"]) == 80          # 16 bakeries * 5
+    state = step(state)                                  # 16 bakeries * 3 = +48
+    assert state["bread"] == 148
+    assert pond_score(state) == 148 + 16 * 10            # bread + 16 bakeries * 10
+
+
 def _nests_and_fences(state):
     nests = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "nest"]
     fences = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "fence"]
