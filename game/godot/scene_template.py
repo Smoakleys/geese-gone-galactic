@@ -14,7 +14,7 @@ from pathlib import Path
 
 # 4-space indented on purpose: the local models emit 4-space GDScript, and a scene may not mix tabs and
 # spaces. compose_scene normalises the content to match so the wrapped file always has one indent style.
-_HEAD = '''extends Node3D
+_CAMERA = '''extends Node3D
 
 func _ready() -> void:
     var cam := Camera3D.new()
@@ -26,6 +26,9 @@ func _ready() -> void:
     cam.current = true
     build(self)
 
+'''
+
+_HELPERS = '''
 func _unshaded(color: Color) -> StandardMaterial3D:
     var m := StandardMaterial3D.new()
     m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -72,7 +75,12 @@ def compose_scene(build_gd: str) -> str:
     if "func build" not in body:
         indented = "\n".join(("    " + ln) if ln.strip() else ln for ln in body.splitlines())
         body = "func build(root: Node3D) -> void:\n" + indented
-    return _HEAD + body + "\n"
+    # Only inject the template helpers if the content did NOT define its own -- a local model sometimes
+    # redefines add_plane/add_box despite instructions, and duplicate function defs are a Godot parse
+    # error (which blanked the render). Camera is always ours; helpers are opt-in by absence.
+    self_contained = "func add_plane" in body or "func add_box" in body or "func _unshaded" in body
+    head = _CAMERA if self_contained else _CAMERA + _HELPERS
+    return head + body + "\n"
 
 
 def materialize_templated_scene(artifact_dir: "Path | str") -> None:

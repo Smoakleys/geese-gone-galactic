@@ -138,6 +138,17 @@ def test_materialize_templated_scene_composes_and_is_noop_when_present(tmp_path)
     assert (tmp_path / "scene.gd").read_text() == scene
 
 
+def test_compose_scene_avoids_duplicate_helper_defs():
+    # a local model sometimes redefines add_plane/add_box despite instructions; duplicate function defs
+    # are a Godot parse error that blanks the render, so compose must not inject the template's copies.
+    from game.godot.scene_template import compose_scene
+    content = ("func add_plane(root, size, color, y=0.0):\n\tpass\n"
+               "func build(root: Node3D) -> void:\n\tadd_plane(root, Vector2(4, 4), Color.GREEN)\n")
+    scene = compose_scene(content)
+    assert scene.count("func add_plane") == 1     # not duplicated
+    assert "func _ready" in scene                 # camera template always present
+
+
 def test_agentbuilder_requires_model_or_router():
     import pytest
     with pytest.raises(ValueError):
