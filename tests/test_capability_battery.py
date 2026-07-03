@@ -49,16 +49,22 @@ def test_sum_verifier_pass_and_fail(tmp_path):
 def test_read_generators_verifiers_pass_general_code_and_fail_wrong(tmp_path):
     # the input-reading generators are non-hardcodable: a general read-and-compute solution passes, a
     # hardcoded/wrong one fails. Validates their checkers (which gate what enters the SFT corpus).
-    from harness.icarus.eval.capability import gen_read_max, gen_read_evens
+    from harness.icarus.eval.capability import gen_read_max, gen_read_evens, gen_read_sorted, gen_grep_count
     cases = [
         (gen_read_max, "print(max(int(l) for l in open('numbers.txt')))"),
         (gen_read_evens, "print(sum(1 for l in open('numbers.txt') if int(l) % 2 == 0))"),
+        (gen_read_sorted, "print(' '.join(str(n) for n in sorted(int(l) for l in open('numbers.txt'))))"),
+        # grep_count's letter varies per instance; pull it from the id (grepcount_<letter>_<answer>).
+        (gen_grep_count, None),
     ]
     for gen, correct in cases:
         inst = gen(Random(1))
         ws = tmp_path / inst.id
         ws.mkdir()
         inst.setup(ws)
+        if correct is None:
+            letter = inst.id.split("_")[1]
+            correct = f"print(sum(1 for w in open('words.txt') if '{letter}' in w))"
         (ws / "solution.py").write_text(correct)
         ok, detail = inst.verify(ws)
         assert ok, f"{inst.id}: {detail}"

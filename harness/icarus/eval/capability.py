@@ -251,6 +251,52 @@ def gen_read_evens(rng: Random) -> TaskInstance:
         "HOW MANY of the integers are even. Run it to verify.", verify, setup=setup)
 
 
+def gen_read_sorted(rng: Random) -> TaskInstance:
+    # non-hardcodable + a LIST output (sorting + exact formatting), unlike the scalar-answer read tasks.
+    nums = [rng.randint(1, 99) for _ in range(rng.randint(4, 7))]
+    answer = " ".join(str(n) for n in sorted(nums))
+
+    def setup(ws: Path) -> None:
+        (ws / "numbers.txt").write_text("\n".join(str(n) for n in nums) + "\n")
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        try:
+            rc, out, err = _run_py(ws, "solution.py")
+        except Exception as e:
+            return False, f"could not run solution.py: {e}"
+        return out == answer, f"expected {answer!r}, got {out!r}"
+
+    return TaskInstance(
+        f"readsorted_{len(nums)}_{sum(nums)}", "multi-file",
+        "The file numbers.txt has one integer per line. Write solution.py that reads numbers.txt and prints "
+        "the integers in ASCENDING order, space-separated on ONE line (e.g. '1 3 5'). Run it to verify.",
+        verify, setup=setup)
+
+
+def gen_grep_count(rng: Random) -> TaskInstance:
+    # text-processing (a different domain): count words containing a letter. Words vary -> non-hardcodable.
+    import string
+    words = ["".join(rng.choice(string.ascii_lowercase) for _ in range(rng.randint(3, 6)))
+             for _ in range(rng.randint(5, 9))]
+    needle = rng.choice("abcde")
+    answer = sum(1 for w in words if needle in w)
+
+    def setup(ws: Path) -> None:
+        (ws / "words.txt").write_text("\n".join(words) + "\n")
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        try:
+            rc, out, err = _run_py(ws, "solution.py")
+        except Exception as e:
+            return False, f"could not run solution.py: {e}"
+        return out == str(answer), f"expected {answer}, got {out!r}"
+
+    return TaskInstance(
+        f"grepcount_{needle}_{answer}", "multi-file",
+        f"The file words.txt has one word per line. Write solution.py that reads words.txt and prints HOW "
+        f"MANY words contain the letter '{needle}'. Run it to verify.", verify, setup=setup)
+
+
 def gen_find_secret(rng: Random) -> TaskInstance:
     token = "".join(rng.choice("ABCDEFGHJKLMNPQRSTUVWXYZ23456789") for _ in range(8))
     n_noise = rng.randint(15, 30)
@@ -702,7 +748,7 @@ def gen_pond_from_template(rng: Random) -> TaskInstance:
 
 def default_generators() -> "list[Callable[[Random], TaskInstance]]":
     return [gen_sum, gen_reverse, gen_json, gen_fizzbuzz,
-            gen_fix_bug, gen_fix_range_bug, gen_read_sum, gen_read_max, gen_read_evens,
+            gen_fix_bug, gen_fix_range_bug, gen_read_sum, gen_read_max, gen_read_evens, gen_read_sorted, gen_grep_count,
             gen_find_secret, gen_economy, gen_placement,
             gen_pond_tick, gen_water_access, gen_predator_safety, gen_granary, gen_pond_score,
             gen_pond_outcome, gen_gdscript, gen_render, gen_bakery_scene]
