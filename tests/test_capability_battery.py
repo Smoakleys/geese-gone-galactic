@@ -35,6 +35,40 @@ def test_sum_verifier_pass_and_fail(tmp_path):
     assert not bad
 
 
+def test_bakery_scene_verifier_needs_a_building(tmp_path, monkeypatch):
+    # verify passes only when the render shows ground + a building (>=3 colour regions), not a bare plane.
+    import game.godot.capture as cap
+    from PIL import Image
+    from harness.icarus.eval.capability import gen_bakery_scene
+    inst = gen_bakery_scene(Random(0))
+    ws = tmp_path / inst.id
+    ws.mkdir()
+    (ws / "scene.gd").write_text("extends Node3D\n")
+
+    def good(gd, out, **k):  # bg gray + green ground + brown building = 3 colours
+        im = Image.new("RGB", (60, 60), (100, 100, 100))
+        for y in range(15, 45):
+            for x in range(60):
+                im.putpixel((x, y), (0, 200, 0))
+        for y in range(25, 40):
+            for x in range(22, 40):
+                im.putpixel((x, y), (139, 69, 19))
+        im.save(out)
+        return True, "rendered"
+
+    monkeypatch.setattr(cap, "render_gdscript", good)
+    ok, detail = inst.verify(ws)
+    assert ok, detail
+
+    def bare(gd, out, **k):  # flat green ground, no building
+        Image.new("RGB", (60, 60), (0, 200, 0)).save(out)
+        return True, "rendered"
+
+    monkeypatch.setattr(cap, "render_gdscript", bare)
+    bad, detail = inst.verify(ws)
+    assert not bad and "building" in detail
+
+
 def test_placement_verifier(tmp_path):
     import re
 
