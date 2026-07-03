@@ -31,8 +31,8 @@ ART_DIR = _REPO / "assets" / "art"
 _CONFIG = _REPO / "ops" / "gemini_config.local.json"
 _KEYFILE = _REPO / "ops" / "gemini_key.local.txt"
 
-# Model: Nano Banana / Gemini image generation on the free tier. Overridable via config "model".
-DEFAULT_MODEL = "gemini-2.5-flash-image-preview"
+# Model: Nano Banana / Gemini image generation (verified current ID, 2026). Overridable via config "model".
+DEFAULT_MODEL = "gemini-2.5-flash-image"
 
 # THE LOCKED VIEWPOINT/STYLE -- appended to every prompt so all assets share one camera + light + look,
 # the fix for the incoherent "wrong viewpoints" (side-goose + 3/4-building + top-down-pond). See memory
@@ -101,7 +101,7 @@ def _image_request(prompt: str, key: str, model: str, timeout: float, retries: i
     import time
     url = (f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}")
     payload = {"contents": [{"parts": [{"text": prompt}]}],
-               "generationConfig": {"responseModalities": ["IMAGE", "TEXT"]}}
+               "generationConfig": {"responseModalities": ["TEXT", "IMAGE"]}}   # docs order
     req = urllib.request.Request(url, data=json.dumps(payload).encode(),
                                  headers={"Content-Type": "application/json", "User-Agent": "ggg"})
     last = None
