@@ -357,6 +357,25 @@ def one_pond_tickets() -> "list[Ticket]":
                 {"module": "build_cost.py", "call": "total_cost([])", "expect": 0},
                 {"module": "build_cost.py", "call": "total_cost([{'kind':'rocket'}])", "expect": 0},
             ]),
+        Ticket(
+            id="OP-16",
+            title=("pond_rank.py: pond progression. pond_rank(score) returns the pond's rank as a STRING "
+                   "by its score: 'hamlet' if score < 20; 'village' if score < 50; 'town' if score < 100; "
+                   "otherwise 'city'. (Boundaries belong to the higher tier: 20 -> village, 50 -> town, "
+                   "100 -> city.) Pure Python returning a str."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="hamlet<20 / village<50 / town<100 / city>=100, "
+                                    "boundaries to the higher tier", stage=Stage.B, rubric_ref="onepond/rank"),
+            ],
+            behavior=[
+                {"module": "pond_rank.py", "call": "pond_rank(10)", "expect": "hamlet"},
+                {"module": "pond_rank.py", "call": "pond_rank(20)", "expect": "village"},
+                {"module": "pond_rank.py", "call": "pond_rank(75)", "expect": "town"},
+                {"module": "pond_rank.py", "call": "pond_rank(100)", "expect": "city"},
+            ]),
     ]
     for t in tickets:
         t.freeze()
