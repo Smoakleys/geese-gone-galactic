@@ -476,3 +476,8 @@ without a matching entry. Reverts are one command via the token in `harness/reve
 - harness/icarus/eval/capability.py: added `gen_pond_score` (bread + weighted building values, deterministic
   checker) + registered in `default_generators()`. The sealed unaided battery now covers the game-logic
   breadth: economy, placement, pond-tick, water, predator, granary, score. Verifier tested. 299 tests.
+
+## harness-mod-49 - Grow the capability battery: gen_pond_outcome
+- harness/icarus/eval/capability.py: added `gen_pond_outcome` (the layered bread->water->safety->thriving
+  evaluation, a composed multi-branch rule harder than the arithmetic tasks; deterministic checker) +
+  registered it. The sealed battery now covers the full One Pond logic surface. Verifier tested. 307 tests.
