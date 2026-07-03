@@ -500,6 +500,26 @@ def one_pond_tickets() -> "list[Ticket]":
                 {"module": "simulate_bread.py", "call": "simulate_bread(2, 0, 1, 5)", "expect": 0},
                 {"module": "simulate_bread.py", "call": "simulate_bread(5, 1, 0, 2)", "expect": 11},
             ]),
+        Ticket(
+            id="OP-23",
+            title=("unique_kinds.py: distinct building kinds. unique_kinds(buildings) takes a list of dicts "
+                   "each with a 'kind' and returns a SORTED list of the DISTINCT kinds present (each kind "
+                   "once, alphabetical order). An empty list returns []. Pure Python returning a list."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="distinct kinds, sorted alphabetically",
+                                    stage=Stage.B, rubric_ref="onepond/uniquekinds"),
+            ],
+            behavior=[
+                {"module": "unique_kinds.py",
+                 "call": "unique_kinds([{'kind':'nest'},{'kind':'bakery'},{'kind':'nest'}])",
+                 "expect": ["bakery", "nest"]},
+                {"module": "unique_kinds.py", "call": "unique_kinds([])", "expect": []},
+                {"module": "unique_kinds.py",
+                 "call": "unique_kinds([{'kind':'well'},{'kind':'well'}])", "expect": ["well"]},
+            ]),
     ]
     for t in tickets:
         t.freeze()
