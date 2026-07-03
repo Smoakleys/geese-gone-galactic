@@ -148,11 +148,15 @@ func add_goose(root, pos, s = 1.0, f = -1.0):
     _part(root, _cone(0.32, 0.75), white, pos + Vector3(f * 1.55, 1.4, 0) * s, Vector3.ONE * s, Vector3(0, 0, f * -52))
     _part(root, _ball(0.9), wingc, pos + Vector3(f * 0.15, 1.25, 0.72) * s, Vector3(1.5, 0.8, 0.5) * s, Vector3(0, f * -14, 10))
     _part(root, _ball(0.9), wingc, pos + Vector3(f * 0.15, 1.25, -0.72) * s, Vector3(1.5, 0.8, 0.5) * s, Vector3(0, f * 14, 10))
-    var neck = [Vector3(1.2, 1.5, 0), Vector3(1.4, 1.85, 0), Vector3(1.55, 2.2, 0), Vector3(1.62, 2.55, 0), Vector3(1.58, 2.9, 0), Vector3(1.65, 3.2, 0), Vector3(1.85, 3.42, 0), Vector3(2.08, 3.5, 0)]
-    var nr = [0.36, 0.34, 0.32, 0.31, 0.30, 0.29, 0.28, 0.27]
-    for i in neck.size():
-        var q = neck[i]
-        _part(root, _ball(nr[i]), white, pos + Vector3(f * q.x, q.y, q.z) * s, Vector3.ONE * s)
+    var nc = [Vector3(1.2, 1.5, 0), Vector3(1.4, 1.85, 0), Vector3(1.55, 2.2, 0), Vector3(1.62, 2.55, 0), Vector3(1.58, 2.9, 0), Vector3(1.65, 3.2, 0), Vector3(1.85, 3.42, 0), Vector3(2.08, 3.5, 0)]
+    var pts = []
+    for i in nc.size() - 1:
+        for k in range(3):
+            pts.append(nc[i].lerp(nc[i + 1], k / 3.0))
+    pts.append(nc[nc.size() - 1])
+    for j in pts.size():
+        var q = pts[j]
+        _part(root, _ball(0.40 - 0.13 * (float(j) / (pts.size() - 1))), white, pos + Vector3(f * q.x, q.y, q.z) * s, Vector3.ONE * s)
     _part(root, _ball(0.44), white, pos + Vector3(f * 2.28, 3.55, 0) * s, Vector3.ONE * s)
     _part(root, _cone(0.2, 0.66), beak, pos + Vector3(f * 2.82, 3.49, 0) * s, Vector3.ONE * s, Vector3(0, 0, 90))
     for z in [0.3, -0.3]:
