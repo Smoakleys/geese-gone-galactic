@@ -59,6 +59,13 @@ def play_neglected(verbose: bool = True) -> dict:
 
 
 if __name__ == "__main__":
-    play()
+    final = play()
     print()
     play_neglected()
+    # showcase the thriving pond as real ART (the game's look)
+    try:
+        from game.art_view import compose_pond_art
+        out = compose_pond_art(final, "onepond_art.png")
+        print(f"\nart of the thriving pond -> {out}")
+    except Exception as e:  # never let the art render break the demo
+        print(f"\n(art render skipped: {type(e).__name__})")
