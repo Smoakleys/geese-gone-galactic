@@ -67,8 +67,13 @@ Icarus improvement** (keep only if the unaided battery score rises).
       inflation) is MOOT: the scorecard is now the separate unaided battery, not the toy. So retiring is
       net-negative (loses harness coverage, risky migration, zero benefit). It's clearly labelled dead in
       CLAUDE.md + README so it can't mislead; do NOT extend it, but leave it as governance-test scaffolding.
-- [ ] **Advance the UNAIDED battery number** (the true north star) — hard: it's now largely model-limited
-      on the 16GB card; any harness change kept ONLY if unaided rises.
+- [ ] **Advance the UNAIDED battery number** (the true north star) — the base-runtime prompt/routing levers
+      are largely exhausted (model-limited on the 16GB card). The plan's REAL lever is now BUILT: the
+      **self-distillation pipeline** (`harness/icarus/distill.py` + `ops/build_sft.py`, harness-mod-51)
+      turns Icarus's gate-passing solutions into QLoRA SFT data (`data/onepond_sft.jsonl`). NEXT (external
+      GPU step): QLoRA fine-tune gpt-oss:20b on that data, then re-run the unaided battery and keep the
+      adapter ONLY if unaided rises. Grow the dataset by authoring + building more tickets (each adds a
+      verified pair). This is the one genuinely-open frontier; everything else is comprehensively proven.
 
 ## Candidate increments (pick by value, not order)
 - [ ] Improve Icarus each cycle (prompt/packet/tooling/**model**-swap or ensemble) toward higher
