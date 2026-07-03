@@ -66,21 +66,35 @@ def _tabs_to_spaces(gd: str) -> str:
     return "\n".join(out)
 
 
-def compose_scene(build_gd: str) -> str:
-    """Wrap Icarus's ``func build(root: Node3D)`` with the camera template into a full scene.gd.
+def _extract_build_func(gd: str) -> "str | None":
+    """Pull just the top-level ``func build(...)`` block out of the content, dropping everything else
+    (a stray ``extends`` header, buggy helper redefinitions). Returns None if there is no build()."""
+    lines = gd.splitlines()
+    start = next((i for i, ln in enumerate(lines) if ln.lstrip().startswith("func build")), None)
+    if start is None:
+        return None
+    out = [lines[start]]
+    for ln in lines[start + 1:]:
+        if ln[:1] not in ("", " ", "\t") and ln.lstrip().startswith("func "):
+            break                                   # next top-level function -> build() block ended
+        out.append(ln)
+    return "\n".join(out).rstrip("\n")
 
-    Indentation is normalised to 4 spaces so the composed file never mixes tabs and spaces (a Godot
-    parse error). If the content omits the function header, it is treated as the function body."""
-    body = _tabs_to_spaces(build_gd).strip("\n")
-    if "func build" not in body:
-        indented = "\n".join(("    " + ln) if ln.strip() else ln for ln in body.splitlines())
-        body = "func build(root: Node3D) -> void:\n" + indented
-    # Only inject the template helpers if the content did NOT define its own -- a local model sometimes
-    # redefines add_plane/add_box despite instructions, and duplicate function defs are a Godot parse
-    # error (which blanked the render). Camera is always ours; helpers are opt-in by absence.
-    self_contained = "func add_plane" in body or "func add_box" in body or "func _unshaded" in body
-    head = _CAMERA if self_contained else _CAMERA + _HELPERS
-    return head + body + "\n"
+
+def compose_scene(build_gd: str) -> str:
+    """Wrap Icarus's scene CONTENT with the camera template + correct helpers into a full scene.gd.
+
+    Robust to a local model writing more than asked: we extract only its ``func build(root)`` and always
+    provide OUR camera + OUR add_plane/add_box, discarding any stray ``extends`` line or buggy helper
+    redefinitions the model added (both are Godot parse/runtime errors that blank the render).
+    Indentation is normalised to 4 spaces so the file never mixes tabs and spaces."""
+    body = _tabs_to_spaces(build_gd)
+    build_fn = _extract_build_func(body)
+    if build_fn is None:
+        stmts = [ln for ln in body.splitlines() if not ln.strip().startswith("extends")]
+        indented = "\n".join(("    " + ln) if ln.strip() else ln for ln in stmts)
+        build_fn = "func build(root: Node3D) -> void:\n" + indented
+    return _CAMERA + _HELPERS + build_fn.strip("\n") + "\n"
 
 
 def materialize_templated_scene(artifact_dir: "Path | str") -> None:

@@ -429,3 +429,11 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   scene.gd (no-op if scene.gd exists / no build content). default_icarus_builder wires it as post_build.
   So a templated scene ticket: Icarus writes content.gd (fast model) -> composed to scene.gd -> gated by
   godot_parse/godot_render -> committed. Tests cover the hook + compose. 242 tests.
+
+## harness-mod-41 - Robust scene compose (extract build(); ignore stray extends/redefined helpers)
+- game/godot/scene_template.py: compose_scene now extracts ONLY the agent's func build(root) and always
+  provides the correct camera + add_plane/add_box, discarding a stray `extends` header or buggy helper
+  redefinitions the local model sometimes adds (duplicate extends / duplicate func / Godot-3 API in the
+  redefs all blanked the render). Verified on two real live failures (both now render green ~78).
+- harness/icarus/eval/capability.py: gen_pond_from_template verify skips its own _composed_scene.gd when
+  finding the agent's content (was picking up stale output across calls). 243 tests.
