@@ -30,7 +30,16 @@ def render_gdscript(scene_gd: Path, out_png: Path, *, size: str = "512x512",
     out_png.parent.mkdir(parents=True, exist_ok=True)
     probe = _RIG / "_probe.gd"
     try:
-        shutil.copyfile(scene_gd, probe)
+        # If handed raw TEMPLATED content (a `func build(root)` with no camera/_ready of its own), compose a
+        # full scene first so it can render. This lets Icarus render+see its templated content.gd MID-LOOP
+        # (self-verify on the fast path) instead of building the scene blind until post-build composition.
+        # A full scene (has `_ready`/`extends`) is rendered as-is, so the gate path is unchanged.
+        text = scene_gd.read_text(encoding="utf-8", errors="replace")
+        if "func build" in text and "_ready" not in text and "extends" not in text:
+            from game.godot.scene_template import compose_scene
+            probe.write_text(compose_scene(text), encoding="utf-8")
+        else:
+            shutil.copyfile(scene_gd, probe)
         try:
             proc = subprocess.run(
                 [godot, "--path", str(_RIG), "--",
