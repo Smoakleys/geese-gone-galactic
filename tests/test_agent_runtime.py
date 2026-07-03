@@ -417,3 +417,13 @@ def test_placeholder_write_body_is_rejected(tmp_path):
     r = exec_tool(ToolCall('write_file', {'path': 'a.py'}, 'print(1)'), tmp_path)
     assert r.ok and (tmp_path / 'a.py').read_text() == 'print(1)'
     assert not _is_placeholder_body('print(1)') and _is_placeholder_body('<code>')
+
+
+def test_finish_with_no_solution_written_gets_a_one_time_nudge(tmp_path):
+    # harness-mod-65: finishing without writing ANY file is nudged ONCE to write a solution, then accepted.
+    from harness.icarus.agent.runtime import run_agent, ScriptedAgentModel, State
+    fin = _tool('name: finish', 'summary: done')
+    res = run_agent(ScriptedAgentModel([fin, fin]), 'task', tmp_path, max_steps=5)
+    nudges = [m for m in res.transcript if m['role'] == 'user' and '[NO SOLUTION]' in m['content']]
+    assert len(nudges) == 1
+    assert res.state == State.DONE
