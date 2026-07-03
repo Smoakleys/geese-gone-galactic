@@ -50,12 +50,21 @@ Icarus is a **real, measured agent**, and the whole loop is proven end-to-end:
 - **One live model run at a time.** The GPU is 16GB — running two live-model tasks concurrently (esp.
   both needing the 30B) thrashes/hangs. Never launch overlapping live probes; finish one before the next.
 
-## 4. Next phase = BREADTH (the foundation is done; now build the game)
-Drive One Pond for real, **one Icarus ticket per cycle** via `default_icarus_builder` + the full loop:
-Nest / Bakery / Pond as scenes (visual → 30B), a bread-economy tick + place-a-building (logic → gpt-oss),
-each gated (`godot_parse` + render + economy checks) and committed. **Each cycle: 1 ticket through Icarus
-+ 1 concrete harness/Icarus improvement, measured on the battery** (keep only if the unaided score rises).
-Retire the drifted python economy toy (`game/onepond/`) as the real Godot slice takes over.
+## 4. Next phase = BREADTH (foundation done + FAST; now grow the game)
+**Speed is solved (docs/SPEED.md).** The 30B is a hardware ceiling (20GB on 16GB), so visuals use a
+SCENE TEMPLATE: Icarus writes only `func build(root)` calling `add_plane`/`add_box`, and
+`game/godot/scene_template.py: compose_scene` (+ the AgentBuilder `post_build` hook
+`materialize_templated_scene`) wraps it with a correct camera on the FAST resident model — real scenes in
+~19s, the full One Pond backlog commits in ~68s @ autonomy 1.0. Templated tasks auto-route to `fast`.
+**One Pond core is built** by Icarus: `game/onepond_tickets.py` (OP-1 scene + OP-2/3/4 logic) →
+`game/pond/{bread_tick,placement,pond_state}.py` + `game/godot/scenes/one_pond.gd`, composed + tested
+(test_one_pond_integration).
+
+Drive it forward **one authored Icarus ticket per cycle** via `default_icarus_builder` + the full loop:
+add building variety (granary/fence + its rule), a scene that reflects placed buildings, more mechanics —
+each gated + committed. Keep any harness/Icarus change only if it's a measured win (the plan's rule).
+Still to do: retire the legacy `game/onepond/` python toy (marked legacy; the real slice is `game/pond`
++ `game/godot`).
 
 ## 5. Workflow + invariants (unchanged)
 - Every increment: branch → `python -m pytest tests/ -q` green → PR → squash-merge via GitHub API
