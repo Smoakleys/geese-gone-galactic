@@ -117,7 +117,8 @@ def _page(session: GameSession, msg: "str | None" = None) -> bytes:
    margin:0;padding:18px}}
  h1{{color:#3a6b4f;margin:6px}} .status{{color:#456;margin:6px 0 4px;font-weight:600}}
  .msg{{color:#6a7a88;font-size:14px;height:18px;margin-bottom:8px}}
- img{{max-width:96%;border-radius:16px;box-shadow:0 8px 30px #0003}}
+ @keyframes bob{{0%,100%{{transform:translateY(0)}}50%{{transform:translateY(-8px)}}}}
+ img{{max-width:96%;border-radius:16px;box-shadow:0 8px 30px #0003;animation:bob 4s ease-in-out infinite}}
  .bar{{margin:12px auto}}
  .btn{{display:inline-block;margin:4px;padding:9px 15px;background:#7cc06a;color:#fff;border-radius:10px;
    text-decoration:none;font-weight:600;box-shadow:0 3px 0 #5a9a4c}} .btn:hover{{filter:brightness(1.07)}}
