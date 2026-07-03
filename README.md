@@ -4,11 +4,14 @@ A strict, self-improving **harness** that bootstraps a local AI *agent* (**Icaru
 it to build the game — logic *and* visuals — with every piece held to an un-gameable quality gate.
 Engine: **Godot** (3D low-poly, 2.5D fixed iso camera). Pond era only.
 
-**Icarus built a real, playable game.** The "One Pond" core is **thirteen agent-authored Python modules**
-(`game/pond/`) — a granary-synergy bread economy, building placement, a simulation tick, predator safety,
-water access, a layered win/lose outcome, a net-worth score, and a hint system — composing into a guided
-game, plus rendered Godot scenes (`game/godot/scenes/`). Every module was produced by the local agent
-through the gate and is behaviour-locked by a test.
+**Icarus built a real, playable game.** The "One Pond" core is **28 agent-authored Python modules**
+(`game/pond/`) — a granary-synergy bread economy, placement, simulation, predator safety, water access, a
+layered win/lose outcome, score + rank progression, a hint system, dynamic events, a goose population,
+planning/affordability helpers, a text-command interface, and save/load — composing into a guided game,
+plus **five agent-built Godot scenes** (`game/godot/scenes/`, culminating in the complete world with
+geese). Every module was produced by the local agent through the gate and is behaviour-locked by a test.
+Icarus's gate-passing solutions are also captured as self-distillation training data (`data/*_sft.jsonl`,
+see `docs/DISTILL.md`) to raise its unaided capability.
 
 **Try it:** `python ops/play_onepond.py` plays a guided pond to a thriving outcome and prints the transcript.
 
