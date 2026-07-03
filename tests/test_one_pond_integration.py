@@ -38,6 +38,26 @@ def test_one_pond_nests_can_starve_but_not_go_negative():
     assert state["bread"] == 0           # -1/tick, clamped at 0 (never negative)
 
 
+def test_full_game_plays_to_a_thriving_outcome():
+    from game.pond.pond_outcome import pond_outcome
+    state = {"bread": 5, "buildings": []}
+    state = add_building(state, "bakery", 0, 0, 8)
+    state = add_building(state, "nest", 3, 3, 8)
+    state = add_building(state, "fence", 3, 4, 8)        # protect the nest
+    for _ in range(3):
+        state = step(state)                              # +3 bakery - 1 nest = +2/tick
+    assert state["bread"] == 11
+    assert pond_outcome(state, 2) == "thriving"          # solvent AND safe
+
+
+def test_full_game_can_be_lost_by_starvation():
+    state = {"bread": 2, "buildings": [{"kind": "nest", "x": 0, "y": 0}]}   # a goose, no bakery
+    for _ in range(5):
+        state = step(state)                              # -1/tick, clamped at 0
+    assert state["bread"] == 0
+    assert pond_outcome(state, 2) == "lost"              # bread gone -> lost (checked before safety)
+
+
 def test_full_one_pond_playthrough_with_synergy_and_status():
     # all the composed mechanics as one game: place -> tick (granary synergy) -> status (predator safety)
     from game.pond.pond_status import pond_status
