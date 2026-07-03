@@ -26,5 +26,12 @@ lessons are promoted back here (so it never fills with a struggling model's conf
 - A `PlaneMesh` is ALREADY flat in the horizontal XZ plane. Do NOT `rotate_x(-90°)` it — that stands it
   up VERTICAL, so a top-down/iso camera sees it edge-on (an invisible thin line) and the ground/pond
   vanish. Add planes with no rotation; only raise the pond slightly on Y to layer it over the grass.
+- GDScript has NO keyword arguments. Call functions positionally: `add_plane(root, size, color, 0.1)`,
+  NOT `add_plane(root, size, color, y=0.1)` — a `name=` argument is a parse error.
+- Node3D position is `node.position` (Godot 4), NOT `node.translation` (that was Godot 3) — `translation`
+  errors at runtime and blanks the scene.
+- If helper functions are already defined in the SAME script, just call them directly
+  (`add_plane(...)`); do NOT `preload("res://helpers.gd")` or prefix them (`helpers.add_plane`) — the
+  file has no such separate resource, so that errors.
 - Verify by rendering: if the render is a uniform gray (the default background) the camera saw nothing —
   re-check the camera is current, added to the tree before `look_at`, and framing the object.
