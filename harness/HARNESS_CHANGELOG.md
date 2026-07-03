@@ -360,3 +360,9 @@ without a matching entry. Reverts are one command via the token in `harness/reve
 - harness/icarus/eval/capability.py: gen_pond_scene - the namesake One Pond scene (green land + blue
   water pond + a building), gated by green-land fraction + blue-water fraction + significant_colors>=3.
   Offline-tested (monkeypatched renders); live build routes to the 30B. 220 tests.
+
+## harness-mod-31 - Pond-tick task: the bread tick wired to placement (breadth)
+- harness/icarus/eval/capability.py: gen_pond_tick - a One Pond mechanic combining placement validation
+  (in-bounds + no-overlap) with the bread economy (bakeries +3/tick, nests -1/tick): validate the layout,
+  print INVALID if bad, else the final bread. Icarus's logic strength; on the default battery. Regression
+  test covers the verifier. 225 tests.
