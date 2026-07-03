@@ -46,5 +46,6 @@ func build(root: Node3D) -> void:
     add_plane(root, Vector2(6, 6), Color.BLUE, 0.1)
     add_box(root, Vector3(1, 1, 1), Color(0.5, 0.3, 0.1), Vector3(-3 * 2, 0.5, -2 * 2))
     add_box(root, Vector3(1, 1, 1), Color(0.7, 0.5, 0.2), Vector3(-3 * 2, 0.5, 0 * 2))
+    add_box(root, Vector3(1, 1, 1), Color(0.2, 0.4, 0.8), Vector3(-1 * 2, 0.5, -3 * 2))
     add_box(root, Vector3(1, 1, 1), Color(0.8, 0.7, 0.4), Vector3(3 * 2, 0.5, 2 * 2))
     add_box(root, Vector3(1, 1, 1), Color(0.5, 0.5, 0.5), Vector3(2 * 2, 0.5, 2 * 2))
