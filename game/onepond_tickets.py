@@ -174,6 +174,30 @@ def one_pond_tickets() -> "list[Ticket]":
                  "expect": 7},
                 {"module": "pond_economy.py", "call": "tick_bread([])", "expect": 0},
             ]),
+        Ticket(
+            id="OP-9",
+            title=("pond_status.py: summarise a pond. pond_status(state, reach) returns a dict "
+                   "{'bread': int, 'safe': bool} where 'bread' is state['bread'] and 'safe' is True iff "
+                   "EVERY building of kind 'nest' in state['buildings'] is within Manhattan distance "
+                   "`reach` (abs(dx)+abs(dy) <= reach) of at least one building of kind 'fence'. No nests "
+                   "means safe. Buildings are dicts with 'kind','x','y'. Pure Python."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="'safe' true only when every nest is within reach of a "
+                                    "fence; 'bread' passes through", stage=Stage.B, rubric_ref="onepond/status"),
+            ],
+            behavior=[
+                {"module": "pond_status.py",
+                 "call": "pond_status({'bread': 9, 'buildings': [{'kind':'nest','x':0,'y':0},{'kind':'fence','x':1,'y':0}]}, 2)['safe']",
+                 "expect": True},
+                {"module": "pond_status.py",
+                 "call": "pond_status({'bread': 5, 'buildings': [{'kind':'nest','x':9,'y':9}]}, 2)['safe']",
+                 "expect": False},
+                {"module": "pond_status.py",
+                 "call": "pond_status({'bread': 7, 'buildings': []}, 2)['bread']", "expect": 7},
+            ]),
     ]
     for t in tickets:
         t.freeze()
