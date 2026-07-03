@@ -16,10 +16,11 @@ from game.pond.pond_score import pond_score
 from game.pond.pond_state import add_building, step
 from game.pond.pond_status import pond_status
 from game.pond.predator import is_safe
+from game.pond.predator_loss import predator_loss
 from game.pond.water_access import has_water
 
 __all__ = [
     "tick", "production", "is_valid", "tick_bread", "pond_outcome",
     "build_body", "pond_score", "pond_advice", "add_building", "step",
-    "pond_status", "is_safe", "has_water",
+    "pond_status", "is_safe", "predator_loss", "has_water",
 ]

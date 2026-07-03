@@ -310,6 +310,32 @@ def one_pond_tickets() -> "list[Ticket]":
                  "call": "pond_advice({'buildings': [{'kind':'bakery','x':0,'y':0},{'kind':'well','x':1,'y':0}]}, 2)",
                  "expect": "looking good"},
             ]),
+        Ticket(
+            id="OP-14",
+            title=("predator_loss.py: predators have teeth. predator_loss(state, reach) reads "
+                   "state['buildings'] (a list of dicts with 'kind','x','y') and returns the int bread "
+                   "eaten by predators this tick: 2 for EACH building of kind 'nest' that is NOT within "
+                   "Manhattan distance `reach` (abs(dx)+abs(dy) <= reach) of any building of kind 'fence'. "
+                   "A guarded nest loses nothing. NOTE: state is a DICT with a 'buildings' key, not a bare "
+                   "list. Pure Python returning an int."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="2 bread per UNGUARDED nest; guarded nests lose nothing",
+                                    stage=Stage.B, rubric_ref="onepond/predloss"),
+            ],
+            behavior=[
+                {"module": "predator_loss.py",
+                 "call": "predator_loss({'buildings': [{'kind':'nest','x':0,'y':0}]}, 2)", "expect": 2},
+                {"module": "predator_loss.py",
+                 "call": "predator_loss({'buildings': [{'kind':'nest','x':0,'y':0},{'kind':'fence','x':1,'y':0}]}, 2)",
+                 "expect": 0},
+                {"module": "predator_loss.py",
+                 "call": "predator_loss({'buildings': [{'kind':'nest','x':0,'y':0},{'kind':'nest','x':9,'y':9},{'kind':'fence','x':1,'y':0}]}, 2)",
+                 "expect": 2},
+                {"module": "predator_loss.py", "call": "predator_loss({'buildings': []}, 2)", "expect": 0},
+            ]),
     ]
     for t in tickets:
         t.freeze()
