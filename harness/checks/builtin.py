@@ -61,11 +61,12 @@ def default_registry(lock_dir: Path):
     """
     from harness.checks.registry import Registry
     from harness.checks.behavior import PythonBehaviorCheck
-    from harness.checks.code import PythonSyntaxCheck, JsonValidCheck
+    from harness.checks.code import PythonSyntaxCheck, JsonValidCheck, NoStubContentCheck
 
     reg = Registry(lock_dir)
     reg.register(NonEmptyArtifactCheck())      # STATIC, first — cheapest reject
     reg.register(PythonSyntaxCheck())          # STATIC
+    reg.register(NoStubContentCheck())         # STATIC — reject placeholder/template stubs that compile
     reg.register(JsonValidCheck())             # STATIC
     reg.register(PythonBehaviorCheck())        # DYNAMIC — exact-output gate (SKIP unless ticket.behavior)
     for check in _optional_image_checks():     # STRUCTURAL / DYNAMIC, only if Pillow present
