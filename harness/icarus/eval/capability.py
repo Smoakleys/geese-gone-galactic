@@ -211,6 +211,46 @@ def gen_read_sum(rng: Random) -> TaskInstance:
         "sums the integers, and prints the total. Run it to verify.", verify, setup=setup)
 
 
+def gen_read_max(rng: Random) -> TaskInstance:
+    # input-reading (non-hardcodable): the numbers vary per instance, so the solution MUST read + compute.
+    nums = [rng.randint(-40, 60) for _ in range(rng.randint(4, 8))]
+
+    def setup(ws: Path) -> None:
+        (ws / "numbers.txt").write_text("\n".join(str(n) for n in nums) + "\n")
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        try:
+            rc, out, err = _run_py(ws, "solution.py")
+        except Exception as e:
+            return False, f"could not run solution.py: {e}"
+        return out == str(max(nums)), f"expected max {max(nums)}, got {out!r}"
+
+    return TaskInstance(
+        f"readmax_{max(nums)}_{len(nums)}", "multi-file",
+        "The file numbers.txt has one integer per line (some may be negative). Write solution.py that reads "
+        "numbers.txt and prints the LARGEST integer. Run it to verify.", verify, setup=setup)
+
+
+def gen_read_evens(rng: Random) -> TaskInstance:
+    nums = [rng.randint(1, 99) for _ in range(rng.randint(5, 9))]
+    evens = sum(1 for n in nums if n % 2 == 0)
+
+    def setup(ws: Path) -> None:
+        (ws / "numbers.txt").write_text("\n".join(str(n) for n in nums) + "\n")
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        try:
+            rc, out, err = _run_py(ws, "solution.py")
+        except Exception as e:
+            return False, f"could not run solution.py: {e}"
+        return out == str(evens), f"expected {evens} evens, got {out!r}"
+
+    return TaskInstance(
+        f"readevens_{evens}_{len(nums)}", "multi-file",
+        "The file numbers.txt has one integer per line. Write solution.py that reads numbers.txt and prints "
+        "HOW MANY of the integers are even. Run it to verify.", verify, setup=setup)
+
+
 def gen_find_secret(rng: Random) -> TaskInstance:
     token = "".join(rng.choice("ABCDEFGHJKLMNPQRSTUVWXYZ23456789") for _ in range(8))
     n_noise = rng.randint(15, 30)
@@ -662,7 +702,8 @@ def gen_pond_from_template(rng: Random) -> TaskInstance:
 
 def default_generators() -> "list[Callable[[Random], TaskInstance]]":
     return [gen_sum, gen_reverse, gen_json, gen_fizzbuzz,
-            gen_fix_bug, gen_fix_range_bug, gen_read_sum, gen_find_secret, gen_economy, gen_placement,
+            gen_fix_bug, gen_fix_range_bug, gen_read_sum, gen_read_max, gen_read_evens,
+            gen_find_secret, gen_economy, gen_placement,
             gen_pond_tick, gen_water_access, gen_predator_safety, gen_granary, gen_pond_score,
             gen_pond_outcome, gen_gdscript, gen_render, gen_bakery_scene]
 

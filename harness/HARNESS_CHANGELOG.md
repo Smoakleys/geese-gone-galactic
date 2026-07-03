@@ -549,3 +549,12 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   exec_tool dispatch: any tool exception now becomes a `ToolResult(False, "tool '<name>' errored: ...")` the
   agent reflects on + continues. Uniform (covers every tool, incl. ones without their own try/except).
   Regression test: a tool that raises PermissionError -> the run RETURNS a terminal state, never raises.
+
+## harness-mod-58 - Grow the procedural gym with non-hardcodable input-reading generators (Lever 1)
+- harness/icarus/eval/capability.py: added gen_read_max + gen_read_evens (read numbers.txt -> print the max
+  / count evens). Like gen_read_sum, the input is written per-instance by setup(), so the answer is UNKNOWN
+  at generation and the solution MUST read + compute generally -- it can't be shortcut to print(<literal>)
+  (the hardcoding class is_trivial_hardcode filters out). Registered in default_generators (the battery) +
+  LOGIC_GENERATORS (the procedural data gym, ops/generate_training_data.py). Grows the gym's breadth with
+  HIGH-QUALITY, real-code tasks -> richer, cleaner future SFT data for the fine-tune. Verifier test: a
+  general read-and-compute solution passes, a wrong one fails.
