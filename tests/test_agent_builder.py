@@ -112,6 +112,32 @@ def test_agentbuilder_router_selects_model_per_ticket(tmp_path):
     assert (tmp_path / "l" / "logic.py").exists()          # logic -> fast model
 
 
+def test_agentbuilder_runs_post_build_hook(tmp_path):
+    from pathlib import Path
+    calls = []
+
+    def hook(root):
+        calls.append(root)
+        (Path(root) / "scene.gd").write_text("extends Node3D\n")
+
+    replies = ['```tool\nname: write_file\npath: content.gd\nbody:\nfunc build(root):\n\tpass\n```',
+               '```tool\nname: finish\nsummary: x\n```']
+    t = Ticket(id="T", title="t", kind=TicketKind.SYSTEM, acceptance_criteria=[])
+    AgentBuilder(ScriptedAgentModel(replies), post_build=hook).build(
+        BuildPacket(ticket=t, writable_root=str(tmp_path)))
+    assert calls and (tmp_path / "scene.gd").exists()
+
+
+def test_materialize_templated_scene_composes_and_is_noop_when_present(tmp_path):
+    from game.godot.scene_template import materialize_templated_scene
+    (tmp_path / "content.gd").write_text("func build(root: Node3D) -> void:\n\tpass\n")
+    materialize_templated_scene(tmp_path)
+    scene = (tmp_path / "scene.gd").read_text()
+    assert "extends Node3D" in scene and "Camera3D" in scene and "func build" in scene
+    materialize_templated_scene(tmp_path)                 # no-op now that scene.gd exists
+    assert (tmp_path / "scene.gd").read_text() == scene
+
+
 def test_agentbuilder_requires_model_or_router():
     import pytest
     with pytest.raises(ValueError):

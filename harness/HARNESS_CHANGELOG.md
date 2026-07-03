@@ -421,3 +421,11 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   helper-based scene doesn't wrongly hit the offloaded 30B just because it says "camera". Open-ended
   visuals + debugging still route to the 30B. Locks in the speed win (fast templated scenes 4/4 @ ~19s).
   Test covers templated->fast vs open-ended->big. 240 tests.
+
+## harness-mod-40 - Post-build hook: templated scenes flow into the live commit pipeline
+- harness/icarus/agent_builder.py: AgentBuilder gains a generic post_build(artifact_dir) hook (runs after
+  the agent, before gating; failures non-fatal) -- keeps the harness game-agnostic.
+- game/godot/scene_template.py: materialize_templated_scene composes a templated content.gd -> full
+  scene.gd (no-op if scene.gd exists / no build content). default_icarus_builder wires it as post_build.
+  So a templated scene ticket: Icarus writes content.gd (fast model) -> composed to scene.gd -> gated by
+  godot_parse/godot_render -> committed. Tests cover the hook + compose. 242 tests.

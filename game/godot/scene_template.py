@@ -10,6 +10,8 @@ The fast gpt-oss:20b can then build real scenes ~3-5x faster. This is a curated 
 
 from __future__ import annotations
 
+from pathlib import Path
+
 # 4-space indented on purpose: the local models emit 4-space GDScript, and a scene may not mix tabs and
 # spaces. compose_scene normalises the content to match so the wrapped file always has one indent style.
 _HEAD = '''extends Node3D
@@ -71,3 +73,20 @@ def compose_scene(build_gd: str) -> str:
         indented = "\n".join(("    " + ln) if ln.strip() else ln for ln in body.splitlines())
         body = "func build(root: Node3D) -> void:\n" + indented
     return _HEAD + body + "\n"
+
+
+def materialize_templated_scene(artifact_dir: "Path | str") -> None:
+    """Post-build hook: if Icarus wrote a ``func build(root)`` (templated content) but no full
+    ``scene.gd``, compose one from it + the camera template so the standard Godot checks gate a complete
+    scene. No-op if a scene.gd already exists or no build() content is found (harmless on any artifact)."""
+    d = Path(artifact_dir)
+    if (d / "scene.gd").exists():
+        return
+    for p in sorted(d.rglob("*.gd")):
+        try:
+            text = p.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        if "func build" in text:
+            (d / "scene.gd").write_text(compose_scene(text), encoding="utf-8")
+            return

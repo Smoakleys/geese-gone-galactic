@@ -83,7 +83,7 @@ def visual_router(fast: AgentModel, big: AgentModel) -> ModelRouter:
 class AgentBuilder(Builder):
     def __init__(self, model: "Optional[AgentModel]" = None, *,
                  router: "Optional[ModelRouter]" = None, vision: "Optional[VisionModel]" = None,
-                 notebook: "Optional[Notebook]" = None, render_fn=None,
+                 notebook: "Optional[Notebook]" = None, render_fn=None, post_build=None,
                  max_steps: int = 16, run_timeout: float = 90.0, use_notebook: bool = True) -> None:
         if model is None and router is None:
             raise ValueError("AgentBuilder needs a model or a router")
@@ -92,6 +92,9 @@ class AgentBuilder(Builder):
         self._vision = vision
         self._notebook = notebook
         self._render_fn = render_fn
+        # post_build(artifact_dir) runs after the agent finishes, before gating -- a generic hook so the
+        # harness stays game-agnostic (e.g. compose a templated content.gd into a full scene.gd).
+        self._post_build = post_build
         self._max_steps = max_steps
         self._run_timeout = run_timeout
         self._use_notebook = use_notebook
@@ -111,6 +114,12 @@ class AgentBuilder(Builder):
                            max_steps=self._max_steps, run_timeout=self._run_timeout,
                            vision=self._vision, notebook=self._notebook,
                            use_notebook=self._use_notebook, render_fn=self._render_fn)
+
+        if self._post_build is not None:
+            try:
+                self._post_build(root)          # e.g. compose a templated content.gd -> scene.gd
+            except Exception:
+                pass                            # a post-build failure is not a crash; gating still runs
 
         log = root / _LOG_NAME
         self._write_decision_log(log, result, packet.defects)
