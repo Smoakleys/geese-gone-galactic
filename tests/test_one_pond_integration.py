@@ -221,6 +221,23 @@ def test_defense_planning_utilities_compose():
     assert nearest_fence((8, 8), fences) == (1, 0)                      # the far nest's only (distant) fence
 
 
+def test_events_and_affordability_in_a_playthrough():
+    # the newer mechanics compose: affordability gates building, events swing the economy, rank tracks it.
+    from game.pond import apply_event, affordable_buildings, pond_rank, pond_score
+    state = {"bread": 5, "buildings": []}
+    assert "bakery" in affordable_buildings(state["bread"])       # 5 bread affords everything
+
+    state = apply_event(state, "harvest")                         # +10
+    assert state["bread"] == 15
+    state["buildings"] = [{"kind": "bakery", "x": 0, "y": 0}, {"kind": "granary", "x": 1, "y": 0}]
+
+    good = pond_rank(pond_score(state))                           # bread 15 + 10 + 5 = 30 -> village
+    state = apply_event(state, "fox")                             # -5, a setback
+    assert state["bread"] == 10
+    assert good == "village"
+    assert pond_rank(pond_score(state)) == "village"             # 10 + 15 = 25, still village
+
+
 def _nests_and_fences(state):
     nests = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "nest"]
     fences = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "fence"]
