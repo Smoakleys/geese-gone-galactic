@@ -28,51 +28,74 @@ REACH = 2
 _SLOTS = [(x, y) for y in range(GRID) for x in range(GRID)]
 
 
+def run_command(state: dict, text: str) -> "tuple[dict, str]":
+    """Process ONE command against ``state`` -> (new_state, message). The single dispatch shared by the
+    scripted ``play`` and the interactive loop."""
+    verb, target = parse_command(text)
+    if verb == "build" and target:
+        for x, y in _SLOTS:
+            nxt = add_building(state, target, x, y, GRID)
+            if len(nxt["buildings"]) > len(state["buildings"]):
+                return nxt, f"built {target}"
+        return state, f"no free cell for {target}"
+    if verb == "event" and target:
+        state = apply_event(state, target)
+        return state, f"event: {target} -> {state['bread']} bread"
+    if verb == "tick":
+        state = step(state)
+        return state, f"ticked -> {state['bread']} bread"
+    if verb == "status":
+        st = pond_status(state, REACH)
+        return state, report(state["bread"], pond_rank(pond_score(state)), st["safe"])
+    if verb == "render":
+        from game.godot.pond_view import render_pond_state
+        png = target or "pond.png"
+        ok, detail = render_pond_state(state, png)
+        return state, (f"rendered -> {png}" if ok else f"render skipped: {detail}")
+    if verb == "save":
+        from game.pond import serialize_pond
+        path = Path(target or "pond.save")
+        path.write_text(serialize_pond(state), encoding="utf-8")
+        return state, f"saved -> {path}"
+    if verb == "load":
+        from game.pond import deserialize_pond
+        path = Path(target or "pond.save")
+        if path.is_file():
+            state = deserialize_pond(path.read_text(encoding="utf-8").strip())
+            return state, f"loaded <- {path} ({state['bread']} bread, {len(state['buildings'])} buildings)"
+        return state, f"no save file: {path}"
+    return state, f"unknown command: {text!r}"
+
+
 def play(commands: "list[str]", verbose: bool = True) -> dict:
     state: dict = {"bread": 30, "buildings": []}
     for text in commands:
-        verb, target = parse_command(text)
-        if verb == "build" and target:
-            for x, y in _SLOTS:
-                nxt = add_building(state, target, x, y, GRID)
-                if len(nxt["buildings"]) > len(state["buildings"]):
-                    state = nxt
-                    break
-            msg = f"built {target}"
-        elif verb == "event" and target:
-            state = apply_event(state, target)
-            msg = f"event: {target} -> {state['bread']} bread"
-        elif verb == "tick":
-            state = step(state)
-            msg = f"ticked -> {state['bread']} bread"
-        elif verb == "status":
-            st = pond_status(state, REACH)
-            msg = report(state["bread"], pond_rank(pond_score(state)), st["safe"])
-        elif verb == "render":
-            # "see it": render the CURRENT pond to a lit 3D image (the command interface -> the renderer)
-            from game.godot.pond_view import render_pond_state
-            png = target or "pond.png"
-            ok, detail = render_pond_state(state, png)
-            msg = f"rendered -> {png}" if ok else f"render skipped: {detail}"
-        elif verb == "save":
-            from game.pond import serialize_pond
-            path = Path(target or "pond.save")
-            path.write_text(serialize_pond(state), encoding="utf-8")
-            msg = f"saved -> {path}"
-        elif verb == "load":
-            from game.pond import deserialize_pond
-            path = Path(target or "pond.save")
-            if path.is_file():
-                state = deserialize_pond(path.read_text(encoding="utf-8").strip())
-                msg = f"loaded <- {path} ({state['bread']} bread, {len(state['buildings'])} buildings)"
-            else:
-                msg = f"no save file: {path}"
-        else:
-            msg = f"unknown command: {text!r}"
+        state, msg = run_command(state, text)
         if verbose:
             print(f"> {text:<16} {msg}")
     return state
 
 
+def interactive() -> None:  # pragma: no cover - a stdin loop, not unit-tested
+    """Play One Pond by typing commands live. 'quit' exits. This is the actual playable game loop."""
+    state: dict = {"bread": 30, "buildings": []}
+    print("One Pond -- commands: build <kind> | event harvest/fox/flood | tick | status | "
+          "render <file> | save/load <file> | quit")
+    while True:
+        try:
+            line = input("pond> ").strip()
+        except EOFError:
+            break
+        if line in ("quit", "exit"):
+            break
+        if line:
+            state, msg = run_command(state, line)
+            print(msg)
+
+
 if __name__ == "__main__":
-    play(["build bakery", "build well", "event harvest", "tick", "tick", "status"])
+    import sys
+    if "--interactive" in sys.argv or "-i" in sys.argv:
+        interactive()                       # play live: type commands
+    else:
+        play(["build bakery", "build well", "event harvest", "tick", "tick", "status"])   # scripted demo

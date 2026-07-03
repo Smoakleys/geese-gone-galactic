@@ -40,3 +40,14 @@ def test_save_and_load_commands_round_trip(tmp_path):
     reloaded = play([f"load {save}", "tick"], verbose=False)   # fresh session loads the save, then ticks
     assert len(reloaded["buildings"]) == 2                      # bakery + nest recovered
     assert reloaded["bread"] == played["bread"] + 2             # continued from save: +3 bakery, -1 nest
+
+
+def test_run_command_dispatches_one_command():
+    from ops.play_commands import run_command
+    state = {"bread": 10, "buildings": []}
+    state, msg = run_command(state, "build bakery")
+    assert len(state["buildings"]) == 1 and "built bakery" in msg
+    state, msg = run_command(state, "tick")
+    assert state["bread"] == 13 and "ticked" in msg          # +3 bakery
+    _, msg = run_command(state, "wobble")                     # unknown verb -> graceful message
+    assert "unknown command" in msg
