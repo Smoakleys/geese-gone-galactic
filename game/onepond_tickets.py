@@ -109,8 +109,8 @@ def one_pond_tickets() -> "list[Ticket]":
                    "newline-separated GDScript statements that, for each building, call "
                    "add_box(root, Vector3(1, 1, 1), COLOR, Vector3(x * 2, 0.5, y * 2)) where COLOR is "
                    "Color(0.5, 0.3, 0.1) for 'bakery', Color(0.8, 0.7, 0.4) for 'nest', "
-                   "Color(0.5, 0.5, 0.5) for 'fence', else Color.WHITE. Pure Python returning a string; "
-                   "no Godot needed."),
+                   "Color(0.5, 0.5, 0.5) for 'fence', Color(0.7, 0.5, 0.2) for 'granary', else Color.WHITE. "
+                   "Pure Python returning a string; no Godot needed."),
             kind=TicketKind.SYSTEM,
             acceptance_criteria=[
                 AcceptanceCriterion(id="AC1", text="valid python (parses)",
@@ -119,6 +119,15 @@ def one_pond_tickets() -> "list[Ticket]":
                                     "(chr 10) so each add_box is on its OWN line -- a literal backslash-n "
                                     "string is a BUG -- one statement per building with the right colour + "
                                     "grid position", stage=Stage.B, rubric_ref="onepond/scene"),
+            ],
+            behavior=[
+                {"module": "pond_scene.py",
+                 "call": "len([l for l in build_body([{'kind':'bakery','x':0,'y':0},{'kind':'nest','x':1,'y':1}]).split(chr(10)) if 'add_box' in l])",
+                 "expect": 2},
+                {"module": "pond_scene.py",
+                 "call": "'0.7, 0.5, 0.2' in build_body([{'kind':'granary','x':0,'y':0}])", "expect": True},
+                {"module": "pond_scene.py",
+                 "call": "'0.5, 0.3, 0.1' in build_body([{'kind':'bakery','x':0,'y':0}])", "expect": True},
             ]),
         Ticket(
             id="OP-7",
