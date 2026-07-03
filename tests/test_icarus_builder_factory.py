@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from game.icarus_builder import default_icarus_builder
+from game.icarus_builder import default_icarus_builder, default_reviewer
 
 
 def test_default_icarus_builder_is_routed_and_equipped(tmp_path):
@@ -15,3 +15,10 @@ def test_default_icarus_builder_is_routed_and_equipped(tmp_path):
     assert b._vision is not None
     assert "look_at" in b._notebook.read()
     assert (tmp_path / "godot_notebook.md").exists()
+
+
+def test_default_reviewer_is_a_local_llm_reviewer():
+    from harness.review.base import Reviewer
+    r = default_reviewer()
+    assert isinstance(r, Reviewer)
+    assert "gpt-oss:20b" in r.id           # a real local model, not the stub
