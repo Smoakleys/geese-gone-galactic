@@ -632,3 +632,10 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   (fixtures/no_stub_content/*), registered in default_registry after python_syntax. Complements agent-side
   mod-64 (which rejects a `<...>` WRITE body) by catching the class -- incl. placeholder PHRASES -- at the
   final gate too. Tested through run_stage_a (registry path, per ggg-test-checks-through-registry).
+
+## harness-mod-67 - Expand the procedural gym: gen_fib (algorithm/recursion task type, plan Task #3)
+- harness/icarus/eval/capability.py: added gen_fib, a parameterized "print the Nth Fibonacci number" task
+  with a deterministic verifier, registered in default_generators (now 24). Covers an ALGORITHMIC/recursion
+  capability the battery lacked (it had arithmetic/strings/IO/game-logic but no algorithm type) -> better
+  generalization coverage + anti-memorization (n varies per instance). The plan calls the procedural gym
+  "the biggest gap"; this is a step. Tested: verifier passes correct fib(n), fails wrong.

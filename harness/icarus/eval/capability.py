@@ -101,6 +101,27 @@ def gen_reverse(rng: Random) -> TaskInstance:
         f"before finishing.", verify)
 
 
+def gen_fib(rng: Random) -> TaskInstance:
+    n = rng.randint(10, 25)
+    a, b = 0, 1
+    for _ in range(n):
+        a, b = b, a + b
+    want = a                                            # the nth Fibonacci number, fib(0)=0, fib(1)=1
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        try:
+            rc, out, err = _run_py(ws, "solution.py")
+        except Exception as e:
+            return False, f"could not run solution.py: {e}"
+        return out == str(want), f"expected fib({n})={want}, got {out!r} (rc={rc}{'; ' + err[:80] if err else ''})"
+
+    return TaskInstance(
+        f"fib_{n}", "algorithm",
+        f"Write solution.py that prints exactly the {n}th Fibonacci number, where fib(0)=0, fib(1)=1, "
+        f"fib(2)=1, fib(3)=2, and so on (print only the integer, nothing else). Run it with "
+        f"`python solution.py` to verify before finishing.", verify)
+
+
 def gen_json(rng: Random) -> TaskInstance:
     x, y = rng.randint(1, 100), rng.randint(1, 100)
 
@@ -747,7 +768,7 @@ def gen_pond_from_template(rng: Random) -> TaskInstance:
 
 
 def default_generators() -> "list[Callable[[Random], TaskInstance]]":
-    return [gen_sum, gen_reverse, gen_json, gen_fizzbuzz,
+    return [gen_sum, gen_reverse, gen_fib, gen_json, gen_fizzbuzz,
             gen_fix_bug, gen_fix_range_bug, gen_read_sum, gen_read_max, gen_read_evens, gen_read_sorted, gen_grep_count,
             gen_find_secret, gen_economy, gen_placement,
             gen_pond_tick, gen_water_access, gen_predator_safety, gen_granary, gen_pond_score,
