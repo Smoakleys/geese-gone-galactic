@@ -110,8 +110,9 @@ def _tmp_png() -> str:
 
 
 def _page(session: GameSession, msg: "str | None" = None) -> bytes:
+    import html
     import time
-    msg = session.last_msg if msg is None else msg
+    msg = html.escape(session.last_msg if msg is None else msg)   # never reflect raw input into the page
     builds = "".join(f'<a class="btn" href="/act?do=build_{k}">Build {k.title()}</a>' for k in KINDS)
     events = "".join(f'<a class="btn ev" href="/act?do=event_{e}">{e.title()}</a>' for e in EVENTS)
     html = f"""<!doctype html><html><head><meta charset="utf-8"><title>One Pond</title>
