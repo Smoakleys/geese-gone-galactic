@@ -23,38 +23,31 @@ extend it; it's being replaced by the real Godot slice (see HANDOFF §4–5).
 - `harness/README.md` — how the structural core fits together.
 - `docs/CHECKS.md` — the current Stage-A gate catalog.
 
-## Current status
-- **Phase 0.5 (walking skeleton) COMPLETE** — governance thesis proven with stub
-  builder/reviewer at zero LLM/GPU cost.
-- **Phase 1 (real deterministic check runner) COMPLETE** — cost-tiered Stage A with real
-  code checks (Python-syntax, JSON) and CV checks (image loadable / min-resolution /
-  not-blank, via Pillow); checks emit metrics minted as ratchet floors.
-- **Phase 2 (reviewers + four teeth) COMPLETE** — `LLMReviewer` + multi-model
-  `ConsensusReviewer` behind a `ChatClient` seam (offline-scripted; Anthropic in prod),
-  reference-anchored CV visual gate validated on a labeled set, plateau detection in the loop,
-  hard-blocking cold audits, decision-log→new-check flywheel.
-- **Phase 3 (real Icarus + control surface) COMPLETE** — `LLMBuilder` behind a
-  `GenerationClient` seam; `control/` package with a durable `RunStore`, an `AutonomousRunner`
-  (auto escape-hatch on plateau, Pause/Stop-aware), and a stdlib read-only dashboard +
-  heartbeat. Runs unattended; intervention optional via Start/Stop/Pause.
-- **Phase 3.5 (text-to-3D worker seam) COMPLETE** — `harness/gen3d/` `MeshGenerator` seam,
-  curated-pack fallback, visual-gate-measured `select_generator`; real GPU worker is a drop-in.
-- **Phase 4 (One Pond through the harness) COMPLETE** — authoritative Python game model
-  (`game/onepond/`), game checks, ticket set + Icarus client, screenshot seam, and an e2e run
-  driving the ticket set to full acceptance at autonomy rate 1.0. Godot view is the drop-in.
-- **Flywheel + teeth wired and verified (beyond the base plan):** Stage C harvests recurring
-  subjective defects into `new_check`/`tighten_rubric` proposals (both halves demonstrated —
-  a harvested `auto_cohesion_check` and a tightened cohesion gate); the visual gate runs live in
-  Stage B (`OnePondVisualReviewer`); cold audits run periodically in the loop and hard-block on a
-  finding; the self-mod validator approved a real harness change (harness-mod-6). One Pond now
-  drives **6 tickets** (six building types: bakery/hatchery/granary/launchpad/fence/well; checks:
-  placement, solvency, launch, liveliness, predator-safety, cohesion, water-access) to acceptance
-  at autonomy 1.0.
-- **112 governance tests pass:** `pip install -r requirements.txt && python -m pytest tests/ -q`.
-- **All planned phases (0.5–4) are done in software.** Remaining work is external-hardware
-  swaps behind existing seams: real Godot+Xvfb screenshots, a GPU text-to-3D worker, and the
-  live Anthropic reviewer key. See `docs/AUTOPILOT.md` (kept current every increment) and
-  `docs/HANDOFF.md`.
+## Current status — v3 (Icarus agent, Pond era). READ docs/HANDOFF.md + docs/SCORECARD.md for live detail.
+The v1 governance skeleton below is DONE and archived; v3 built a real local *agent* and forged a real
+game with it. Where things stand:
+- **Icarus is a real agentic runtime** (`harness/icarus/agent/`): a plan→act→reflect loop with tools
+  (write/read/run/search/see-screenshot/render/notebook/finish), resilient parsing, working-memory trim.
+  `game/icarus_builder.py: default_icarus_builder()` wires model-routing (fast **gpt-oss:20b** for logic +
+  templated scenes; **qwen3:30b** for free-form visuals/debug) + a curated notebook + the render bridge.
+- **The gate is HARDENED** (`harness/checks/`): certified deterministic Stage-A checks — `python_syntax`,
+  `json_valid`, `godot_parse`, `godot_render`, and **`python_behavior`** (exact-output gating from a
+  ticket's `behavior` examples) — plus a **real local Stage-B reviewer** (`default_reviewer()` =
+  `LLMReviewer(OllamaChatClient)`, fail-closed). Commit authority still ONLY in `harness/gatekeeper.py`.
+- **One Pond is a real, playable game core built BY Icarus**: ten agent-built modules under a clean
+  `game/pond` API (economy w/ granary synergy, placement, sim, predator safety, granary, composed
+  economy, state→scene bridge, status, win/lose outcome) + rendered Godot scenes (`game/godot/scenes/`).
+  Every module is behaviour-locked by a test; integration tests drive place→tick→status→outcome→render.
+- **CAPSTONE**: the entire authored backlog (`game/onepond_tickets.py` OP-1..OP-9) committed **9/9 at
+  autonomy 1.0 in ~8 min, unattended** through the full gate. Honest UNAIDED north star = **10/12 = 0.83**
+  (all game-logic 4/4; only structural miss is complex 3D render on the 16GB-resident model).
+- **Speed solved**: the scene TEMPLATE (`game/godot/scene_template.py`) lets the fast resident model build
+  scenes ~19s instead of the offloaded 30B ~200s (see docs/SPEED.md). One live model run at a time (16GB).
+- **~287 tests pass:** `pip install -r requirements.txt && python -m pytest tests/ -q`.
+- **`game/onepond/` is the DEAD v1 python toy** (launchpad/military drift) — superseded by `game/pond`,
+  kept only because a few v1 governance tests (flywheel/phase4) still use it as a sample artifact. Do NOT
+  extend it. The v1 bullets that used to live here (Phases 0.5–4, 112 tests, 6 military building types)
+  described that toy and are archived in git history + the memory index.
 
 ## The one invariant to preserve
 Commit authority lives **only** in `harness/gatekeeper.py`. Builders write to gitignored
