@@ -66,3 +66,13 @@ def test_canonical_one_pond_scene_parses_and_renders(tmp_path):
     assert GodotParseCheck().run(tmp_path, _ticket()).result == Result.PASS
     render = GodotRenderCheck().run(tmp_path, _ticket())
     assert render.result == Result.PASS, render.evidence
+
+
+def test_full_multi_building_pond_scene_parses_and_renders(tmp_path):
+    # The full pond scene (land + water + several buildings), composed from the pond_scene bridge.
+    from pathlib import Path
+    asset = Path(__file__).resolve().parents[1] / "game" / "godot" / "scenes" / "one_pond_full.gd"
+    (tmp_path / "scene.gd").write_text(asset.read_text())
+    assert GodotParseCheck().run(tmp_path, _ticket()).result == Result.PASS
+    render = GodotRenderCheck().run(tmp_path, _ticket())
+    assert render.result == Result.PASS, render.evidence
