@@ -38,6 +38,16 @@ def _load(name: str):
     return None
 
 
+def _variant(kind: str, gx: float, gy: float) -> str:
+    """Pick a second variant sprite (`<kind>_b`) for ~half the positions if one exists, so repeated
+    buildings/trees don't all look identical. Deterministic by position; falls back to the base asset."""
+    if int(abs(gx * 2.0 + gy * 3.0)) % 2:
+        vb = f"{kind}_b"
+        if (ART_DIR / f"{vb}_cutout.png").is_file() or (ART_DIR / f"{vb}.png").is_file():
+            return vb
+    return kind
+
+
 def _scaled(name: str, target_h: int):
     im = _load(name)
     if im is None:
@@ -120,7 +130,7 @@ def compose_pond_art(state: dict, out_png: "str | Path", *, size: "tuple[int, in
 
     for gx, gy, kind in sorted(items, key=lambda t: t[0] + t[1]):
         sx, sy = screen(gx, gy)
-        spr = _scaled(kind, _SIZES.get(kind, 120))
+        spr = _scaled(_variant(kind, gx, gy), _SIZES.get(kind, 120))
         if spr is not None:
             if int(abs(gx * 3.0 + gy * 5.0)) % 2:     # deterministic mirror so identical props don't copy-paste
                 spr = spr.transpose(Image.FLIP_LEFT_RIGHT)
