@@ -14,6 +14,7 @@ from game.pond.granary import production
 from game.pond.nearest_fence import nearest_fence
 from game.pond.placement import is_valid
 from game.pond.parse_command import parse_command
+from game.pond.deserialize_pond import deserialize_pond
 from game.pond.serialize_pond import serialize_pond
 from game.pond.pond_event import apply_event
 from game.pond.pond_economy import tick_bread
@@ -37,5 +38,5 @@ __all__ = [
     "build_body", "pond_score", "pond_advice", "add_building", "step",
     "pond_status", "is_safe", "predator_loss", "has_water", "total_cost", "pond_rank", "goose_count",
     "report", "nearest_fence", "count_by_kind", "sorted_by_distance", "simulate_bread", "unique_kinds",
-    "affordable_buildings", "apply_event", "parse_command", "serialize_pond",
+    "affordable_buildings", "apply_event", "parse_command", "serialize_pond", "deserialize_pond",
 ]
