@@ -190,6 +190,22 @@ def test_game_scales_to_a_full_pond():
     assert pond_score(state) == 148 + 16 * 10            # bread + 16 bakeries * 10
 
 
+def test_a_pond_climbs_ranks_as_it_grows():
+    # progression is real: a productive pond's rank rises from village to city as its score grows.
+    from game.pond import pond_score, pond_rank
+    state = {"bread": 5, "buildings": []}
+    state = add_building(state, "bakery", 0, 0, 8)
+    state = add_building(state, "well", 1, 0, 8)
+    state = add_building(state, "granary", 0, 1, 8)
+    ranks = []
+    for _ in range(30):
+        state = step(state)                              # 1 bakery * (3 + 1 granary) = +4/tick
+        ranks.append(pond_rank(pond_score(state)))
+    assert ranks[0] == "village"                         # ~26 score early
+    assert ranks[-1] == "city"                           # climbed past 100
+    assert len(set(ranks)) >= 3                           # passed through several tiers
+
+
 def _nests_and_fences(state):
     nests = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "nest"]
     fences = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "fence"]
