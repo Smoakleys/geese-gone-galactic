@@ -7,6 +7,7 @@ placement + economy pieces work together over several ticks.
 from __future__ import annotations
 
 from game.pond.pond_state import add_building, step
+from game.pond.predator import is_safe
 
 
 def test_one_pond_mini_playthrough():
@@ -32,3 +33,22 @@ def test_one_pond_nests_can_starve_but_not_go_negative():
     for _ in range(5):
         state = step(state)
     assert state["bread"] == 0           # -1/tick, clamped at 0 (never negative)
+
+
+def _nests_and_fences(state):
+    nests = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "nest"]
+    fences = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "fence"]
+    return nests, fences
+
+
+def test_pond_placements_feed_predator_safety():
+    # place a nest next to a fence -> safe; a second nest far from any fence -> the pond is unsafe
+    state = {"bread": 0, "buildings": []}
+    state = add_building(state, "nest", 2, 2, 8)
+    state = add_building(state, "fence", 3, 2, 8)     # Manhattan distance 1 from the nest
+    nests, fences = _nests_and_fences(state)
+    assert is_safe(nests, fences, 2) is True
+
+    state = add_building(state, "nest", 7, 7, 8)       # far from the only fence
+    nests, fences = _nests_and_fences(state)
+    assert is_safe(nests, fences, 2) is False
