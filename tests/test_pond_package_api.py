@@ -13,6 +13,7 @@ def test_public_api_is_exported_and_callable():
     # a tiny composed smoke run through the package API
     state = {"bread": 5, "buildings": []}
     state = pond.add_building(state, "bakery", 0, 0, 8)
+    state = pond.add_building(state, "well", 1, 0, 8)   # water for the bakery (else 'dry')
     state = pond.step(state)                       # +3 bread
     assert state["bread"] == 8
     assert pond.pond_outcome(state, 2) == "thriving"
