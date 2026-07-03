@@ -159,6 +159,35 @@ def test_green_dominance_distinguishes_green_from_gray_and_black(tmp_path):
     assert green_dominance(mk("black.png", (0, 0, 0))) < 15      # black == blank
 
 
+def test_significant_colors_counts_regions(tmp_path):
+    # the deterministic "ground + a building" gate for the next breadth item (bakery scene)
+    from PIL import Image
+    from game.godot.capture import significant_colors
+
+    flat = tmp_path / "flat.png"
+    Image.new("RGB", (64, 64), (0, 255, 0)).save(flat)
+    assert significant_colors(flat) == 1                        # ground only
+
+    two = Image.new("RGB", (64, 64), (0, 255, 0))              # ground + background
+    for y in range(32):
+        for x in range(64):
+            two.putpixel((x, y), (100, 100, 100))
+    p2 = tmp_path / "two.png"
+    two.save(p2)
+    assert significant_colors(p2) == 2
+
+    three = Image.new("RGB", (60, 60), (100, 100, 100))        # bg + ground + a building
+    for y in range(20):
+        for x in range(60):
+            three.putpixel((x, y), (0, 255, 0))
+    for y in range(20, 40):
+        for x in range(60):
+            three.putpixel((x, y), (139, 69, 19))
+    p3 = tmp_path / "three.png"
+    three.save(p3)
+    assert significant_colors(p3) >= 3
+
+
 @pytest.mark.skipif(godot_path() is None, reason="Godot not installed")
 def test_gdscript_verifier(tmp_path):
     inst = gen_gdscript(Random(0))

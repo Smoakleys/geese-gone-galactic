@@ -78,3 +78,18 @@ def image_variance(png: Path) -> float:
     """Max per-channel pixel std-dev (a 'has structure' signal, distinct from blank/not-blank)."""
     from PIL import Image, ImageStat
     return max(ImageStat.Stat(Image.open(png).convert("RGB")).stddev)
+
+
+def significant_colors(png: Path, min_fraction: float = 0.04, quant: int = 48) -> int:
+    """Count distinct (coarsely-quantised) colours each covering >= ``min_fraction`` of the image.
+
+    A flat fill is 1; a ground plane on the default background is 2; a ground WITH a distinctly-coloured
+    building on it is 3+. The deterministic 'the scene has more than just the ground' signal that gates
+    multi-object renders (e.g. a bakery box on the pond)."""
+    from collections import Counter
+
+    from PIL import Image
+    im = Image.open(png).convert("RGB")
+    total = im.width * im.height
+    counts = Counter((r // quant, g // quant, b // quant) for r, g, b in im.getdata())
+    return sum(1 for n in counts.values() if n >= min_fraction * total)
