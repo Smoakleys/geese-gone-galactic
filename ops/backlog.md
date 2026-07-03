@@ -47,9 +47,13 @@ Icarus improvement** (keep only if the unaided battery score rises).
 ## Now — optional; the mission is comprehensively proven. Pick by value.
 - [ ] **More authored One Pond tickets** — one Icarus ticket per cycle (population/capacity, a market,
       richer outcome), each pinned + behaviour-gated + green-verified.
-- [ ] **Retire the python economy toy** (`game/onepond`) — DEFERRED, genuinely risky: 3 v1 governance
-      tests (flywheel×2, phase4) still use it as a sample artifact. Now clearly DOCUMENTED as dead
-      (CLAUDE.md, README) so it can't mislead; safe deletion needs migrating those tests first.
+- [x] **Retire the python economy toy** (`game/onepond`) — DECIDED: KEEP IT, documented-as-dead. Investigated
+      (2026-07-03): its 3 dependent tests are ~914 lines (`test_phase4_onepond` alone is 680) that exercise
+      real HARNESS governance — the check registry, flywheel harvest, cold audits, the ratchet — using the
+      toy only as a sample artifact. Deleting it would LOSE that coverage. The original motivation (score
+      inflation) is MOOT: the scorecard is now the separate unaided battery, not the toy. So retiring is
+      net-negative (loses harness coverage, risky migration, zero benefit). It's clearly labelled dead in
+      CLAUDE.md + README so it can't mislead; do NOT extend it, but leave it as governance-test scaffolding.
 - [ ] **Advance the UNAIDED battery number** (the true north star) — hard: it's now largely model-limited
       on the 16GB card; any harness change kept ONLY if unaided rises.
 
