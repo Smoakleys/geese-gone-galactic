@@ -36,6 +36,12 @@ unattended. A Godot scene (OP-1, templated/fast) + eight logic modules, each gat
 + behavioural examples, one passing only after a gate-forced rework. The whole game backlog builds and
 commits cleanly under the complete gate — the culminating end-to-end proof.
 
+**RE-VALIDATED on the deepened backlog: 11/11 @ autonomy 1.0 in 561s.** After the game grew from 9 to 11
+tickets (water-access + well colour), the full OP-1..OP-11 backlog again committed through the full gate
+unattended. OP-11 landed after a couple of reviewer-driven rework rounds (its behaviour passed throughout;
+the subjective reviewer added friction before accepting) — the gate holding a high bar, autonomy still 1.0
+within `max_rounds`. The deeper game holds up end-to-end.
+
 ## Honest reading
 Icarus writes fresh logic well — all four One Pond mechanics unaided — and, via model routing, builds
 the game's visuals. Its **standing weakness is debugging existing broken code**.
