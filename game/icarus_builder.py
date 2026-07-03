@@ -15,6 +15,7 @@ from pathlib import Path
 
 from game.godot.capture import render_gdscript
 from game.godot.lessons import godot_working_notebook
+from game.godot.scene_template import materialize_templated_scene
 from harness.icarus.agent.ollama import OllamaAgentModel
 from harness.icarus.agent.vision import OllamaVisionModel
 from harness.icarus.agent_builder import AgentBuilder, visual_router
@@ -34,4 +35,5 @@ def default_icarus_builder(workdir, *, fast: str = "gpt-oss:20b", big: str = "qw
         vision=OllamaVisionModel(),
         notebook=godot_working_notebook(workdir),
         render_fn=render_gdscript,
+        post_build=materialize_templated_scene,   # compose templated content.gd -> scene.gd before gating
         max_steps=max_steps, run_timeout=run_timeout)
