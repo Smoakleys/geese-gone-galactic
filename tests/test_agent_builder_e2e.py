@@ -54,3 +54,36 @@ def test_agentbuilder_gdscript_passes_godot_parse(tmp_path):
     result = AgentBuilder(ScriptedAgentModel(replies)).build(packet)
     stage_a = registry.run_stage_a(Path(result.artifact_dir), ticket)
     assert stage_a_passed(stage_a), [(r.check_id, r.result.value, r.evidence) for r in stage_a]
+
+
+@pytest.mark.skipif(godot_path() is None, reason="Godot not installed")
+def test_agentbuilder_gdscript_commits_through_full_loop(tmp_path, git_repo):
+    # THE CAPSTONE: Icarus (AgentBuilder) -> Stage A (godot_parse) -> Stage B (reviewer) ->
+    # Gatekeeper COMMIT. Proves the agent's work flows through the whole gate to a committed artifact.
+    from harness.gatekeeper import Gatekeeper
+    from harness.loop import Loop
+    from harness.review.base import StubReviewer
+    from game.godot.checks import GodotParseCheck
+
+    registry = Registry(tmp_path / "lock")
+    registry.register(GodotParseCheck())
+    registry.certify_all()
+    ticket = Ticket(
+        id="T-GD-CAP", title="a Godot 4 scene.gd", kind=TicketKind.SYSTEM,
+        acceptance_criteria=[
+            AcceptanceCriterion(id="AC1", text="scene.gd parses", stage=Stage.A, check_hint="godot_parse"),
+            AcceptanceCriterion(id="AC2", text="reads as a scene", stage=Stage.B, rubric_ref="x"),
+        ])
+    ticket.freeze()
+    replies = [
+        "```tool\nname: write_file\npath: scene.gd\nbody:\n"
+        "extends Node3D\nfunc _ready() -> void:\n\tadd_child(Camera3D.new())\n```",
+        "```tool\nname: finish\nsummary: done\n```",
+    ]
+    loop = Loop(
+        repo_root=git_repo, builder=AgentBuilder(ScriptedAgentModel(replies)),
+        reviewer=StubReviewer(lambda r: True), registry=registry,
+        gatekeeper=Gatekeeper(git_repo, ratchet_dir=tmp_path / "ratchet"),
+        staging_root=tmp_path / "staging", max_rounds=2)
+    result = loop.run_ticket(ticket)
+    assert result.committed, result
