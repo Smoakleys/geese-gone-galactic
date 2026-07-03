@@ -444,6 +444,44 @@ def gen_pond_score(rng: Random) -> TaskInstance:
         verify)
 
 
+def gen_pond_outcome(rng: Random) -> TaskInstance:
+    """The layered win/lose evaluation (a composed One Pond rule): bread -> water -> safety -> thriving."""
+    n = 8
+    reach = rng.randint(2, 3)
+    bread = rng.choice([0, rng.randint(1, 20), rng.randint(1, 20)])       # sometimes 0 (lost)
+    kinds = ("bakery", "well", "nest", "fence", "granary")
+    blds = [(rng.choice(kinds), rng.randint(0, n - 1), rng.randint(0, n - 1))
+            for _ in range(rng.randint(2, 5))]
+
+    def near(px: int, py: int, kind: str) -> bool:
+        return any(abs(px - x) + abs(py - y) <= reach for k, x, y in blds if k == kind)
+
+    if bread <= 0:
+        expected = "lost"
+    elif any(not near(x, y, "well") for k, x, y in blds if k == "bakery"):
+        expected = "dry"
+    elif any(not near(x, y, "fence") for k, x, y in blds if k == "nest"):
+        expected = "unsafe"
+    else:
+        expected = "thriving"
+    bstr = "; ".join(f"{k} at ({x},{y})" for k, x, y in blds)
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        try:
+            rc, out, err = _run_py(ws, "outcome.py")
+        except Exception as e:
+            return False, f"could not run outcome.py: {e}"
+        return out.strip() == expected, f"expected {expected}, got {out.strip()!r}"
+
+    return TaskInstance(
+        f"pondoutcome_{rng.randint(1000, 9999)}_{expected}", "game-logic",
+        f"A goose pond has {bread} bread and these buildings: {bstr}. Manhattan distance is |dx|+|dy|. "
+        f"Evaluate the pond and print ONLY ONE word, checking IN THIS ORDER: 'lost' if bread <= 0; else "
+        f"'dry' if any bakery has NO well within distance {reach}; else 'unsafe' if any nest has NO fence "
+        f"within distance {reach}; else 'thriving'. Write outcome.py and run it to verify.",
+        verify)
+
+
 def gen_gdscript(rng: Random) -> TaskInstance:
     """The real domain: write valid Godot 4 GDScript, self-verifiable via godot --check-only."""
     n = rng.randint(2, 4)
@@ -626,7 +664,7 @@ def default_generators() -> "list[Callable[[Random], TaskInstance]]":
     return [gen_sum, gen_reverse, gen_json, gen_fizzbuzz,
             gen_fix_bug, gen_fix_range_bug, gen_read_sum, gen_find_secret, gen_economy, gen_placement,
             gen_pond_tick, gen_water_access, gen_predator_safety, gen_granary, gen_pond_score,
-            gen_gdscript, gen_render, gen_bakery_scene]
+            gen_pond_outcome, gen_gdscript, gen_render, gen_bakery_scene]
 
 
 def sample_battery(seed: int = 0, per_generator: int = 1,
