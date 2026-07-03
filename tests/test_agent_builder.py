@@ -73,6 +73,16 @@ def test_model_router_routes_visual_to_big():
     assert r.for_task("simulate the bread economy and print the total").model_id == "fast"
 
 
+def test_model_router_routes_debugging_to_big():
+    # measured: the 30B fixes debugging (4/4) where the fast model doesn't (2/4) -> route fix-it to big
+    fast = _model("fast", [])
+    big = _model("big", [])
+    r = visual_router(fast, big)
+    assert r.for_task("solution.py is BROKEN; read it, fix the bug, and run it").model_id == "big"
+    assert r.for_task("it has an off-by-one bug and prints the wrong value").model_id == "big"
+    assert r.for_task("write code that prints the sum of two numbers").model_id == "fast"
+
+
 def test_agentbuilder_router_selects_model_per_ticket(tmp_path):
     fast = _model("fast", ['```tool\nname: write_file\npath: logic.py\nbody:\nprint(1)\n```',
                            '```tool\nname: finish\nsummary: x\n```'])

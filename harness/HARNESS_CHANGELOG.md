@@ -383,3 +383,10 @@ without a matching entry. Reverts are one command via the token in `harness/reve
 - harness/icarus/eval/capability.py: gen_fix_range_bug - a DIFFERENT debugging task (fix an off-by-one
   range bug summing 1..n, vs fix_bug's wrong-operator bug), so the scorecard's debugging weakness can be
   read as general vs one-bug-type. On the default battery. Regression test covers the verifier. 230 tests.
+
+## harness-mod-35 - Route debugging to the 30B (measured win: 4/4 vs 2/4)
+- Confirmed the scorecard's debugging lever: qwen3:30b scores 4/4 on the same fix-it seeds where
+  gpt-oss:20b scores 2/4 -- model SIZE is the lever, same as visuals.
+- harness/icarus/agent_builder.py: visual_router now also routes debug/fix-it keywords (_DEBUG_KEYWORDS)
+  to the big model, so AgentBuilder / default_icarus_builder send debugging tickets to the 30B. Kept per
+  the plan (unaided debugging 2/4 -> 4/4 when routed). Test covers debug routing. 231 tests.
