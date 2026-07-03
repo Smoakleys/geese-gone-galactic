@@ -418,6 +418,28 @@ def one_pond_tickets() -> "list[Ticket]":
                 {"module": "pond_report.py", "call": "report(100, 'city', True)",
                  "expect": "Pond: 100 bread, rank city, safe"},
             ]),
+        Ticket(
+            id="OP-19",
+            title=("nearest_fence.py: find the closest fence to a nest. nearest_fence(nest, fences) takes "
+                   "a nest (x, y) tuple and a list of fence (x, y) tuples, and returns the fence tuple with "
+                   "the SMALLEST Manhattan distance (abs(dx)+abs(dy)) to the nest. On a tie, return the "
+                   "EARLIEST such fence in the list. Return None if the fence list is empty. Pure Python."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="returns the min-Manhattan-distance fence (earliest on "
+                                    "tie), or None if empty", stage=Stage.B, rubric_ref="onepond/nearest"),
+            ],
+            behavior=[
+                {"module": "nearest_fence.py", "call": "nearest_fence((0, 0), [(3, 0), (0, 2)])",
+                 "expect": (0, 2)},
+                {"module": "nearest_fence.py", "call": "nearest_fence((5, 5), [(5, 4), (0, 0)])",
+                 "expect": (5, 4)},
+                {"module": "nearest_fence.py", "call": "nearest_fence((0, 0), [(1, 0), (0, 1)])",
+                 "expect": (1, 0)},
+                {"module": "nearest_fence.py", "call": "nearest_fence((0, 0), [])", "expect": None},
+            ]),
     ]
     for t in tickets:
         t.freeze()
