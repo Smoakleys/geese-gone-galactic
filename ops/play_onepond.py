@@ -13,7 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from game.pond import (  # noqa: E402  (path set above)
-    add_building, pond_advice, pond_outcome, pond_score, pond_status, step,
+    add_building, pond_advice, pond_outcome, pond_score, pond_status, predator_loss, step,
 )
 
 REACH = 2
@@ -32,6 +32,7 @@ def _run(plan: "list[tuple[str, int, int]]", start_bread: int, verbose: bool) ->
         print("  --- running 3 ticks ---")
     for _ in range(3):
         state = step(state)
+        state["bread"] = max(state["bread"] - predator_loss(state, REACH), 0)   # predators eat too
     if verbose:
         st = pond_status(state, REACH)
         print(f"  bread={state['bread']}  safe={st['safe']}  score={pond_score(state)}  "
