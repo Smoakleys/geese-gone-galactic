@@ -25,6 +25,15 @@ toy (that's superseded).
 | `build_cost.py` | OP-15 | `total_cost(buildings)` — bread cost to place a layout (bakery 5, granary 4, well 3, fence 2, nest 1); scarcity |
 | `pond_rank.py` | OP-16 | `pond_rank(score)` — progression tier: hamlet<20 / village<50 / town<100 / city>=100 |
 | `goose_count.py` | OP-17 | `goose_count(buildings)` — the pond's goose population (4 per nest) |
+| `pond_report.py` | OP-18 | `report(bread, rank, safe)` — an exact-format one-line status string |
+| `nearest_fence.py` | OP-19 | `nearest_fence(nest, fences)` — the closest fence to a nest (min-search) |
+| `count_by_kind.py` | OP-20 | `count_by_kind(buildings)` — `{kind: count}` building inventory |
+| `sorted_by_distance.py` | OP-21 | `sorted_by_distance(cells, point)` — cells sorted by nearness (stable) |
+| `simulate_bread.py` | OP-22 | `simulate_bread(start, bakeries, nests, ticks)` — project the economy (per-tick clamp) |
+| `unique_kinds.py` | OP-23 | `unique_kinds(buildings)` — sorted distinct kinds present |
+
+_(OP-18..23 are utility/algorithm helpers — string/search/dict/sort/iteration/set shapes — that also
+diversify the self-distillation training data; see `docs/DISTILL.md`.)_
 
 ## How they compose — the full economic loop
 A pond is a `state = {'bread': int, 'buildings': [{'kind','x','y'}, ...]}`. The loop: **spend** bread to
