@@ -40,6 +40,16 @@ def test_fails_closed_on_missing_module_or_crash(tmp_path):
     assert c.run(tmp_path, _ticket([{"module": "m.py", "call": "f()", "expect": 1}])).result == Result.FAIL
 
 
+def test_fails_closed_on_import_error_and_undefined_call(tmp_path):
+    # More crash-safety edges: a top-level (import-time) error and a call to an undefined name must both
+    # FAIL gracefully, never crash the gate. (A future refactor dropping the try/except would be a real bug.)
+    c = PythonBehaviorCheck()
+    (tmp_path / "boom.py").write_text("raise RuntimeError('import boom')\ndef f(x):\n    return x\n")
+    assert c.run(tmp_path, _ticket([{"module": "boom.py", "call": "f(1)", "expect": 1}])).result == Result.FAIL
+    (tmp_path / "m.py").write_text("def f(x):\n    return x\n")
+    assert c.run(tmp_path, _ticket([{"module": "m.py", "call": "g(1)", "expect": 1}])).result == Result.FAIL
+
+
 def test_behavior_check_gates_through_the_registry(tmp_path):
     # REGRESSION (harness-mod-50): the check must run in the LIVE Stage-A path (registry.run_stage_a) for a
     # real ticket kind, not only when called directly. targets=["*.py"] used to make registry._applies skip
