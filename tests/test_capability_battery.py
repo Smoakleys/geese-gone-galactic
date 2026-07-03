@@ -520,3 +520,22 @@ def test_find_secret_setup_and_verify(tmp_path):
     (ws / "answer.txt").write_text("WRONG\n")
     bad, _ = inst.verify(ws)
     assert not bad
+
+
+def test_fib_verifier_pass_and_fail(tmp_path):
+    # new algorithmic task type (recursion/iteration) -- expands gym coverage beyond arithmetic/IO.
+    from harness.icarus.eval.capability import gen_fib
+    inst = gen_fib(Random(3))
+    assert inst.category == "algorithm"
+    n = int(inst.id.split("_")[1])
+    a, b = 0, 1
+    for _ in range(n):
+        a, b = b, a + b
+    ws = tmp_path / inst.id
+    ws.mkdir()
+    (ws / "solution.py").write_text(f"print({a})\n")            # correct nth fibonacci
+    ok, _ = inst.verify(ws)
+    assert ok
+    (ws / "solution.py").write_text("print(0)\n")               # wrong
+    bad, _ = inst.verify(ws)
+    assert not bad
