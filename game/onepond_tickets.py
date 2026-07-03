@@ -520,6 +520,27 @@ def one_pond_tickets() -> "list[Ticket]":
                 {"module": "unique_kinds.py",
                  "call": "unique_kinds([{'kind':'well'},{'kind':'well'}])", "expect": ["well"]},
             ]),
+        Ticket(
+            # Templated (fast) scene ticket, like OP-1: routes to the fast model; post_build materialises
+            # content.gd into a full scene.gd before the Godot gates. Advances the thin visual game -- a goose!
+            id="OP-24",
+            title=("Write content.gd with ONLY `func build(root: Node3D) -> void:` using the helpers "
+                   "add_plane(root, size, color, y=0.0) and add_box(root, size, color, pos). Build a One "
+                   "Pond WITH A GOOSE: a GREEN land plane Vector2(16, 16); a BLUE pond Vector2(6, 6) at "
+                   "y=0.1; and a goose beside the pond made of add_box calls -- a WHITE body box about "
+                   "Vector3(1.2, 0.8, 2), a WHITE head box Vector3(0.6, 0.8, 0.6) sitting above the front "
+                   "of the body, and a small ORANGE beak box using Color(1, 0.5, 0). Use Color.GREEN, "
+                   "Color.BLUE, Color.WHITE (Godot 4). Do NOT add a Camera3D, _ready(), your own meshes, "
+                   "or redefine the helpers -- just call them."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="scene.gd parses under godot --check-only",
+                                    stage=Stage.A, check_hint="godot_parse"),
+                AcceptanceCriterion(id="AC2", text="renders a visible (non-blank) scene",
+                                    stage=Stage.A, check_hint="godot_render"),
+                AcceptanceCriterion(id="AC3", text="reads as an iso pond with a white goose beside it",
+                                    stage=Stage.B, rubric_ref="onepond/goose"),
+            ]),
     ]
     for t in tickets:
         t.freeze()

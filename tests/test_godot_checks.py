@@ -76,3 +76,13 @@ def test_full_multi_building_pond_scene_parses_and_renders(tmp_path):
     assert GodotParseCheck().run(tmp_path, _ticket()).result == Result.PASS
     render = GodotRenderCheck().run(tmp_path, _ticket())
     assert render.result == Result.PASS, render.evidence
+
+
+def test_goose_pond_scene_parses_and_renders(tmp_path):
+    # OP-24: the pond with a GOOSE (Icarus-built via the render path) must clear both certified gates.
+    from pathlib import Path
+    asset = Path(__file__).resolve().parents[1] / "game" / "godot" / "scenes" / "goose_pond.gd"
+    (tmp_path / "scene.gd").write_text(asset.read_text())
+    assert GodotParseCheck().run(tmp_path, _ticket()).result == Result.PASS
+    render = GodotRenderCheck().run(tmp_path, _ticket())
+    assert render.result == Result.PASS, render.evidence
