@@ -81,6 +81,22 @@ def test_curated_notebook_fits_the_injection_cap():
         "out of the prompt — raise _NOTEBOOK_CHAR_CAP or split the seed")
 
 
+def test_tool_exception_is_an_observation_not_a_crash(tmp_path, monkeypatch):
+    # A tool raising (PermissionError from a locked file, disk full, any OSError) must NOT crash the whole
+    # agent run -- it's an observation the agent reflects on. (A real place_n8 battery task crashed this way.)
+    from pathlib import Path
+    from harness.icarus.agent.runtime import run_agent, ScriptedAgentModel
+
+    def boom(self, *a, **k):
+        raise PermissionError("[Errno 13] Permission denied (simulated)")
+
+    monkeypatch.setattr(Path, "write_text", boom)
+    model = ScriptedAgentModel(["```tool\nname: write_file\npath: x.py\nbody:\nprint(1)\n```",
+                                "```tool\nname: finish\nsummary: done\n```"])
+    res = run_agent(model, "task", tmp_path, max_steps=3)   # must RETURN, not raise
+    assert res.state.value in ("DONE", "MAX_STEPS", "STUCK")
+
+
 def test_parse_is_crash_proof_on_garbage():
     # A local model can emit anything; the parser must never raise (a crash would derail the agent loop).
     for junk in ("", "```tool\n```", "```tool\n\x00\x01 random :: :\n```", "```tool\nname:\n```"):
