@@ -639,3 +639,10 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   capability the battery lacked (it had arithmetic/strings/IO/game-logic but no algorithm type) -> better
   generalization coverage + anti-memorization (n varies per instance). The plan calls the procedural gym
   "the biggest gap"; this is a step. Tested: verifier passes correct fib(n), fails wrong.
+
+## harness-mod-68 - More gym breadth: gen_gcd + gen_count_char (plan Task #3)
+- harness/icarus/eval/capability.py: gen_gcd (greatest common divisor -- a second, distinct ALGORITHM task)
+  and gen_count_char (count a letter's occurrences in a string -- a STRING-ANALYSIS task beyond reverse).
+  Both parameterized with deterministic verifiers, registered in default_generators (now 26). Continues the
+  procedural-gym expansion (mod-67); more non-repeating instance types = better generalization coverage +
+  anti-memorization. Tested: verifiers pass correct answers, fail wrong.

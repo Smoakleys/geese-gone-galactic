@@ -539,3 +539,17 @@ def test_fib_verifier_pass_and_fail(tmp_path):
     (ws / "solution.py").write_text("print(0)\n")               # wrong
     bad, _ = inst.verify(ws)
     assert not bad
+
+
+def test_gcd_and_count_char_verifiers(tmp_path):
+    # two more gym task types (algorithm + string-analysis) -- verifiers pass correct, fail wrong.
+    import math
+    from harness.icarus.eval.capability import gen_gcd, gen_count_char
+    g = gen_gcd(Random(1)); _, a, b = g.id.split('_'); want = math.gcd(int(a), int(b))
+    ws = tmp_path / 'gcd'; ws.mkdir(); (ws / 'solution.py').write_text('print(%d)' % want)
+    assert g.verify(ws)[0]
+    (ws / 'solution.py').write_text('print(-1)'); assert not g.verify(ws)[0]
+    c = gen_count_char(Random(2)); parts = c.id.split('_'); want2 = parts[2].count(parts[1])
+    ws2 = tmp_path / 'cc'; ws2.mkdir(); (ws2 / 'solution.py').write_text('print(%d)' % want2)
+    assert c.verify(ws2)[0]
+    (ws2 / 'solution.py').write_text('print(999)'); assert not c.verify(ws2)[0]
