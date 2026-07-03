@@ -72,14 +72,18 @@ def compose_pond_art(state: dict, out_png: "str | Path", *, size: "tuple[int, in
         return (int(cx0 + (gx - gy) * _TILE_W / 2), int(cy0 + (gx + gy) * _TILE_H / 2))
 
     # pond: a big art sprite (or a soft blue diamond) centred
-    pond = _scaled("pond", int(H * 0.42))
+    pond = _scaled("pond", int(H * 0.34))
     if pond is not None:
         canvas.alpha_composite(pond, (cx0 - pond.width // 2, cy0 - pond.height // 3))
     else:
-        d = ImageDraw.Draw(canvas)
-        pw, ph = int(W * 0.42), int(H * 0.26)
-        d.polygon([(cx0, cy0 - ph // 2), (cx0 + pw // 2, cy0), (cx0, cy0 + ph // 2), (cx0 - pw // 2, cy0)],
-                  fill=_POND + (255,))
+        # soft blue water ellipse (reads as a natural pond; a hard diamond looked pasted-on)
+        layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        pd = ImageDraw.Draw(layer)
+        pw, ph = int(W * 0.30), int(H * 0.17)
+        pd.ellipse([cx0 - pw // 2, cy0 - ph // 2, cx0 + pw // 2, cy0 + ph // 2], fill=(96, 158, 204, 205))
+        pd.ellipse([cx0 - pw // 2 + 10, cy0 - ph // 2 + 6, cx0 + pw // 2 - 10, cy0 - ph // 6],
+                   fill=(150, 200, 230, 90))          # a light highlight band
+        canvas.alpha_composite(layer)
 
     buildings = state.get("buildings", [])
     xs = [b["x"] for b in buildings] or [0]
@@ -93,7 +97,7 @@ def compose_pond_art(state: dict, out_png: "str | Path", *, size: "tuple[int, in
     for b in buildings:                                   # a goose beside each nest
         if b.get("kind") == "nest":
             items.append((b["x"] - ox + 0.45, b["y"] - oy + 0.2, "goose"))
-    for gx, gy in [(-3.2, -3.2), (3.2, -3.2), (3.2, 3.2), (-3.2, 3.2)]:   # corner trees
+    for gx, gy in [(-2.4, -2.4), (2.4, -2.4), (2.4, 2.4), (-2.4, 2.4)]:   # corner trees (on the island)
         items.append((gx, gy, "tree"))
 
     draw = ImageDraw.Draw(canvas)
