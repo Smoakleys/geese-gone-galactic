@@ -695,6 +695,26 @@ def one_pond_tickets() -> "list[Ticket]":
                  "call": "deserialize_pond('bread=0;nest@2,3;well@1,0')['buildings'][1]",
                  "expect": {"kind": "well", "x": 1, "y": 0}},
             ]),
+        Ticket(
+            id="OP-32",
+            title=("optimal_bakeries.py: plan production. Each bakery makes (3 + granaries) bread per tick. "
+                   "optimal_bakeries(target, granaries) returns the MINIMUM number of bakeries needed so "
+                   "the total bread per tick is >= `target` -- i.e. ceil(target / (3 + granaries)). If "
+                   "target <= 0 return 0. Use integer math (no float rounding errors). Pure Python "
+                   "returning an int."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="ceil(target / (3+granaries)) bakeries, 0 if target<=0",
+                                    stage=Stage.B, rubric_ref="onepond/optimal"),
+            ],
+            behavior=[
+                {"module": "optimal_bakeries.py", "call": "optimal_bakeries(10, 0)", "expect": 4},
+                {"module": "optimal_bakeries.py", "call": "optimal_bakeries(8, 1)", "expect": 2},
+                {"module": "optimal_bakeries.py", "call": "optimal_bakeries(9, 0)", "expect": 3},
+                {"module": "optimal_bakeries.py", "call": "optimal_bakeries(0, 0)", "expect": 0},
+            ]),
     ]
     for t in tickets:
         t.freeze()
