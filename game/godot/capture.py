@@ -17,7 +17,7 @@ _REPO = Path(__file__).resolve().parents[2]
 _RIG = _REPO / "tools" / "godot_capture"
 
 
-def render_gdscript(scene_gd: Path, out_png: Path, *, size: str = "512x512",
+def render_gdscript(scene_gd: Path, out_png: Path, *, size: str = "1024x1024",
                     timeout: float = 90.0) -> "tuple[bool, str]":
     """Render ``scene_gd`` to ``out_png`` off-screen. Returns (ok, detail); never raises."""
     godot = godot_path()

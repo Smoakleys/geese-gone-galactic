@@ -26,6 +26,10 @@ func _ready() -> void:
 	sub.size = vp_size
 	sub.own_world_3d = true
 	sub.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	# Anti-aliasing: without it, low-poly edges render jagged/stair-stepped -- the "pixelly" look. 8x MSAA
+	# smooths geometry edges and FXAA cleans the rest, so the same shapes read as crisp 3D, not blocky.
+	sub.msaa_3d = Viewport.MSAA_8X
+	sub.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
 	add_child(sub)
 
 	var target: Node
