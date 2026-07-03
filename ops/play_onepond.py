@@ -13,8 +13,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from game.pond import (  # noqa: E402  (path set above)
-    add_building, pond_advice, pond_outcome, pond_rank, pond_score, pond_status, predator_loss, step,
-    total_cost,
+    add_building, goose_count, pond_advice, pond_outcome, pond_rank, pond_score, pond_status,
+    predator_loss, step, total_cost,
 )
 
 REACH = 2
@@ -39,8 +39,8 @@ def _run(plan: "list[tuple[str, int, int]]", start_bread: int, verbose: bool) ->
     if verbose:
         st = pond_status(state, REACH)
         score = pond_score(state)
-        print(f"  bread={state['bread']}  safe={st['safe']}  score={score} ({pond_rank(score)})  "
-              f"outcome={pond_outcome(state, REACH)}")
+        print(f"  bread={state['bread']}  geese={goose_count(state['buildings'])}  safe={st['safe']}  "
+              f"score={score} ({pond_rank(score)})  outcome={pond_outcome(state, REACH)}")
     return state
 
 
