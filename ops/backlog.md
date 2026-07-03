@@ -5,23 +5,28 @@ increment, tick it and add the next. This is guidance, not the stop condition �
 ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 
 ## FOUNDATION COMPLETE (PRs #60-81) — now build BREADTH. See docs/HANDOFF.md.
-The agent runtime, AgentBuilder+ModelRouter (visual→qwen3:30b, logic→gpt-oss:20b), Godot rig +
-`godot_parse` + `green_dominance` render check, the honest procedural scorecard, and the full
+The agent runtime, AgentBuilder+ModelRouter (visual AND debugging→qwen3:30b, logic→gpt-oss:20b), Godot
+rig + certified `godot_parse` + `godot_render` checks, the honest procedural scorecard, and the full
 Icarus→gate→committed+rendered pipeline are all built. Use `game/icarus_builder.py:
 default_icarus_builder(workdir)` + the full Loop. Each cycle: **1 Icarus ticket + 1 measured harness/
 Icarus improvement** (keep only if the unaided battery score rises).
 
-## Now — build One Pond, one Icarus ticket per cycle
-- [ ] **Bakery scene** via Icarus (routed to the 30B): green ground + a distinct-coloured building box
-      on it. New gate: render shows STRUCTURE (green_dominance for ground AND variance for the building,
-      not a flat fill). Drive through the full loop to a committed scene.
-- [ ] **Nest scene** likewise; then a place-a-building interaction (reuse the placement mechanic).
-- [ ] **Bread tick wired to placement**: a small One Pond model (buildings on a grid → bread/tick),
-      built by Icarus (logic → fast model), gated by the economy + placement checks.
-- [ ] **Retire the python economy toy** (`game/onepond` soldiers/campaigns/eras/launchpad/tiers) as the
-      real Godot slice takes over its role, keeping tests green (quarantine floors via baseline_reset).
-- [ ] **Promote proven notebook lessons** into the curated seed (`game/godot/godot_lessons.md`); grow
-      the procedural battery with each new mechanic.
+## DONE (PRs #82–105) — the full loop is demonstrated end-to-end
+- [x] **Certified `godot_render` gate** + region colour metrics (color_fraction, significant_colors).
+- [x] **Bakery + One Pond scenes** via Icarus (routed to the 30B) — land + water + building, gated.
+- [x] **One Pond scene committed** (`game/godot/scenes/one_pond.gd`), regression-locked by the gates.
+- [x] **Bread tick + placement** built by Icarus and committed (`game/pond/{bread_tick,placement}.py`).
+- [x] **Debugging weakness fixed by routing** (30B: 4/4 vs 2/4) — measured; unproven nudge lever reverted.
+- [x] **Full pipeline run on authored tickets** (`game/onepond_tickets.py`) → commit @ autonomy 1.0.
+
+## Now — keep building One Pond, one Icarus ticket per cycle
+- [ ] **More authored tickets** (`game/onepond_tickets.py`): a Nest scene, a well/fence building, a
+      predator-safety rule — drive each through the live pipeline to a committed artifact.
+- [ ] **Retire the python economy toy** (`game/onepond` soldiers/campaigns/eras/launchpad/tiers) — the
+      real slice is `game/pond` + `game/godot`; quarantine the toy's floors (baseline_reset), keep green.
+- [ ] **A stronger Stage-B reviewer** (local advisory or a cloud key) so scene/logic tickets get a real
+      subjective judgement, not the StubReviewer used in the live demos.
+- [ ] **Promote proven notebook lessons** into the curated seed; grow the battery with each mechanic.
 
 ## Candidate increments (pick by value, not order)
 - [ ] Improve Icarus each cycle (prompt/packet/tooling/**model**-swap or ensemble) toward higher
