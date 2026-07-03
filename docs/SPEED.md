@@ -36,4 +36,19 @@ resident gpt-oss:20b already renders *simple* scenes; it fails *complex* ones on
    renders (qwen2.5-coder:14b already tried: 0/3). Uncertain; a template is more reliable.
 
 Meanwhile visuals are RARE (scenes are static, built once and committed) — logic tickets (the common
-case) already run fast on the resident gpt-oss:20b. Next: implement the scene template.
+case) already run fast on the resident gpt-oss:20b.
+
+## Template result (measured 2026-07-03) — partial
+Built `game/godot/scene_template.py` (`compose_scene` wraps Icarus's `build(root)` with a correct iso
+camera) + `gen_pond_from_template`. The mechanism works (a good `build()` composes → renders → passes the
+gate). But the FAST model on the templated task scored only **1/3, ~60s/scene**: the camera is now always
+right, yet gpt-oss:20b still makes CONTENT errors — e.g. `rotate_x(-90°)` on a `PlaneMesh` (which is
+already flat) stands the ground vertical → invisible; wrong colours. Added the plane-rotation gotcha to
+the notebook (helps both models). So the template lifts the fast model (0/2 → 1/3) but does not make it
+reliable; the honest conclusion stands:
+
+**The 30B remains the reliable scene builder (3/3); it is now faster via the shipped changes (bounded
+context + keep_alive + step-cap). Scenes are rare/static, so a ~3-5 min reliable 30B build is acceptable;
+the template + fast model is an option for quick iteration when 1/3-and-retry is fine.** A better content
+scaffold (helper fns Icarus parameterises) or a fitting render-capable model would close the rest — both
+larger, deferred.

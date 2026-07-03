@@ -399,3 +399,10 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   transcript is untouched, only the model INPUT is bounded (the plan's "trim raw tool output after use").
 - harness/icarus/agent/ollama.py: keep_alive="30m" (model stays resident -> no per-turn reload of the
   offloaded 30B) + optional num_predict cap. Tests cover trimming behaviour. 238 tests.
+
+## harness-mod-37 - Scene template + gen_pond_from_template (speed path for visuals)
+- harness/icarus/eval/capability.py: gen_pond_from_template - Icarus writes only build(root); the verify
+  composes it with a camera template (game/godot/scene_template.py) + renders + gates. Lets the FAST
+  resident model attempt real scenes. Measured: fast model 1/3 (camera now correct, but content errors
+  like rotating a PlaneMesh vertical) - a partial win; the 30B stays the reliable scene builder. Notebook
+  gained the plane-rotation gotcha. 239 tests. See docs/SPEED.md.
