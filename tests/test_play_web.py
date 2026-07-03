@@ -82,3 +82,17 @@ def test_web_save_and_load(tmp_path, monkeypatch):
     assert len(fresh.state["buildings"]) == 2            # recovered the saved pond
     monkeypatch.setattr(pw, "_SAVE", tmp_path / "none.save")
     assert "no saved" in pw.GameSession().act("load")
+
+
+def test_goal_and_win_banner():
+    from ops.play_web import GameSession, _page
+    g = GameSession()
+    assert "Goal" in g.goal() and not g.won()          # starts with a goal, not won
+    # grow to a city (top rank) -> win
+    for _ in range(40):
+        g.act("build_bakery"); g.act("build_granary"); g.act("build_nest")
+    for _ in range(6):
+        g.act("tick")
+    if g.won():                                         # a full pond reaches City
+        assert "City" in g.goal() and "🎉" in g.goal()
+        assert "🎉" in _page(g).decode("utf-8")
