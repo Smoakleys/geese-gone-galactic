@@ -60,3 +60,44 @@ class GodotParseCheck(Check):
         return CheckResult(self.id, Result.PASS,
                            f"{len(scripts)} GDScript file(s) parsed clean",
                            metrics={"godot_scripts_parsed": float(len(scripts))})
+
+
+class GodotRenderCheck(Check):
+    """The artifact's ``scene.gd`` must render a VISIBLE scene, not the empty grey background.
+
+    Complements ``godot_parse`` (which only proves the script compiles): a script can parse cleanly yet
+    render nothing (camera aimed at emptiness). This gates that at commit time. Fail-closed: no engine,
+    a render crash, or a blank frame is never a PASS. One Pond scenes are green-terrain dominant, so a
+    real render clears the green-dominance floor and an empty grey frame does not."""
+
+    id = "godot_render"
+    targets: list[str] = ["*"]
+    cost = CheckCost.DYNAMIC
+
+    def __init__(self) -> None:
+        base = _FIXTURES / "godot_render"
+        self.good_fixtures = [base / "good"]
+        self.bad_fixtures = [base / "bad"]
+
+    def run(self, artifact_dir: Path, ticket: Ticket) -> CheckResult:
+        from game.godot.capture import green_dominance, render_gdscript
+        scenes = sorted(p for p in Path(artifact_dir).rglob("scene.gd") if p.is_file())
+        if not scenes:
+            return CheckResult(self.id, Result.SKIP, "no scene.gd in artifact")
+        if godot_path() is None:
+            return CheckResult(self.id, Result.FAIL, "godot binary not found (ops/bin or PATH)")
+        scene = scenes[0]
+        out = scene.parent / "_render_check.png"
+        try:
+            ok, detail = render_gdscript(scene, out)
+            if not ok:
+                return CheckResult(self.id, Result.FAIL, f"render failed: {detail}", artifacts=[str(scene)])
+            dom = green_dominance(out)
+        finally:
+            out.unlink(missing_ok=True)
+        if dom < 15.0:
+            return CheckResult(self.id, Result.FAIL,
+                               f"blank render (green-dominance {dom:.0f}); no visible scene",
+                               artifacts=[str(scene)])
+        return CheckResult(self.id, Result.PASS, f"scene rendered (green-dominance {dom:.0f})",
+                           metrics={"green_dominance": dom})
