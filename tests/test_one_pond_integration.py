@@ -38,6 +38,28 @@ def test_one_pond_nests_can_starve_but_not_go_negative():
     assert state["bread"] == 0           # -1/tick, clamped at 0 (never negative)
 
 
+def test_full_one_pond_playthrough_with_synergy_and_status():
+    # all the composed mechanics as one game: place -> tick (granary synergy) -> status (predator safety)
+    from game.pond.pond_status import pond_status
+    state = {"bread": 5, "buildings": []}
+    state = add_building(state, "bakery", 0, 0, 8)
+    state = add_building(state, "granary", 1, 0, 8)     # boosts every bakery
+    state = add_building(state, "nest", 5, 5, 8)
+    state = add_building(state, "fence", 5, 6, 8)        # protects the nest
+    assert len(state["buildings"]) == 4
+
+    state = step(state)                                  # 1 bakery * (3 + 1 granary) - 1 nest = +3
+    assert state["bread"] == 8
+
+    status = pond_status(state, 2)
+    assert status["bread"] == 8
+    assert status["safe"] is True                        # the nest is within reach of the fence
+
+    # move the fence away (rebuild the layout without it near the nest) -> unsafe
+    far = {"bread": 8, "buildings": [{"kind": "nest", "x": 5, "y": 5}, {"kind": "fence", "x": 0, "y": 0}]}
+    assert pond_status(far, 2)["safe"] is False
+
+
 def _nests_and_fences(state):
     nests = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "nest"]
     fences = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "fence"]
