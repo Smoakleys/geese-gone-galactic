@@ -126,6 +126,12 @@ def one_pond_tickets() -> "list[Ticket]":
                                     "bakeries*(3+granaries) - nests. Concrete example that MUST hold: "
                                     "tick_bread([{'kind':'bakery'},{'kind':'bakery'},{'kind':'granary'},"
                                     "{'kind':'nest'}]) == 7", stage=Stage.B, rubric_ref="onepond/economy2"),
+            ],
+            behavior=[  # DETERMINISTIC gate (python_behavior) -- catches the 'baker' typo the reviewer missed
+                {"module": "pond_economy.py",
+                 "call": "tick_bread([{'kind':'bakery'},{'kind':'bakery'},{'kind':'granary'},{'kind':'nest'}])",
+                 "expect": 7},
+                {"module": "pond_economy.py", "call": "tick_bread([])", "expect": 0},
             ]),
     ]
     for t in tickets:
