@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from harness.icarus.agent import ScriptedAgentModel
-from harness.icarus.agent_builder import AgentBuilder, task_from_packet
+from harness.icarus.agent_builder import AgentBuilder, ModelRouter, task_from_packet, visual_router
 from harness.models import (
     AcceptanceCriterion,
     BuildPacket,
@@ -41,6 +41,44 @@ def test_agent_builder_gave_up_when_no_files(tmp_path):
 def test_agent_builder_id_reflects_model():
     b = AgentBuilder(ScriptedAgentModel([]))
     assert b.id.startswith("icarus-agent:")
+
+
+def _model(mid, replies):
+    m = ScriptedAgentModel(replies)
+    m.model_id = mid
+    return m
+
+
+def test_model_router_routes_visual_to_big():
+    fast = _model("fast", [])
+    big = _model("big", [])
+    r = visual_router(fast, big)
+    assert r.for_task("render a Godot scene with a Camera3D").model_id == "big"
+    assert r.for_task("gdscript scene.gd").model_id == "big"
+    assert r.for_task("simulate the bread economy and print the total").model_id == "fast"
+
+
+def test_agentbuilder_router_selects_model_per_ticket(tmp_path):
+    fast = _model("fast", ['```tool\nname: write_file\npath: logic.py\nbody:\nprint(1)\n```',
+                           '```tool\nname: finish\nsummary: x\n```'])
+    big = _model("big", ['```tool\nname: write_file\npath: scene.gd\nbody:\nextends Node3D\n```',
+                         '```tool\nname: finish\nsummary: x\n```'])
+    builder = AgentBuilder(router=visual_router(fast, big))
+    assert builder.id.startswith("icarus-agent:routed(")
+
+    vt = Ticket(id="V", title="render a Godot scene", kind=TicketKind.SYSTEM, acceptance_criteria=[])
+    builder.build(BuildPacket(ticket=vt, writable_root=str(tmp_path / "v")))
+    assert (tmp_path / "v" / "scene.gd").exists()          # visual -> big model
+
+    lt = Ticket(id="L", title="compute a sum", kind=TicketKind.SYSTEM, acceptance_criteria=[])
+    builder.build(BuildPacket(ticket=lt, writable_root=str(tmp_path / "l")))
+    assert (tmp_path / "l" / "logic.py").exists()          # logic -> fast model
+
+
+def test_agentbuilder_requires_model_or_router():
+    import pytest
+    with pytest.raises(ValueError):
+        AgentBuilder()
 
 
 def test_task_from_packet_includes_criteria_and_defects(tmp_path):

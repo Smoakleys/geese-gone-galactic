@@ -312,3 +312,11 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   (correct economy math over N ticks). Confirms the strategic read: Icarus is strong at game
   SYSTEMS/logic - exactly where the mission needs it - even as it is weak at 3D visual rendering.
   Regression test covers the verifier. 206 tests.
+
+## harness-mod-24 - Model routing: bigger model for visual tickets (validated by data)
+- Decisive Task-4 finding: qwen3:30b renders Godot 3D scenes 3/3, where gpt-oss:20b and qwen2.5-coder:14b
+  fail 0/3. The visual limit is model SIZE, not a hard local ceiling.
+- harness/icarus/agent_builder.py: ModelRouter (model-as-free-variable - keyword rules pick the model
+  per task) + visual_router(fast, big) (visual/render/Godot keywords -> big, else fast). AgentBuilder
+  now accepts a router and selects the model per ticket, so Icarus uses fast gpt-oss:20b for logic
+  tickets and the 30B for visual ones - best of both. Tested offline (routing + per-ticket selection). 209 tests.
