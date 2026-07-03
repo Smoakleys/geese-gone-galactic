@@ -66,9 +66,8 @@ until solved. See memory [[be-stubborn-not-avoidant]] + [[ggg-visuals-priority]]
 primitives. `ops/generate_art.py` generates each prop via a FREE image model (Pollinations, no key) into
 `assets/art/`; `game/art_view.py: compose_pond_art(state, png)` composites them by state into a gorgeous
 cozy ISLAND (cottages, granary, geese nesting, apple trees, lily-pad pond, fence); wired as the `art`
-command + into play_onepond + README. 7/9 assets committed (goose/bakery/granary/nest/ground/tree/fence);
-**well + pond keep 500'ing on the flaky free endpoint — retry `python ops/generate_art.py --only well pond`
-when it recovers** (they degrade to soft placeholders meanwhile). The Godot mesh path below is SUPERSEDED
+command + into play_onepond + README. ALL 9/9 assets generated + committed (goose, bakery, granary, nest, ground, tree, fence, well, pond);
+the island floats on a sky gradient — a finished game screen. `art` renders any played state as this. The Godot mesh path below is SUPERSEDED
 for the look (kept as fallback / gate fixtures). Next visual polish: finish the 2 assets; blend the pond
 bank; per-building variety (multiple generated variants); make `art` the default render.
 
