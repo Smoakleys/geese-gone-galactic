@@ -36,9 +36,12 @@ You are a fresh Claude session on **Geese Gone Galactic (GGG)**. Read this top t
   before finishing instead of giving up. New `game/godot/scene_review.py` = a vision-on-render recognition
   judge (plan Part 2B), now viable. Next visual polish: convert `one_pond.gd` (careful, 13 tests ref it),
   per-building variety that doesn't fragment the gate's colour proxy, wire scene_review as an advisory.
-- **Game — deep + now a real cozy village look.** 28 agent-built `game/pond` logic modules (economy,
-  events, progression, save/load, a command interface, planning); interactively playable
-  (`python ops/play_commands.py --interactive`).
+- **Game — deep + real-art + PLAYABLE IN A BROWSER.** 28 agent-built `game/pond` logic modules (economy,
+  events, progression, save/load, planning). Playable three ways: **`python ops/play_web.py`** (a clickable
+  browser game — build/tick/event/save/load/reset, a City goal + win, rendered as art), the text game
+  (`play_commands.py --interactive`), and the scripted `play_onepond.py`. The look is generated art
+  (`game/art_view.py`), NOT the old meshes. Substantively complete + playable; remaining is diminishing
+  polish (idle animation is a big lift on a static PNG renderer) or the compute/user-bound levers.
 - **Gate HARDENED this session** (2 real render-gate gaps found by probing + fixed): `godot_render` now
   fails a degenerate land-only render (< 3 distinct colours) AND a scene that crashed mid-`_ready()` (a
   logged `SCRIPT ERROR` that still emitted a partial frame). Scene helpers return their node (removes a
