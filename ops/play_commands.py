@@ -6,6 +6,8 @@ Each command is parsed by the Icarus-built `parse_command` and dispatched to the
   tick           -- advance the economy one tick
   status         -- print a one-line status (bread, rank, safety)
   render <file>  -- render the CURRENT pond to a lit 3D PNG (needs Godot; skips gracefully without)
+  save <file>    -- serialize the pond to a save string / load <file> -- restore it
+  load <file>    -- restore a saved pond and keep playing
 Commands here are scripted (this environment is non-interactive); the same loop takes live input.
 Run: `python ops/play_commands.py`.
 """
@@ -52,6 +54,19 @@ def play(commands: "list[str]", verbose: bool = True) -> dict:
             png = target or "pond.png"
             ok, detail = render_pond_state(state, png)
             msg = f"rendered -> {png}" if ok else f"render skipped: {detail}"
+        elif verb == "save":
+            from game.pond import serialize_pond
+            path = Path(target or "pond.save")
+            path.write_text(serialize_pond(state), encoding="utf-8")
+            msg = f"saved -> {path}"
+        elif verb == "load":
+            from game.pond import deserialize_pond
+            path = Path(target or "pond.save")
+            if path.is_file():
+                state = deserialize_pond(path.read_text(encoding="utf-8").strip())
+                msg = f"loaded <- {path} ({state['bread']} bread, {len(state['buildings'])} buildings)"
+            else:
+                msg = f"no save file: {path}"
         else:
             msg = f"unknown command: {text!r}"
         if verbose:
