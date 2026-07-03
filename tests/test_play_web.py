@@ -7,8 +7,8 @@ from ops.play_web import GameSession, _page, KINDS
 
 def test_build_actions_add_buildings():
     g = GameSession()
-    assert g.act("build_bakery") == "built bakery"
-    assert g.act("build_nest") == "built nest"
+    assert g.act("build_bakery") == "built a bakery"
+    assert g.act("build_nest") == "built a nest"
     assert len(g.state["buildings"]) == 2
     assert [b["kind"] for b in g.state["buildings"]] == ["bakery", "nest"]
 
@@ -17,7 +17,7 @@ def test_tick_action_runs_the_economy():
     g = GameSession()
     g.act("build_bakery")
     before = g.state["bread"]
-    assert "ticked" in g.act("tick")
+    assert "day passes" in g.act("tick")
     assert g.state["bread"] == before + 3          # a bakery earns +3
 
 
@@ -45,3 +45,27 @@ def test_status_and_page():
     for k in KINDS:                                  # a build button per kind
         assert f"build_{k}" in html
     assert "do=tick" in html
+
+
+def test_events_and_reset():
+    from ops.play_web import GameSession, EVENTS
+    g = GameSession()
+    g.act("build_bakery")
+    for e in EVENTS:
+        msg = g.act(f"event_{e}")
+        assert e in msg.lower()                      # the event happened + is reported
+    assert "unknown event" in g.act("event_meteor")
+    g.act("reset")
+    assert g.state["buildings"] == [] and g.state["bread"] == 30   # fresh pond
+    assert "fresh" in g.last_msg
+
+
+def test_page_shows_message_and_event_buttons():
+    from ops.play_web import GameSession, _page, EVENTS
+    g = GameSession()
+    g.act("build_bakery")
+    html = _page(g).decode("utf-8")
+    assert "built a bakery" in html                  # last action feedback shown
+    for e in EVENTS:
+        assert f"event_{e}" in html                  # an event button per event
+    assert "do=reset" in html
