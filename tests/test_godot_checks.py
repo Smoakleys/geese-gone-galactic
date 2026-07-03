@@ -58,6 +58,17 @@ def test_godot_render_skips_when_no_scene(tmp_path):
     assert res.result == Result.SKIP
 
 
+def test_godot_render_fails_degenerate_land_only_scene(tmp_path):
+    # A scene that renders ONLY green land (no pond/building/goose) is degenerate and must FAIL, even
+    # though it clears the green-dominance floor -- the distinct-scene-colours bar catches it.
+    from game.godot.scene_template import compose_scene
+    scene = compose_scene("func build(root):\n\tadd_plane(root, Vector2(16, 16), Color.GREEN)\n")
+    (tmp_path / "scene.gd").write_text(scene)
+    res = GodotRenderCheck().run(tmp_path, _ticket())
+    assert res.result == Result.FAIL, res.evidence
+    assert "degenerate" in res.evidence
+
+
 def test_canonical_one_pond_scene_parses_and_renders(tmp_path):
     # The repo's canonical Icarus-built One Pond scene must always clear both certified gates.
     from pathlib import Path

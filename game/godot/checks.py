@@ -80,7 +80,7 @@ class GodotRenderCheck(Check):
         self.bad_fixtures = [base / "bad"]
 
     def run(self, artifact_dir: Path, ticket: Ticket) -> CheckResult:
-        from game.godot.capture import green_dominance, render_gdscript
+        from game.godot.capture import green_dominance, render_gdscript, significant_colors
         scenes = sorted(p for p in Path(artifact_dir).rglob("scene.gd") if p.is_file())
         if not scenes:
             return CheckResult(self.id, Result.SKIP, "no scene.gd in artifact")
@@ -93,11 +93,22 @@ class GodotRenderCheck(Check):
             if not ok:
                 return CheckResult(self.id, Result.FAIL, f"render failed: {detail}", artifacts=[str(scene)])
             dom = green_dominance(out)
+            colors = significant_colors(out)
         finally:
             out.unlink(missing_ok=True)
         if dom < 15.0:
             return CheckResult(self.id, Result.FAIL,
                                f"blank render (green-dominance {dom:.0f}); no visible scene",
                                artifacts=[str(scene)])
-        return CheckResult(self.id, Result.PASS, f"scene rendered (green-dominance {dom:.0f})",
-                           metrics={"green_dominance": dom})
+        # A One Pond scene is land + at least one element (pond/building/goose). With the iso template's
+        # visible background, that reads as >= 3 distinct significant colours (background + land + element);
+        # a DEGENERATE all-green render (bare land, nothing built) is only 2 and must not pass as a scene.
+        if colors < 3:
+            return CheckResult(self.id, Result.FAIL,
+                               f"degenerate render ({colors} distinct colours; green-dominance {dom:.0f}): "
+                               "land only, no pond/building/goose visible",
+                               artifacts=[str(scene)], metrics={"green_dominance": dom,
+                                                                "significant_colors": float(colors)})
+        return CheckResult(self.id, Result.PASS,
+                           f"scene rendered (green-dominance {dom:.0f}, {colors} distinct colours)",
+                           metrics={"green_dominance": dom, "significant_colors": float(colors)})

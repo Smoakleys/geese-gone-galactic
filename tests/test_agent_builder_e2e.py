@@ -128,6 +128,17 @@ def test_agentbuilder_scene_commits_through_render_gate(tmp_path, git_repo):
         "\tmi.mesh = p\n"
         "\tmi.material_override = m\n"
         "\tadd_child(mi)\n"
+        # a blue pond -> a real multi-element scene (land + water), clearing the distinct-colours bar
+        "\tvar p2 = PlaneMesh.new()\n"
+        "\tp2.size = Vector2(3, 3)\n"
+        "\tvar m2 = StandardMaterial3D.new()\n"
+        "\tm2.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED\n"
+        '\tm2.albedo_color = Color("blue")\n'
+        "\tvar mi2 = MeshInstance3D.new()\n"
+        "\tmi2.mesh = p2\n"
+        "\tmi2.material_override = m2\n"
+        "\tmi2.position = Vector3(0, 0.1, 0)\n"
+        "\tadd_child(mi2)\n"
     )
     replies = [
         "```tool\nname: write_file\npath: scene.gd\nbody:\n" + scene + "```",
