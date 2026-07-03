@@ -28,13 +28,24 @@ def _build_body(gd: str) -> str:
     return gd[gd.index("func build"):]
 
 
-def test_state_to_scene_gd_has_land_pond_and_a_box_per_building():
-    gd = pond_state_to_scene_gd(_played_state())
+def test_state_to_scene_gd_has_land_pond_buildings_and_geese():
+    state = _played_state()                      # bakery, granary, nest, well -> 4 buildings, 1 nest
+    nests = sum(1 for b in state["buildings"] if b["kind"] == "nest")
+    gd = pond_state_to_scene_gd(state)
     assert "func build" in gd
     body = _build_body(gd)
-    assert body.count("add_box(") == 4          # one call per placed building
-    assert body.count("add_plane(") == 2        # land + pond
-    assert "DirectionalLight3D" in gd           # composed through the LIT template
+    assert body.count("add_plane(") == 2         # land + pond
+    assert body.count("add_box(") == 4 + nests   # 4 building boxes + 1 goose beak per nest
+    assert body.count("add_sphere(root, 0.35") == nests   # one goose body per nest
+    assert "DirectionalLight3D" in gd            # composed through the LIT template
+
+
+def test_geese_only_appear_for_nests():
+    # a pond with no nests draws no geese; each nest adds exactly one goose.
+    no_nest = {"bread": 0, "buildings": [{"kind": "bakery", "x": 0, "y": 0}]}
+    assert "add_sphere(root, 0.35" not in pond_state_to_scene_gd(no_nest)
+    two_nests = {"bread": 0, "buildings": [{"kind": "nest", "x": 1, "y": 1}, {"kind": "nest", "x": 4, "y": 2}]}
+    assert pond_state_to_scene_gd(two_nests).count("add_sphere(root, 0.35") == 2
 
 
 def test_empty_pond_still_composes_land_and_water():
