@@ -44,9 +44,22 @@ Icarus improvement** (keep only if the unaided battery score rises).
 - [x] **Process discipline hardened** after two red-mains: build module FIRST, commit ticket+module+test
       TOGETHER, VERIFY GREEN before merge.
 
+## DONE (PRs #175–200) — battery grown, game to 14 tickets, and a REAL gate bug found + fixed
+- [x] **Grew the sealed battery** to cover the full game-logic surface (predator/granary/score/outcome
+      generators, harness-mod-46..49) + a battery-integrity meta-test. Unaided-LOGIC measured 11/15 (~0.73,
+      variance band 0.73–0.85; all game mechanics in reach).
+- [x] **Game deepened to 14 tickets / 13 game/pond modules**: OP-11 water_access, OP-12 pond_score, OP-13
+      pond_advice (hints), OP-14 predator_loss (predators with teeth) + a `'dry'` outcome; runnable demo
+      (`ops/play_onepond.py`) shows thriving vs predator-drained ponds.
+- [x] **CRITICAL FIX (harness-mod-50)**: `python_behavior` was SILENTLY SKIPPED in the live pipeline
+      (targets=["*.py"] vs kind-based `_applies`) from harness-mod-45 — a broken module could commit
+      (found via OP-14). Fixed, regression-tested through `run_stage_a`, audited all checks (only offender),
+      added a guard against the class, and CORRECTED the overstated "behavioural-gate" claims across all
+      docs (the reviewer was the real enforcer). See [[ggg-test-checks-through-registry]].
+
 ## Now — optional; the mission is comprehensively proven. Pick by value.
-- [ ] **More authored One Pond tickets** — one Icarus ticket per cycle (population/capacity, a market,
-      richer outcome), each pinned + behaviour-gated + green-verified.
+- [ ] **More authored One Pond tickets** — one Icarus ticket per cycle (population/capacity, a market),
+      each pinned + behaviour-gated + green-verified.
 - [x] **Retire the python economy toy** (`game/onepond`) — DECIDED: KEEP IT, documented-as-dead. Investigated
       (2026-07-03): its 3 dependent tests are ~914 lines (`test_phase4_onepond` alone is 680) that exercise
       real HARNESS governance — the check registry, flywheel harvest, cold audits, the ratchet — using the
