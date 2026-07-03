@@ -58,6 +58,19 @@ def test_godot_render_skips_when_no_scene(tmp_path):
     assert res.result == Result.SKIP
 
 
+def test_render_composes_raw_templated_content(tmp_path):
+    # Self-verify on the FAST path: Icarus writes content.gd (a `func build`, no camera) which can't render
+    # standalone. render_gdscript now composes it first, so Icarus can render+see its templated scene
+    # mid-loop instead of building blind until post-build composition.
+    from game.godot.capture import render_gdscript
+    content = tmp_path / "content.gd"
+    content.write_text("func build(root):\n\tadd_plane(root, Vector2(16, 16), Color.GREEN)\n"
+                       "\tadd_sphere(root, 0.8, Color.WHITE, Vector3(0, 0.8, 0))\n")
+    ok, detail = render_gdscript(content, tmp_path / "out.png")
+    assert ok, detail
+    assert (tmp_path / "out.png").exists()
+
+
 def test_godot_render_fails_on_runtime_script_error(tmp_path):
     # A scene that crashes mid-_ready() (here: treating add_plane's void return as a node) still emits a
     # PARTIAL png at rc=0; the gate must FAIL it on the logged SCRIPT ERROR, not pass the half-built frame.
