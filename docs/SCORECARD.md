@@ -48,6 +48,17 @@ is no longer a standing weakness when the ticket is routed** — unaided 2/4 →
 the plan. Net picture: the fast model handles fresh logic quickly; the 30B handles the harder
 visual + debugging work; the router picks per ticket.
 
+## Finding — the StubReviewer's blind spot (2026-07-03)
+OP-6 (`pond_scene.py`, a state→GDScript bridge) exposed why a real Stage-B reviewer is the top harness
+gap. Icarus's output was almost right — correct add_box lines, colours, positions — but joined them with
+`"\\n"` (a LITERAL backslash-n) instead of `"\n"`, so the composed scene is one broken line → blank
+render. Stage A (python_syntax) passed (valid Python) and the **StubReviewer** used in the live demos
+auto-passed Stage B, so the bug would have committed. A behavioural acceptance check (run `build_body`,
+assert real newlines + one line per building) OR a genuine LLM Stage-B reviewer catches this. **This is
+the #1 next harness lever** (see ops/backlog.md) — the deterministic gates and the fast build loop are
+solid, but subjective correctness currently rides on a stub in unattended runs. The buggy module was NOT
+committed.
+
 ## Caveat
 An earlier routed full-battery run measured 4/6, but it was the victim of GPU contention (two 30B tasks
 overlapping — 31 min; the empty-output failures were starvation artifacts). Trust clean single-model
