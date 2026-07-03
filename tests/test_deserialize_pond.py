@@ -18,3 +18,13 @@ def test_save_load_round_trip():
         {"bread": 42, "buildings": [{"kind": "bakery", "x": 0, "y": 0}, {"kind": "nest", "x": 2, "y": 3}]},
     ):
         assert deserialize_pond(serialize_pond(state)) == state
+
+
+def test_round_trip_survives_negative_and_multidigit_coords():
+    # a naive `kind@x,y` split can mangle a negative x (`-2`) or a two-digit coord -- verify it doesn't.
+    for state in (
+        {"bread": 5, "buildings": [{"kind": "nest", "x": -2, "y": 3}]},        # negative
+        {"bread": 0, "buildings": [{"kind": "well", "x": 10, "y": 12}]},       # multi-digit
+        {"bread": 3, "buildings": [{"kind": "fence", "x": 0, "y": 0}, {"kind": "fence", "x": 1, "y": 1}]},
+    ):
+        assert deserialize_pond(serialize_pond(state)) == state
