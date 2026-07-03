@@ -76,3 +76,14 @@ def test_art_command_renders_the_pond_as_art(tmp_path):
     out = tmp_path / "pond_art.png"
     played = play(["build bakery", "build nest", f"art {out}"], verbose=False)
     assert out.exists() and len(played["buildings"]) == 2
+
+
+def test_load_of_a_corrupt_save_does_not_crash(tmp_path):
+    # same bug class as the web game: a corrupt save must not crash the text game (found by probing).
+    from ops.play_commands import run_command
+    bad = tmp_path / "bad.save"
+    bad.write_text("garbage not a pond")
+    state = {"bread": 10, "buildings": [{"kind": "bakery", "x": 0, "y": 0}]}
+    state, msg = run_command(state, f"load {bad}")               # must return, not raise
+    assert "corrupt" in msg
+    assert len(state["buildings"]) == 1                          # current pond preserved
