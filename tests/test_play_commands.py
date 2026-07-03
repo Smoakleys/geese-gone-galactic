@@ -61,3 +61,10 @@ def test_interactive_loop_processes_commands_and_quits(monkeypatch, capsys):
     play_commands.interactive()
     out = capsys.readouterr().out
     assert "built bakery" in out and "ticked" in out and "Pond:" in out   # each command ran + printed
+
+
+def test_art_command_renders_the_pond_as_art(tmp_path):
+    # the `art` command composites the generated sprites for the current state into a PNG (the real look).
+    out = tmp_path / "pond_art.png"
+    played = play(["build bakery", "build nest", f"art {out}"], verbose=False)
+    assert out.exists() and len(played["buildings"]) == 2
