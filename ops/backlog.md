@@ -57,7 +57,17 @@ Icarus improvement** (keep only if the unaided battery score rises).
       added a guard against the class, and CORRECTED the overstated "behavioural-gate" claims across all
       docs (the reviewer was the real enforcer). See [[ggg-test-checks-through-registry]].
 
-## Now — mission comprehensively proven. AWAITING BRIDGER on the visuals fork (2026-07-03).
+## Now — comprehensively complete + validated; remaining levers need COMPUTE or Bridger (2026-07-03).
+**Session progress since the fork was raised:** LIGHTING added to the scene template (3D depth, not flat) +
+a detailed goose + a lit hero world + geese in the state renderer (`pond_view`); the AGENT hardened (~13
+probe-found bugs incl. 3 context-truncation blindfolds — reviewer/notebook/run-tool) and VALIDATED (clean
+unaided **15/16 = 0.94**, `fix_bug` fail→PASS); the fine-tune pipeline made TURNKEY (`ops/train_qlora.py`,
+23-generator non-hardcodable gym, cleaned ~109-pair corpus growing via clean batches); the game is now
+INTERACTIVELY PLAYABLE (`python ops/play_commands.py --interactive`). 400 tests. What genuinely remains:
+(a) **scale the corpus + run the QLoRA fine-tune** — needs a cloud/CUDA GPU (local RDNA4 training unviable);
+(b) the **visuals-art fork** below — Bridger's preference. Everything up to those is DONE + tested + turnkey.
+
+### AWAITING BRIDGER on the visuals fork (2026-07-03).
 - [ ] **VISUALS FORK — Bridger's call (BLOCKED on his decision).** Progress since: visuals deepened from 2
       to FIVE agent-built scenes (goose, flock, world) + a `add_sphere` helper for rounded shapes; unaided
       logic re-measured 13/16 = 0.81 (no regression); reviewer truncation bug fixed (harness-mod-52). HONEST
