@@ -30,10 +30,12 @@ large, verified, non-memorisable SFT data with no hand-authoring.
 Python. Eyeball a few: instructions should read as real tasks, outputs as clean modules.
 
 ## 3. QLoRA fine-tune (EXTERNAL GPU job — not run here)
+First assemble the training file: `python ops/merge_sft.py` combines every `data/*_sft.jsonl` (authored +
+all generated batches) into a deduped `data/training_all.jsonl` — the fine-tune input.
 Ollama serves GGUF; QLoRA needs the base HF weights. Practical path:
 - Pick a QLoRA-able base that matches the runtime brain family (e.g. the Qwen3-14B base behind the
   Hermes profile, or an HF build of the resident model). Keep it small enough to fine-tune + serve in 16 GB.
-- Train a LoRA adapter on `data/onepond_sft.jsonl` with a standard stack (e.g. `unsloth`/`peft` +
+- Train a LoRA adapter on `data/training_all.jsonl` with a standard stack (e.g. `unsloth`/`peft` +
   `trl SFTTrainer`), short (1–3 epochs, low LR), penalising reasoning-length bloat (PLAN Lever 4).
 - Merge/convert to GGUF and `ollama create icarus-sft -f Modelfile`.
 
