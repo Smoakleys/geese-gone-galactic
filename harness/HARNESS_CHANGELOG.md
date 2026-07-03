@@ -460,3 +460,9 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   `behavior` examples (e.g. OP-8) now gets a DETERMINISTIC exact-output gate in the live pipeline -- the
   'baker'/'bakery'-class typo is caught mechanically at Stage A, not left to subjective review.
   Behaviour-less tickets SKIP it (no effect on existing tickets/tests). 274 tests.
+
+## harness-mod-46 - Grow the capability battery: gen_predator_safety
+- harness/icarus/eval/capability.py: added `gen_predator_safety` (parameterized nests + fences + reach ->
+  SAFE/UNSAFE, deterministic checker) and registered it in `default_generators()`. Grows the sealed
+  unaided battery to cover predator safety (a core One Pond mechanic that previously had no generator),
+  per the plan's "grow the battery with each mechanic". Verifier tested pass+fail. 297 tests.
