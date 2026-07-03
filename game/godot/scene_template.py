@@ -29,27 +29,31 @@ func _ready() -> void:
 '''
 
 _HELPERS = '''
-func _unshaded(color: Color) -> StandardMaterial3D:
+func _unshaded(color):
     var m := StandardMaterial3D.new()
     m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
     m.albedo_color = color
     return m
 
 # Helper: add a FLAT horizontal plane (already in the XZ plane -- never rotate it). `y` layers it.
-func add_plane(root: Node3D, size: Vector2, color: Color, y: float = 0.0) -> void:
+# Params are untyped + coercing on purpose: a small local model often passes a scalar for `size` or omits
+# args, and a typed signature turns that into a parse error that blanks the whole scene.
+func add_plane(root, size, color, y = 0.0):
+    var sz = size if (size is Vector2) else Vector2(float(size), float(size))
     var mi := MeshInstance3D.new()
     var pm := PlaneMesh.new()
-    pm.size = size
+    pm.size = sz
     mi.mesh = pm
     mi.position = Vector3(0, y, 0)
     mi.material_override = _unshaded(color)
     root.add_child(mi)
 
 # Helper: add a box (building) of `size` at `pos`.
-func add_box(root: Node3D, size: Vector3, color: Color, pos: Vector3) -> void:
+func add_box(root, size, color, pos = Vector3.ZERO):
+    var sz = size if (size is Vector3) else Vector3(float(size), float(size), float(size))
     var mi := MeshInstance3D.new()
     var bm := BoxMesh.new()
-    bm.size = size
+    bm.size = sz
     mi.mesh = bm
     mi.position = pos
     mi.material_override = _unshaded(color)
