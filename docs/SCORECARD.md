@@ -4,6 +4,16 @@ North star: Icarus's **UNAIDED** pass rate on novel, procedurally-generated task
 best-of-N, ≤1 self-repair). Instances rotate each run (non-memorizable by construction). Updated when
 capability moves. Generators + deterministic verifiers live in `harness/icarus/eval/capability.py`.
 
+## CLEAN re-measurement — 15/16 = 0.94, debugging improved (2026-07-03, Step D done right)
+Re-ran seed=7 UNAIDED with **zero concurrent load** (the contamination lesson applied): **15/16 = 0.94**,
+up from the clean 13/16 = 0.81 baseline. The notable signal: **BOTH debugging tasks PASSED** — `fix_bug`
+went fail→PASS (it failed at 13/16) and `fix_range` passed — directly consistent with harness-mod-54 (the
+`run` tool now shows Icarus the ACTUAL error at the end of output, not a truncated head, so its "read the
+error, fix it" loop works). The only miss was `pondtick` (empty output — a one-off timeout flake).
+**HONEST caveat:** n=1, stochastic model — a single run can't *prove* a 2-task debugging effect isn't luck.
+But it's directionally encouraging, shows NO regression, and the clean number (0.94) vs the contaminated
+one (0.62, same fixes) confirms the "measure clean" methodology. The valid unaided band is now **~0.81–0.94**.
+
 ## CONTAMINATED re-run — do NOT read as a regression (2026-07-03)
 A seed=7 re-run scored **10/16**, but it is INVALID: I ran pytest (which spawns Godot) + git commits
 REPEATEDLY *during* the battery, and the GPU/IO contention degraded it — `place_n8` literally
