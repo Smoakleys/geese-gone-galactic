@@ -50,3 +50,17 @@ def test_regenerator_runs_as_a_script():
     assert r.returncode == 0, r.stderr
     assert "SFT records" in r.stdout
     assert (repo / "data" / "onepond_sft.jsonl").exists()
+
+
+def test_committed_sft_dataset_is_wellformed():
+    # bad training data poisons the QLoRA fine-tune -- guard the committed artifact.
+    import ast
+    from pathlib import Path
+    p = Path(__file__).resolve().parents[1] / "data" / "onepond_sft.jsonl"
+    lines = [ln for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    assert len(lines) >= 15                                     # a real dataset
+    for ln in lines:
+        r = json.loads(ln)                                     # valid JSONL
+        assert {"instruction", "input", "output"} <= set(r)    # standard QLoRA shape
+        assert len(r["instruction"]) > 20 and r["output"].strip()
+        ast.parse(r["output"])                                 # every solution is valid Python
