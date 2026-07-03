@@ -305,3 +305,10 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   the failing renders were genuinely gray/empty (the look_at-before-add_child bug leaves the camera aimed
   at the background). Unaided render capability is low; the seeded notebook (look_at lesson) is what makes
   it render green - a real, measured improvement. 202 tests.
+
+## harness-mod-23 - Bread-economy task on the scorecard (Icarus's game-logic strength: 3/3)
+- harness/icarus/eval/capability.py: gen_economy - a procedural goose-pond bread-economy simulation
+  (the real game's LOGIC domain), added to the battery. Icarus scored 3/3 unaided on gpt-oss:20b
+  (correct economy math over N ticks). Confirms the strategic read: Icarus is strong at game
+  SYSTEMS/logic - exactly where the mission needs it - even as it is weak at 3D visual rendering.
+  Regression test covers the verifier. 206 tests.

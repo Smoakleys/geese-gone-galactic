@@ -208,6 +208,29 @@ def gen_find_secret(rng: Random) -> TaskInstance:
         "ONLY the <value> (the token after SECRET=) into a file named answer.txt.", verify, setup=setup)
 
 
+def gen_economy(rng: Random) -> TaskInstance:
+    """The real game's LOGIC domain (Icarus's strength): a pond bread-economy simulation."""
+    bakeries = rng.randint(1, 4)
+    geese = rng.randint(1, 3)
+    start = rng.randint(5, 20)
+    ticks = rng.randint(3, 8)
+    final = start + ticks * (bakeries * 3 - geese)
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        try:
+            rc, out, err = _run_py(ws, "economy.py")
+        except Exception as e:
+            return False, f"could not run economy.py: {e}"
+        return out == str(final), f"expected final bread {final}, got {out!r}"
+
+    return TaskInstance(
+        f"economy_{bakeries}b_{geese}g_{ticks}t_{start}s", "game-logic",
+        f"Write economy.py that simulates a goose-pond bread economy for {ticks} ticks, starting with "
+        f"{start} bread. Each tick: {bakeries} bakeries EACH produce 3 bread, and {geese} geese EACH "
+        f"eat 1 bread. After the {ticks} ticks, print ONLY the final bread total. Run it to verify.",
+        verify)
+
+
 def gen_gdscript(rng: Random) -> TaskInstance:
     """The real domain: write valid Godot 4 GDScript, self-verifiable via godot --check-only."""
     n = rng.randint(2, 4)
@@ -272,7 +295,7 @@ def gen_render(rng: Random) -> TaskInstance:
 
 def default_generators() -> "list[Callable[[Random], TaskInstance]]":
     return [gen_sum, gen_reverse, gen_json, gen_fizzbuzz,
-            gen_fix_bug, gen_read_sum, gen_find_secret, gen_gdscript, gen_render]
+            gen_fix_bug, gen_read_sum, gen_find_secret, gen_economy, gen_gdscript, gen_render]
 
 
 def sample_battery(seed: int = 0, per_generator: int = 1,
