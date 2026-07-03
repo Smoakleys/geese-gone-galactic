@@ -72,8 +72,11 @@ Icarus improvement** (keep only if the unaided battery score rises).
       **self-distillation pipeline** (`harness/icarus/distill.py` + `ops/build_sft.py`, harness-mod-51)
       turns Icarus's gate-passing solutions into QLoRA SFT data (`data/onepond_sft.jsonl`). NEXT (external
       GPU step): QLoRA fine-tune gpt-oss:20b on that data, then re-run the unaided battery and keep the
-      adapter ONLY if unaided rises. Grow the dataset by authoring + building more tickets (each adds a
-      verified pair). This is the one genuinely-open frontier; everything else is comprehensively proven.
+      adapter ONLY if unaided rises. Grow the dataset two ways, BOTH BUILT: author + build more tickets
+      (each adds a verified pair, `ops/build_sft.py`), OR scale via the procedural gym
+      (`ops/generate_training_data.py` — runs generated instances through the agent, keeps checker-passing
+      solutions; smoke-tested live). Full runbook in `docs/DISTILL.md`. This is the one genuinely-open
+      frontier; everything else is comprehensively proven.
 
 ## Candidate increments (pick by value, not order)
 - [ ] Improve Icarus each cycle (prompt/packet/tooling/**model**-swap or ensemble) toward higher
