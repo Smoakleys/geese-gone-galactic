@@ -374,3 +374,15 @@ def test_no_verification_then_prose_is_stuck(tmp_path):
     prose = "I think this should work."
     res = run_agent(ScriptedAgentModel([prose, prose, prose]), "task", tmp_path, max_steps=8)
     assert res.state == State.STUCK
+
+
+def test_successful_verify_cues_finish_once(tmp_path):
+    # gpt-oss doesn't reliably finish after verifying; a successful render/run cues [DONE?] exactly once.
+    from harness.icarus.agent.runtime import run_agent, ScriptedAgentModel
+    w = _tool("name: write_file", "path: a.py", "body:", "print(1)")
+    r1 = _tool("name: run", "cmd: python a.py")
+    r2 = _tool("name: run", "cmd: python a.py")
+    fin = _tool("name: finish", "summary: done")
+    res = run_agent(ScriptedAgentModel([w, r1, r2, fin]), "task", tmp_path, max_steps=8)
+    cues = [m for m in res.transcript if m["role"] == "user" and "[DONE?]" in m["content"]]
+    assert len(cues) == 1                          # cued once, after the first successful verify

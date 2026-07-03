@@ -375,6 +375,7 @@ def run_agent(model: AgentModel, task: str, workspace: Path, *,
     wrote_files = False          # did it produce an artifact...
     verified = False             # ...and actually run/render/see it before finishing?
     nudged_verify = False        # the verify reminder fires at most once (never blocks finishing outright)
+    hinted_finish = False        # the "you've verified -> finish if satisfied" cue fires at most once
     steps = 0
     for steps in range(1, max_steps + 1):
         try:
@@ -433,7 +434,15 @@ def run_agent(model: AgentModel, task: str, workspace: Path, *,
             result = ToolResult(False, f"tool '{call.name}' errored: {type(e).__name__}: {e}")
         if result.ok:
             consecutive_errors = 0
-            messages.append({"role": "user", "content": f"[{call.name}] OK\n{result.output}"})
+            content = f"[{call.name}] OK\n{result.output}"
+            # After a SUCCESSFUL verify (render/run), cue it once to finish if satisfied. Observed on gpt-oss:
+            # it builds + renders a good scene but then never emits `finish` -- ending STUCK (prose) or
+            # MAX_STEPS. This closes that out. Advisory + one-time; it can keep improving instead.
+            if call.name in ("render", "run") and not hinted_finish:
+                hinted_finish = True
+                content += ("\n\n[DONE?] You have verified your work. If it satisfies the task, emit a "
+                            "`finish` tool call now; otherwise keep improving it.")
+            messages.append({"role": "user", "content": content})
         else:
             consecutive_errors += 1
             content = f"[{call.name}] ERROR\n{result.output}"

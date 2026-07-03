@@ -594,3 +594,12 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   it never got anywhere. Safe: the gate still decides commit-quality independent of this state. Also nudged
   the no-tool-block message toward `finish`. Regression test: no-tool-block after a render -> DONE; with no
   verification -> STUCK.
+
+## harness-mod-63 - Cue `finish` after a successful verify (observed on gpt-oss)
+- harness/icarus/agent/runtime.py: running the real gpt-oss:20b on a scene task TWICE, it built + rendered a
+  good gate-passing village both times but never emitted a `finish` tool call -- ending STUCK (prose, run 1)
+  then MAX_STEPS (run 2). Root cause: the model doesn't reliably close out after verifying. Fix: after a
+  SUCCESSFUL render/run, the observation carries a one-time [DONE?] cue ("if this satisfies the task, emit
+  finish now; otherwise keep improving"). Advisory, fires once, doesn't force finishing. Complements mod-61
+  (don't finish BEFORE verifying) + mod-62 (salvage verified-then-prose as DONE). Regression test: a
+  successful render observation contains [DONE?] exactly once.
