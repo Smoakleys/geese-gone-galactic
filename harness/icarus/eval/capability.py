@@ -245,6 +245,47 @@ def gen_placement(rng: Random) -> TaskInstance:
         f"share a cell, otherwise 'INVALID'. Run it to verify.", verify)
 
 
+def gen_pond_tick(rng: Random) -> TaskInstance:
+    """The bread tick WIRED TO placement (Icarus's strength): validate the layout, then run the economy."""
+    n = rng.randint(4, 6)
+    ticks = rng.randint(3, 6)
+    start = rng.randint(5, 15)
+    nb, ng = rng.randint(1, 3), rng.randint(1, 2)
+    placed: "list[tuple[int, int]]" = []
+
+    def place() -> "tuple[int, int]":
+        while True:
+            p = (rng.randint(0, n - 1), rng.randint(0, n - 1))
+            if p not in placed:
+                placed.append(p)
+                return p
+
+    bakeries = [place() for _ in range(nb)]
+    nests = [place() for _ in range(ng)]
+    if rng.random() > 0.6:  # inject an invalid placement
+        bakeries.append((n + 1, 0) if rng.random() > 0.5 else bakeries[0])
+    cells = bakeries + nests
+    valid = all(0 <= x < n and 0 <= y < n for x, y in cells) and len(set(cells)) == len(cells)
+    expected = str(start + ticks * (nb * 3 - ng)) if valid else "INVALID"
+    layout = "; ".join([f"bakery at ({x},{y})" for x, y in bakeries]
+                       + [f"nest at ({x},{y})" for x, y in nests])
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        try:
+            rc, out, err = _run_py(ws, "pond.py")
+        except Exception as e:
+            return False, f"could not run pond.py: {e}"
+        return out.strip() == expected, f"expected {expected}, got {out.strip()!r}"
+
+    return TaskInstance(
+        f"pondtick_{rng.randint(1000, 9999)}_{expected}", "game-logic",
+        f"A goose pond has an {n}x{n} grid (valid cells 0..{n - 1}). Buildings: {layout}. Each tick a "
+        f"bakery makes 3 bread and each nest's goose eats 1 bread. Start with {start} bread and run "
+        f"{ticks} ticks. If ANY building is out-of-bounds OR two buildings share a cell, print ONLY "
+        f"'INVALID'. Otherwise print ONLY the final bread total. Write pond.py and run it to verify.",
+        verify)
+
+
 def gen_economy(rng: Random) -> TaskInstance:
     """The real game's LOGIC domain (Icarus's strength): a pond bread-economy simulation."""
     bakeries = rng.randint(1, 4)
@@ -399,7 +440,7 @@ def gen_pond_scene(rng: Random) -> TaskInstance:
 def default_generators() -> "list[Callable[[Random], TaskInstance]]":
     return [gen_sum, gen_reverse, gen_json, gen_fizzbuzz,
             gen_fix_bug, gen_read_sum, gen_find_secret, gen_economy, gen_placement,
-            gen_gdscript, gen_render, gen_bakery_scene]
+            gen_pond_tick, gen_gdscript, gen_render, gen_bakery_scene]
 
 
 def sample_battery(seed: int = 0, per_generator: int = 1,

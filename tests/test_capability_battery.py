@@ -159,6 +159,21 @@ def test_placement_verifier(tmp_path):
     assert not bad
 
 
+def test_pond_tick_verifier(tmp_path):
+    from harness.icarus.eval.capability import gen_pond_tick
+    inst = gen_pond_tick(Random(0))
+    expected = inst.id.split("_")[-1]              # "INVALID" or the final bread number
+    ws = tmp_path / inst.id
+    ws.mkdir()
+    body = f"print('{expected}')\n" if expected == "INVALID" else f"print({expected})\n"
+    (ws / "pond.py").write_text(body)
+    ok, _ = inst.verify(ws)
+    assert ok
+    (ws / "pond.py").write_text("print('WRONG')\n")
+    bad, _ = inst.verify(ws)
+    assert not bad
+
+
 def test_economy_verifier(tmp_path):
     import re
 
