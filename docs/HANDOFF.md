@@ -66,13 +66,18 @@ SCENE TEMPLATE: Icarus writes only `func build(root)` calling `add_plane`/`add_b
 `game/godot/scene_template.py: compose_scene` (+ the AgentBuilder `post_build` hook
 `materialize_templated_scene`) wraps it with a correct camera on the FAST resident model — real scenes in
 ~19s, the full One Pond backlog commits in ~68s @ autonomy 1.0. Templated tasks auto-route to `fast`.
-**One Pond core is built** by Icarus: `game/onepond_tickets.py` (OP-1 scene + OP-2/3/4 logic) →
-`game/pond/{bread_tick,placement,pond_state}.py` + `game/godot/scenes/one_pond.gd`, composed + tested
-(test_one_pond_integration).
+**One Pond is a real, playable game core built by Icarus**: `game/onepond_tickets.py` (OP-1 scene +
+OP-2..OP-11 logic) → **eleven** agent-built modules under a clean `game/pond` package API — economy w/
+granary synergy, placement, sim, predator safety, granary, composed economy, state→scene bridge, status,
+win/lose outcome, water access — + `game/godot/scenes/{one_pond,one_pond_full}.gd` (5 coloured building
+types). Every module behaviour-locked; integration tests drive place→tick→status→outcome→render (see
+`game/pond/README.md`).
 
-Drive it forward **one authored Icarus ticket per cycle** via `default_icarus_builder` + the full loop:
-add building variety (granary/fence + its rule), a scene that reflects placed buildings, more mechanics —
-each gated + committed. Keep any harness/Icarus change only if it's a measured win (the plan's rule).
+Drive it forward **one authored Icarus ticket per cycle** via `default_icarus_builder` + the full loop.
+DISCIPLINE (learned the hard way): build the module FIRST, commit ticket + module + test TOGETHER, and
+VERIFY GREEN before merging (two red-mains came from skipping this). Spec-driven: pin a criterion + a
+`behavior` example and the gate FORCES it on rebuild. Keep any harness/Icarus change only if it's a
+measured unaided win (the plan's rule).
 Still to do: retire the legacy `game/onepond/` python toy (marked legacy; the real slice is `game/pond`
 + `game/godot`).
 
