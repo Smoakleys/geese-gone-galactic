@@ -238,6 +238,28 @@ def test_events_and_affordability_in_a_playthrough():
     assert pond_rank(pond_score(state)) == "village"             # 10 + 15 = 25, still village
 
 
+def test_parse_command_drives_the_game():
+    # the "talk to it" step: a text command parses and dispatches to the game mechanics.
+    from game.pond import parse_command, apply_event
+    state = {"bread": 20, "buildings": []}
+
+    verb, target = parse_command("Build bakery")
+    assert (verb, target) == ("build", "bakery")
+    if verb == "build" and target:
+        state = add_building(state, target, 0, 0, 8)
+    assert state["buildings"] == [{"kind": "bakery", "x": 0, "y": 0}]
+
+    verb, target = parse_command("event harvest")
+    if verb == "event" and target:
+        state = apply_event(state, target)
+    assert state["bread"] == 30                           # 20 + 10 harvest
+
+    verb, target = parse_command("tick")
+    if verb == "tick":
+        state = step(state)
+    assert state["bread"] == 33                           # 1 bakery * 3
+
+
 def _nests_and_fences(state):
     nests = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "nest"]
     fences = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "fence"]
