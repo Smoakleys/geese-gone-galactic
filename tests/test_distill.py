@@ -68,8 +68,21 @@ def test_committed_sft_datasets_are_wellformed():
             assert {"instruction", "input", "output"} <= set(r), p.name   # standard QLoRA shape
             assert len(r["instruction"]) > 20 and r["output"].strip(), p.name
             ast.parse(r["output"])                             # every solution is valid Python
+            assert "BUILT BY ICARUS" not in r["output"], p.name  # no provenance header leaked into training
         total += len(lines)
     assert total >= 15                                          # a real corpus
+
+
+def test_strip_provenance_removes_header_keeps_code():
+    from harness.icarus.distill import _strip_provenance
+    src = ("# BUILT BY ICARUS (gpt-oss:20b) for OP-2 through the full pipeline\n"
+           "# (authored ticket -> agent -> gate -> commit, autonomy 1.0).\n\n"
+           "def tick(state):\n    return state\n")
+    out = _strip_provenance(src)
+    assert out == "def tick(state):\n    return state\n"       # header + blank gone, code intact
+    # a module WITHOUT the provenance marker is returned unchanged (real leading comments preserved)
+    plain = "# a normal comment\ndef f():\n    return 1\n"
+    assert _strip_provenance(plain) == plain
 
 
 def test_generate_training_data_plumbing(tmp_path):
