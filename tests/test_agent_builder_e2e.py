@@ -87,3 +87,56 @@ def test_agentbuilder_gdscript_commits_through_full_loop(tmp_path, git_repo):
         staging_root=tmp_path / "staging", max_rounds=2)
     result = loop.run_ticket(ticket)
     assert result.committed, result
+
+
+@pytest.mark.skipif(godot_path() is None, reason="Godot not installed")
+def test_agentbuilder_scene_commits_through_render_gate(tmp_path, git_repo):
+    # A rendering scene must clear BOTH godot_parse AND the new godot_render gate to commit -- proves the
+    # render-quality check is enforced in the real commit path (a blank scene would be rejected here).
+    from harness.gatekeeper import Gatekeeper
+    from harness.loop import Loop
+    from harness.review.base import StubReviewer
+    from game.godot.checks import GodotParseCheck, GodotRenderCheck
+
+    registry = Registry(tmp_path / "lock")
+    registry.register(GodotParseCheck())
+    registry.register(GodotRenderCheck())
+    registry.certify_all()
+    ticket = Ticket(
+        id="T-POND-RENDER", title="a Godot pond scene.gd that renders", kind=TicketKind.SYSTEM,
+        acceptance_criteria=[
+            AcceptanceCriterion(id="AC1", text="renders a visible scene", stage=Stage.A, check_hint="godot_render"),
+            AcceptanceCriterion(id="AC2", text="reads as a pond", stage=Stage.B, rubric_ref="x"),
+        ])
+    ticket.freeze()
+    scene = (
+        "extends Node3D\n"
+        "func _ready() -> void:\n"
+        "\tvar c = Camera3D.new()\n"
+        "\tadd_child(c)\n"
+        "\tc.position = Vector3(6, 6, 6)\n"
+        "\tc.look_at(Vector3.ZERO, Vector3.UP)\n"
+        "\tc.projection = Camera3D.PROJECTION_ORTHOGONAL\n"
+        "\tc.size = 8\n"
+        "\tc.current = true\n"
+        "\tvar p = PlaneMesh.new()\n"
+        "\tp.size = Vector2(8, 8)\n"
+        "\tvar m = StandardMaterial3D.new()\n"
+        "\tm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED\n"
+        '\tm.albedo_color = Color("green")\n'
+        "\tvar mi = MeshInstance3D.new()\n"
+        "\tmi.mesh = p\n"
+        "\tmi.material_override = m\n"
+        "\tadd_child(mi)\n"
+    )
+    replies = [
+        "```tool\nname: write_file\npath: scene.gd\nbody:\n" + scene + "```",
+        "```tool\nname: finish\nsummary: done\n```",
+    ]
+    loop = Loop(
+        repo_root=git_repo, builder=AgentBuilder(ScriptedAgentModel(replies)),
+        reviewer=StubReviewer(lambda r: True), registry=registry,
+        gatekeeper=Gatekeeper(git_repo, ratchet_dir=tmp_path / "ratchet"),
+        staging_root=tmp_path / "staging", max_rounds=2)
+    result = loop.run_ticket(ticket)
+    assert result.committed, result
