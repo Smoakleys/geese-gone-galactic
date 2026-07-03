@@ -141,9 +141,28 @@ def fence_lines(base) -> "list[str]":
     return lines
 
 
+_TRUNK = "Color(0.45, 0.31, 0.19)"
+_LEAF = "Color(0.30, 0.52, 0.26)"
+_LEAF2 = "Color(0.34, 0.57, 0.29)"
+
+
+def tree_lines(base, s: float = 1.0) -> "list[str]":
+    """A round bushy tree (trunk + two overlapping leaf blobs) at ``base``, scaled by ``s`` -- scenery so
+    the world isn't just buildings on bare grass."""
+    def p(dx, dy, dz):
+        return _at(base, dx * s, dy * s, dz * s)
+
+    return [
+        _part("_cyl(0.16, 1.1)", _TRUNK, p(0, 0.55, 0), (s, s, s)),
+        _part("_ball(0.85)", _LEAF, p(0, 1.5, 0), (s, s, s)),
+        _part("_ball(0.62)", _LEAF2, p(0.28, 2.05, 0.1), (s, s, s)),
+        _part("_ball(0.6)", _LEAF2, p(-0.3, 1.95, -0.1), (s, s, s)),
+    ]
+
+
 BUILDING_LINES = {
     "bakery": bakery_lines, "granary": granary_lines, "nest": nest_lines,
-    "well": well_lines, "fence": fence_lines,
+    "well": well_lines, "fence": fence_lines, "tree": tree_lines,
 }
 
 
