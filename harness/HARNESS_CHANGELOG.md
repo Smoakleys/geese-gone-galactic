@@ -565,3 +565,13 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   containing a letter, a text-processing domain). Both read a per-instance input file -> non-hardcodable.
   Registered in the battery (now 23 generators) + the procedural gym. Broadens Lever-1 coverage (aggregate /
   filter / sort / search / text) with real-code tasks for cleaner fine-tune data. Verifier test extended.
+
+## harness-mod-60 - Persistence: re-plan when stuck, don't repeat or give up (Bridger's feedback)
+- harness/icarus/agent/runtime.py: Bridger's core feedback is that the agent (and I) must be creative +
+  STUBBORN at obstacles, not task-switch away. Two changes to the plan->act->reflect loop: (1) the system
+  prompt now tells Icarus to diagnose WHY a step failed and try a DIFFERENT approach until it works, and to
+  verify before finishing; (2) a re-plan trigger: after >=2 consecutive tool ERRORs, the loop injects a
+  [REPLAN] nudge forcing a one-line why + a different approach (different tool/method/angle), instead of
+  letting it bang the same wall or finish on a failing state. consecutive_errors resets on any OK.
+  Embodies the plan's "re-plan when stuck" (Part 2A). Regression test: two failing tool calls -> the 2nd
+  observation carries [REPLAN]; a success resets it.
