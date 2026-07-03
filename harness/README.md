@@ -27,7 +27,7 @@ is therefore a property of the wiring, not of anyone's discipline.
 | `ratchet.py` | Monotonic quality floors (`floor = max(old, new)`); regression fixtures |
 | `review/` | Reviewer contract + isolation **packet builder**; `llm_reviewer.py` / `consensus.py` (multi-model, fail-closed) behind a `ChatClient` seam (`model_client.py`, Anthropic in prod); `visual_gate.py` (reference-anchored CV scorer); `decision_log_review.py` (Stage C flywheel: `new_check` / `tighten_rubric` proposals) |
 | `audit/` | Cold audits — periodic, hard-blocking re-verification of accepted work (mechanical + adversarial) |
-| `icarus/` | The swappable `Builder` seam; `LLMBuilder` behind a `GenerationClient` seam |
+| `icarus/` | The swappable `Builder` seam. **`agent/`** = Icarus's agent **runtime** (plan→act→reflect loop + tools: edit/read/list/search/run/see(vision)/render/note; resilient to transient model failures). **`agent_builder.py`** = `AgentBuilder` (the runtime behind the Builder seam) + `ModelRouter` (visual/Godot tickets → a 30B, logic → fast gpt-oss:20b). **`eval/`** = the procedural capability battery (scores UNAIDED problem-solving on novel tasks). `LLMBuilder` (one-shot `GenerationClient`) is the legacy generator. |
 | `gen3d/` | Text-to-3D `MeshGenerator` seam + curated-pack fallback; real GPU worker is a drop-in |
 | `selfmod/` | The guard-railed self-modification validator + revert bookkeeping |
 | `metrics/` | Autonomy-rate flywheel metric + plateau detection |
@@ -49,16 +49,18 @@ FAIL; post-freeze criteria edits abort as tamper; a reintroduced defect is caugh
 ratchet; self-mod is blocked when it reddens the suite / adds an uncertified check / omits the
 changelog / silently lowers a floor; and the Stage-B review packet never sees the decision log.
 
-## What is still external (drop-ins behind proven seams)
+## Live now (built this cycle) + what remains external
 
-The software is complete; the only things not exercised here are external-hardware/key
-dependencies, each a swap behind a tested seam:
+Built and exercised locally (see `docs/HANDOFF.md`):
+- **Godot 4 + a Windows offscreen screenshot rig** (`tools/godot_capture/`, `game/godot/`) — replaces
+  the Linux `GodotXvfbWorker`; `godot_parse` + `green_dominance` render checks gate real GDScript.
+- **Icarus's agent runtime + routing** (`harness/icarus/agent/`, `agent_builder.py`) on local Ollama
+  (gpt-oss:20b + qwen3:30b). Proven end-to-end: Icarus → full gate → committed, rendered scene.
 
-- **Real Godot + Xvfb screenshots** — `GodotXvfbWorker` behind the `ScreenshotWorker` seam
-  (`game/onepond/render.py`); the tested `StubScreenshotWorker` renders the pond today.
+Still external, each a swap behind a tested seam:
 - **GPU text-to-3D** — `RemoteGpuWorker` behind `harness/gen3d`; a curated pack is the fallback.
-- **Live Anthropic reviewer** — `AnthropicChatClient` behind the `ChatClient` seam, used only
-  when `ANTHROPIC_API_KEY` is set; the suite runs fully offline with scripted/consensus clients.
+- **A stronger reviewer** — behind the `ChatClient` seam; the local advisory judge + deterministic gate
+  run fully offline today.
 
-Everything above these seams — the loop, the gate, the ratchet, Stage C, cold audits, the
-control surface — is real and covered by the governance suite.
+Everything above the seams — the loop, the gate, the ratchet, Stage C (works with the agent), cold
+audits, the control surface — is real and covered by the governance suite (218 tests).
