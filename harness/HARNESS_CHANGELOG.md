@@ -523,3 +523,12 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   Icarus (whose whole loop is "read the error, fix it") never saw what failed. Now tail-truncates (keeps
   the last _MAX_OUTPUT with a "head truncated" marker) so the error/result always shows. Real debugging-
   capability fix. Regression test: a program printing 5000 chars then raising -> the error survives.
+
+## harness-mod-55 - Strip provenance headers from SFT training outputs
+- harness/icarus/distill.py: the SFT `output` was the raw committed module, which starts with the
+  "# BUILT BY ICARUS ... autonomy 1.0 ..." provenance header I prepend at commit. Training on that teaches
+  a future fine-tune to REPRODUCE that meta-comment atop every solution -- pure noise that would pollute
+  the model. Added `_strip_provenance` (drops only the leading contiguous comment block, and only when it
+  starts with the provenance marker, so a module's real leading comments survive). Regenerated
+  data/onepond_sft.jsonl -> outputs now start with real code (`def ...`). Guard: the wellformedness test
+  now asserts no committed SFT output contains the provenance marker. A data-quality fix for the frontier.

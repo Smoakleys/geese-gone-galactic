@@ -32,6 +32,23 @@ def _instruction(ticket) -> str:
     return "\n".join(parts)
 
 
+def _strip_provenance(src: str) -> str:
+    """Drop the leading ``# BUILT BY ICARUS ...`` provenance header so the training OUTPUT is the actual
+    code. Otherwise a fine-tune learns to reproduce that meta-comment (autonomy/gate/ticket chatter) at the
+    top of every solution — pure noise. Only strips the leading contiguous comment block, and only when it
+    starts with the provenance marker, so a module's own real leading comments are left intact."""
+    lines = src.splitlines()
+    if not lines or not lines[0].lstrip().startswith("# BUILT BY ICARUS"):
+        return src
+    i = 0
+    while i < len(lines) and lines[i].lstrip().startswith("#"):
+        i += 1
+    while i < len(lines) and not lines[i].strip():   # drop one blank separator after the header
+        i += 1
+    body = "\n".join(lines[i:])
+    return body + "\n" if src.endswith("\n") and not body.endswith("\n") else body
+
+
 def build_sft_records(tickets: Iterable, module_dir: Path) -> "list[dict]":
     """One SFT record per gate-passing (ticket, committed module) pair.
 
@@ -53,7 +70,7 @@ def build_sft_records(tickets: Iterable, module_dir: Path) -> "list[dict]":
                 records.append({
                     "instruction": _instruction(t),
                     "input": "",
-                    "output": src.read_text(encoding="utf-8"),
+                    "output": _strip_provenance(src.read_text(encoding="utf-8")),
                     "meta": {"ticket": t.id, "module": name, "gate": "python_behavior+reviewer"},
                 })
     return records
