@@ -57,27 +57,37 @@ Icarus improvement** (keep only if the unaided battery score rises).
       added a guard against the class, and CORRECTED the overstated "behavioural-gate" claims across all
       docs (the reviewer was the real enforcer). See [[ggg-test-checks-through-registry]].
 
-## Now — comprehensively complete + validated; remaining levers need COMPUTE or Bridger (2026-07-03).
-**Session progress since the fork was raised:** LIGHTING added to the scene template (3D depth, not flat) +
-a detailed goose + a lit hero world + geese in the state renderer (`pond_view`); the AGENT hardened (~13
-probe-found bugs incl. 3 context-truncation blindfolds -- reviewer/notebook/run-tool) and VALIDATED (clean
-unaided **15/16 = 0.94**, `fix_bug` fail->PASS); the fine-tune pipeline made TURNKEY (`ops/train_qlora.py`,
-23-generator non-hardcodable gym, cleaned ~109-pair corpus growing via clean batches); the game is now
-INTERACTIVELY PLAYABLE (`python ops/play_commands.py --interactive`). 400 tests. What genuinely remains:
-(a) **scale the corpus + run the QLoRA fine-tune** -- needs a cloud/CUDA GPU (local RDNA4 training unviable);
-(b) the **visuals-art fork** below -- Bridger's preference. Everything up to those is DONE + tested + turnkey.
+## Now — VISUALS are the priority + PERSISTENCE is the standing rule (Bridger, 2026-07-03).
+**Bridger's direction (2026-07-03):** the visuals were cubes + a pixelly goose — not acceptable; put ALL
+emphasis on fixing them. AND: stop task-switching away from hard problems — be creative + STUBBORN until
+solved; that persistence IS the goal of improving Icarus. See memory [[be-stubborn-not-avoidant]] +
+[[ggg-visuals-priority]]. Do NOT drift back to easy logic/corpus wins while visuals or any hard problem is open.
 
-### AWAITING BRIDGER on the visuals fork (2026-07-03).
-- [ ] **VISUALS FORK — Bridger's call (BLOCKED on his decision).** Progress since: visuals deepened from 2
-      to FIVE agent-built scenes (goose, flock, world) + a `add_sphere` helper for rounded shapes; unaided
-      logic re-measured 13/16 = 0.81 (no regression); reviewer truncation bug fixed (harness-mod-52). HONEST
-      FINDING (see memory `ggg-abstract-visuals-fail-judges`): the box/sphere geese do NOT read as geese to
-      an independent judge — a text reviewer on the code is inconsistent noise, and the qwen2.5vl vision
-      model on the RENDER flatly fails them ("a green square with a blue square and an orange shape"). The
-      earlier scene "reviewer passes" were luck, not recognition. So this is not a reviewer bug to hack — the
-      real lever is ART. Two honest paths, **Bridger to choose**: (1) real goose-shaped 3D art (proper
-      assets / text-to-3D — a big lift on 16GB local), or (2) own the abstract low-poly style and gate scenes
-      on the objective checks only (parse/render/colour/layout), dropping the unreliable "looks like a goose"
+**Visual campaign DONE this session (chose: own the low-poly style, done WELL — PRs #329-336):**
+rig anti-aliasing (8x MSAA + FXAA) + 1024px (killed "pixelly"); a real stylized GOOSE (body/S-neck/beak/
+eyes/wings/tail) replacing the blob; a reusable MODEL LIBRARY `game/godot/models.py` (roofed bakery, silo
+granary, nest+eggs, well, fence + goose); `pond_view` + every showcase scene now render a cozy VILLAGE, not
+boxes; the `godot_render` gate fixed to accept a natural palette (region green-fraction, not whole-frame
+mean); Icarus TAUGHT the shapes (one-call `add_building`/`add_goose` template helpers + notebook); Icarus'
+runtime made STUBBORN (harness-mod-60: re-plan on repeated failure, verify before finish). 410 tests.
+
+**Next visual polish (keep going, don't drift):** convert the canonical `one_pond.gd` + `one_pond_full.gd`
+(careful: 13 tests ref one_pond); add a tree/decoration prop; per-building variety (colour jitter); maybe a
+7B-vision self-review of scenes now that props are recognizable. THEN the compute/Bridger levers below.
+
+**Compute/Bridger levers (unchanged):** (a) scale corpus + run the QLoRA fine-tune (needs cloud/CUDA GPU;
+local RDNA4 training unviable) -- pipeline TURNKEY (`ops/train_qlora.py`, 23-gen gym, ~125-pair corpus);
+agent VALIDATED clean unaided 15/16 = 0.94. Game is interactively playable (`play_commands.py --interactive`).
+
+### (RESOLVED) the old visuals-art fork — Bridger chose "own the low-poly style, done well" (see above).
+- [x] **VISUALS FORK — resolved 2026-07-03.** Earlier honest finding (memory `ggg-abstract-visuals-fail-judges`):
+      the OLD box/sphere geese didn't read as geese. Bridger's call: make the low-poly art genuinely GOOD
+      (not photoreal 3D assets, not a reviewer hack). Done via procedural MODELS (see campaign above) -- the
+      geese + buildings now clearly read as such. Kept the objective gate (parse/render/colour/layout);
+      a subjective "looks like a goose" bar could now be re-tried against the vision model since props are
+      recognizable. Old paths kept for history:
+      (1) real goose-shaped 3D art (proper assets / text-to-3D — a big lift on 16GB local), or
+      (2) own the abstract low-poly style and gate scenes on the objective checks only (CHOSEN, done well)
       subjective bar. Do NOT force a subjective visual pass — that would be faking. If keeping a subjective
       scene gate, route it to the VISION model on the render (plan's see-screenshot), noting even 7B vl is a
       harsh judge of these abstract shapes.
