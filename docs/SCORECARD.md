@@ -69,10 +69,14 @@ the StubReviewer waved through. Wired as `default_reviewer()`.
 `tick_bread` had the right formula but matched `'baker'` instead of `'bakery'` (counts 0 bakeries →
 wrong). The real reviewer, judging against "counts kinds and returns bakeries*(3+granaries) - nests",
 passed it — the formula matched; the exact-string typo wasn't in scope. Fix each time: PIN the criterion
-(exact strings + a concrete input→output example, e.g. `tick_bread([...]) == 7`). The durable lever for
-this class (exact-output logic) is a **deterministic behavioural check** that runs the function against
-examples — more reliable than subjective review for typos. Deferred as a focused harness cycle; buggy
-modules are NOT committed.
+(exact strings + a concrete input→output example, e.g. `tick_bread([...]) == 7`).
+
+**RESOLVED (harness-mod-44/45): a deterministic behavioural check.** `PythonBehaviorCheck` runs authored
+`{module, call, expect}` examples against the produced module and requires exact results — certified,
+wired into `default_registry`, and carried by every logic ticket (OP-2..OP-8). Live-confirmed: OP-8 run
+through the full gate commits a module GUARANTEED to satisfy `tick_bread([...]) == 7` — a `'baker'` typo
+now FAILs Stage A mechanically and is reworked, not left to subjective review. The whack-a-mole is over
+for exact-output logic; the reviewer covers the rest.
 
 ## Caveat
 An earlier routed full-battery run measured 4/6, but it was the victim of GPU contention (two 30B tasks
