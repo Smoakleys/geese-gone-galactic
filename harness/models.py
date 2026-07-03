@@ -107,6 +107,10 @@ class Ticket:
     kind: TicketKind
     acceptance_criteria: list[AcceptanceCriterion]
     references: list[str] = field(default_factory=list)
+    # Optional deterministic behavioural examples for a logic ticket: each is
+    # {"module": "<file>.py", "call": "<expr>", "expect": <value>}. Run by PythonBehaviorCheck to gate
+    # exact-output correctness (catches typos a subjective reviewer misses). Not part of criteria_hash.
+    behavior: list = field(default_factory=list)
     rubric_ref: Optional[str] = None
     created_by: str = "architect"
     criteria_hash: Optional[str] = None
