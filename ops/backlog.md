@@ -57,13 +57,21 @@ Icarus improvement** (keep only if the unaided battery score rises).
       added a guard against the class, and CORRECTED the overstated "behavioural-gate" claims across all
       docs (the reviewer was the real enforcer). See [[ggg-test-checks-through-registry]].
 
-## Now — optional; the mission is comprehensively proven. Pick by value.
-- [ ] **DEEPEN THE VISUAL GAME (highest game-value direction).** Honest gap: the logic is deep (22 `game/pond`
-      modules) but the VISUAL side is THIN — only 2 static scenes (`one_pond.gd`, `one_pond_full.gd` = land +
-      water + coloured boxes). The plan's real destination is a 3D low-poly GEESE game. Author scene tickets
-      that build richer visuals via the agent's render path (goose/building shapes beyond boxes, a scene from
-      an arbitrary `pond_state`, more camera/colour variety), gated by `godot_parse` + `godot_render` + the
-      reviewer. Needs the GPU (Icarus builds scenes on the resident model), so do it when no data-gen batch runs.
+## Now — mission comprehensively proven. AWAITING BRIDGER on the visuals fork (2026-07-03).
+- [ ] **VISUALS FORK — Bridger's call (BLOCKED on his decision).** Progress since: visuals deepened from 2
+      to FIVE agent-built scenes (goose, flock, world) + a `add_sphere` helper for rounded shapes; unaided
+      logic re-measured 13/16 = 0.81 (no regression); reviewer truncation bug fixed (harness-mod-52). HONEST
+      FINDING (see memory `ggg-abstract-visuals-fail-judges`): the box/sphere geese do NOT read as geese to
+      an independent judge — a text reviewer on the code is inconsistent noise, and the qwen2.5vl vision
+      model on the RENDER flatly fails them ("a green square with a blue square and an orange shape"). The
+      earlier scene "reviewer passes" were luck, not recognition. So this is not a reviewer bug to hack — the
+      real lever is ART. Two honest paths, **Bridger to choose**: (1) real goose-shaped 3D art (proper
+      assets / text-to-3D — a big lift on 16GB local), or (2) own the abstract low-poly style and gate scenes
+      on the objective checks only (parse/render/colour/layout), dropping the unreliable "looks like a goose"
+      subjective bar. Do NOT force a subjective visual pass — that would be faking. If keeping a subjective
+      scene gate, route it to the VISION model on the render (plan's see-screenshot), noting even 7B vl is a
+      harsh judge of these abstract shapes.
+- [ ] **More authored One Pond LOGIC tickets** — each = game content + a verified self-distillation pair;
 - [ ] **More authored One Pond LOGIC tickets** — each = game content + a verified self-distillation pair;
       diversity is now good (8 task shapes), so prefer visual/new-domain tickets over more same-shape logic.
 - [x] **Retire the python economy toy** (`game/onepond`) — DECIDED: KEEP IT, documented-as-dead. Investigated
