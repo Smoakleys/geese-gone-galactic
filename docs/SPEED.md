@@ -47,8 +47,18 @@ already flat) stands the ground vertical → invisible; wrong colours. Added the
 the notebook (helps both models). So the template lifts the fast model (0/2 → 1/3) but does not make it
 reliable; the honest conclusion stands:
 
-**The 30B remains the reliable scene builder (3/3); it is now faster via the shipped changes (bounded
-context + keep_alive + step-cap). Scenes are rare/static, so a ~3-5 min reliable 30B build is acceptable;
-the template + fast model is an option for quick iteration when 1/3-and-retry is fine.** A better content
-scaffold (helper fns Icarus parameterises) or a fitting render-capable model would close the rest — both
-larger, deferred.
+## SOLVED — helper template on the fast model (measured 2026-07-03)
+Added CONTENT HELPERS to the template (`add_plane`, `add_box`) so Icarus supplies only parameters (size,
+colour, position) and cannot make mesh/rotation/material mistakes. Result:
+
+| Approach | Score | Speed |
+|---|---|---|
+| 30B, from scratch | 3/3 | ~200 s/scene (offloaded) |
+| fast gpt-oss:20b, camera template only | 1/3 | ~60 s/scene |
+| **fast gpt-oss:20b, camera + content helpers** | **4/4** | **~19 s/scene** |
+
+**~10× faster AND reliable.** The visual speed problem is solved by *scaffolding, not a bigger model*:
+the fast resident model builds real pond scenes when the framing + primitive construction are given and
+it only chooses content. Scene tickets should use `gen_pond_from_template`-style tasks routed to the FAST
+model. The 30B is no longer needed for these scenes. (It remains available for open-ended visuals with no
+template.) This is a curated scaffold — removable, and still judged by the same render gate.

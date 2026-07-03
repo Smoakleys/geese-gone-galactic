@@ -529,11 +529,15 @@ def gen_pond_from_template(rng: Random) -> TaskInstance:
 
     return TaskInstance(
         f"pondtmpl_{rng.randint(1000, 9999)}", "render",
-        "Write content.gd containing ONLY a Godot 4 function `func build(root: Node3D) -> void:` that adds "
-        "to `root`: (1) a large GREEN unshaded ground plane (PlaneMesh ~16x16), (2) a smaller BLUE unshaded "
-        "water pond (PlaneMesh, raised slightly on z so it shows over the grass), and (3) a distinctly "
-        "coloured building box (BoxMesh) beside the pond. Do NOT add a Camera3D or _ready() -- those are "
-        "provided for you. Use Color.GREEN / Color.BLUE and BoxMesh (Godot 4 API).", verify)
+        "Write content.gd containing ONLY `func build(root: Node3D) -> void:`. Two helpers already exist "
+        "(do NOT redefine them, just call them):\n"
+        "  add_plane(root, size: Vector2, color: Color, y: float = 0.0)  # a FLAT ground/water plane\n"
+        "  add_box(root, size: Vector3, color: Color, pos: Vector3)      # a building box\n"
+        "Build the One Pond: a large GREEN land plane (e.g. size Vector2(16,16)); a smaller BLUE water "
+        "pond raised slightly so it shows (y = 0.1, e.g. size Vector2(6,6)); and a brown building box "
+        "beside the pond (e.g. add_box(root, Vector3(2,2,2), Color(0.5,0.3,0.1), Vector3(4,1,0))). Do NOT "
+        "add a Camera3D, _ready(), or your own meshes -- only call the helpers with Color.GREEN/Color.BLUE.",
+        verify)
 
 
 def default_generators() -> "list[Callable[[Random], TaskInstance]]":

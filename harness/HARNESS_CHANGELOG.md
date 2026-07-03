@@ -406,3 +406,11 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   resident model attempt real scenes. Measured: fast model 1/3 (camera now correct, but content errors
   like rotating a PlaneMesh vertical) - a partial win; the 30B stays the reliable scene builder. Notebook
   gained the plane-rotation gotcha. 239 tests. See docs/SPEED.md.
+
+## harness-mod-38 - Content helpers solve visual speed (fast model 4/4 @ ~19s vs 30B ~200s)
+- game/godot/scene_template.py: added add_plane / add_box helpers to the template; Icarus supplies only
+  params (size/colour/position) and cannot botch mesh/rotation/material.
+- harness/icarus/eval/capability.py: gen_pond_from_template prompt now directs Icarus to call the helpers.
+- MEASURED: the FAST resident gpt-oss:20b builds real pond scenes 4/4 at ~19s/scene -- ~10x faster than
+  the offloaded 30B (3/3 ~200s) AND reliable. The visual speed problem is solved by scaffolding, not a
+  bigger model. See docs/SPEED.md. 239 tests.
