@@ -16,6 +16,9 @@ def test_godot_notebook_has_the_key_lessons():
     # Godot-4 API gotchas earned from a real blank OP-1 scene (lowercase Color / CubeMesh error at runtime)
     assert "Color.GREEN" in text
     assert "BoxMesh" in text
+    # GDScript-for-local-models gotchas from the speed pass (no kwargs; position not translation)
+    assert "keyword argument" in text
+    assert "translation" in text
 
 
 def test_godot_notebook_entries_are_nonempty():
