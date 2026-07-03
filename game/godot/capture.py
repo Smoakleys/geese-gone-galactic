@@ -91,5 +91,7 @@ def significant_colors(png: Path, min_fraction: float = 0.04, quant: int = 48) -
     from PIL import Image
     im = Image.open(png).convert("RGB")
     total = im.width * im.height
-    counts = Counter((r // quant, g // quant, b // quant) for r, g, b in im.getdata())
+    data = im.tobytes()  # raw RGB bytes (getdata() is deprecated in Pillow 14)
+    counts = Counter((data[i] // quant, data[i + 1] // quant, data[i + 2] // quant)
+                     for i in range(0, len(data), 3))
     return sum(1 for n in counts.values() if n >= min_fraction * total)
