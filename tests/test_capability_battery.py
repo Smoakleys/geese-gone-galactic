@@ -35,6 +35,21 @@ def test_sum_verifier_pass_and_fail(tmp_path):
     assert not bad
 
 
+def test_predator_safety_verifier_pass_and_fail(tmp_path):
+    from harness.icarus.eval.capability import gen_predator_safety
+    inst = gen_predator_safety(Random(3))
+    expected = inst.id.split("_")[-1]                 # SAFE or UNSAFE (the deterministic answer)
+    ws = tmp_path / inst.id
+    ws.mkdir()
+    (ws / "predator.py").write_text(f"print({expected!r})\n")
+    ok, _ = inst.verify(ws)
+    assert ok
+    other = "UNSAFE" if expected == "SAFE" else "SAFE"
+    (ws / "predator.py").write_text(f"print({other!r})\n")
+    bad, _ = inst.verify(ws)
+    assert not bad
+
+
 def test_bakery_scene_verifier_needs_a_building(tmp_path, monkeypatch):
     # verify passes only when the render shows ground + a building (>=3 colour regions), not a bare plane.
     import game.godot.capture as cap

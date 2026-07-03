@@ -364,6 +364,41 @@ def gen_economy(rng: Random) -> TaskInstance:
         verify)
 
 
+def gen_predator_safety(rng: Random) -> TaskInstance:
+    """Predator safety (a core One Pond rule): every nest must be guarded by a nearby fence."""
+    n = rng.randint(6, 9)
+    reach = rng.randint(2, 3)
+
+    def rand_cells(k: int) -> "list[tuple[int, int]]":
+        cells: "list[tuple[int, int]]" = []
+        while len(cells) < k:
+            p = (rng.randint(0, n - 1), rng.randint(0, n - 1))
+            if p not in cells:
+                cells.append(p)
+        return cells
+
+    nests = rand_cells(rng.randint(2, 4))
+    fences = rand_cells(rng.randint(1, 3))
+    safe = all(any(abs(nx - fx) + abs(ny - fy) <= reach for fx, fy in fences) for nx, ny in nests)
+    expected = "SAFE" if safe else "UNSAFE"
+    nest_str = "; ".join(f"({x},{y})" for x, y in nests)
+    fence_str = "; ".join(f"({x},{y})" for x, y in fences)
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        try:
+            rc, out, err = _run_py(ws, "predator.py")
+        except Exception as e:
+            return False, f"could not run predator.py: {e}"
+        return out.strip() == expected, f"expected {expected}, got {out.strip()!r}"
+
+    return TaskInstance(
+        f"predator_{rng.randint(1000, 9999)}_{expected}", "game-logic",
+        f"On an {n}x{n} grid, goose nests are at: {nest_str}. Fences are at: {fence_str}. A nest is "
+        f"guarded if its Manhattan distance (|dx|+|dy|) to at least one fence is at most {reach}. Print "
+        f"ONLY 'SAFE' if EVERY nest is guarded, otherwise 'UNSAFE'. Write predator.py and run it to verify.",
+        verify)
+
+
 def gen_gdscript(rng: Random) -> TaskInstance:
     """The real domain: write valid Godot 4 GDScript, self-verifiable via godot --check-only."""
     n = rng.randint(2, 4)
@@ -545,7 +580,7 @@ def gen_pond_from_template(rng: Random) -> TaskInstance:
 def default_generators() -> "list[Callable[[Random], TaskInstance]]":
     return [gen_sum, gen_reverse, gen_json, gen_fizzbuzz,
             gen_fix_bug, gen_fix_range_bug, gen_read_sum, gen_find_secret, gen_economy, gen_placement,
-            gen_pond_tick, gen_water_access, gen_gdscript, gen_render, gen_bakery_scene]
+            gen_pond_tick, gen_water_access, gen_predator_safety, gen_gdscript, gen_render, gen_bakery_scene]
 
 
 def sample_battery(seed: int = 0, per_generator: int = 1,
