@@ -122,6 +122,42 @@ def gen_fib(rng: Random) -> TaskInstance:
         f"`python solution.py` to verify before finishing.", verify)
 
 
+def gen_gcd(rng: Random) -> TaskInstance:
+    import math
+    a, b = rng.randint(12, 999), rng.randint(12, 999)
+    want = math.gcd(a, b)
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        try:
+            rc, out, err = _run_py(ws, "solution.py")
+        except Exception as e:
+            return False, f"could not run solution.py: {e}"
+        return out == str(want), f"expected gcd({a},{b})={want}, got {out!r} (rc={rc}{'; ' + err[:80] if err else ''})"
+
+    return TaskInstance(
+        f"gcd_{a}_{b}", "algorithm",
+        f"Write solution.py that prints exactly the greatest common divisor of {a} and {b} (only the "
+        f"integer, nothing else). Run it with `python solution.py` to verify before finishing.", verify)
+
+
+def gen_count_char(rng: Random) -> TaskInstance:
+    word = "".join(rng.choice("abcdefghijklmnopqrstuvwxyz") for _ in range(rng.randint(8, 14)))
+    ch = rng.choice(word)
+    want = word.count(ch)
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        try:
+            rc, out, err = _run_py(ws, "solution.py")
+        except Exception as e:
+            return False, f"could not run solution.py: {e}"
+        return out == str(want), f"expected count of '{ch}' in '{word}' = {want}, got {out!r}"
+
+    return TaskInstance(
+        f"countchar_{ch}_{word}", "strings",
+        f"Write solution.py that prints exactly how many times the letter '{ch}' appears in the string "
+        f"'{word}' (only the integer, nothing else). Run it to verify before finishing.", verify)
+
+
 def gen_json(rng: Random) -> TaskInstance:
     x, y = rng.randint(1, 100), rng.randint(1, 100)
 
@@ -768,7 +804,7 @@ def gen_pond_from_template(rng: Random) -> TaskInstance:
 
 
 def default_generators() -> "list[Callable[[Random], TaskInstance]]":
-    return [gen_sum, gen_reverse, gen_fib, gen_json, gen_fizzbuzz,
+    return [gen_sum, gen_reverse, gen_fib, gen_gcd, gen_count_char, gen_json, gen_fizzbuzz,
             gen_fix_bug, gen_fix_range_bug, gen_read_sum, gen_read_max, gen_read_evens, gen_read_sorted, gen_grep_count,
             gen_find_secret, gen_economy, gen_placement,
             gen_pond_tick, gen_water_access, gen_predator_safety, gen_granary, gen_pond_score,
