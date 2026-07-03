@@ -245,3 +245,17 @@ without a matching entry. Reverts are one command via the token in `harness/reve
 - Live: gpt-oss:20b scored 8/8 unaided incl. GDScript (3/3 GDScript-only) - it writes valid GDScript 4
   and self-checks. The syntax bar is easy; semantic RENDER tasks (must draw the right thing) are next.
 - Gate untouched.
+
+## harness-mod-18 - Icarus can render (visual feedback tool) + the render bar discriminates
+- game/godot/capture.py: render_gdscript renders a loose scene.gd off-screen via the rig (capture.gd
+  gained --script: attach a GDScript to a Node3D and render) to a PNG; image_variance = blank/not-blank.
+- harness/icarus/agent/: new `render` tool (injected render_fn seam, like vision) so Icarus can turn a
+  scene file into a PNG and then `see` it. run_agent/run_battery thread render_fn.
+- harness/icarus/eval/capability.py: gen_render - a SEMANTIC task (the scene must actually RENDER
+  non-blank, not just parse). The FIRST discriminating task: gpt-oss:20b scored 1/3 unaided (2 scenes
+  rendered blank - camera not current / wrong material).
+- HONEST negative result: wiring render+see into the task prompt REGRESSED the score to 0/3 (the verbose
+  prompt re-triggered gpt-oss's reasoning-only failure; the weak 7B vision likely rubber-stamped blank
+  renders). Per the gym rule (keep only measured improvements), the prompt was reverted; the render tool
+  stays for a future, more capable setup (the bake-off / a stronger vision judge).
+- Gate untouched. 195 tests. Render tool tested offline; render pipeline verified live.

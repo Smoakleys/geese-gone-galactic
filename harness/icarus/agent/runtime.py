@@ -98,9 +98,11 @@ def _safe_path(workspace: Path, rel: str) -> Optional[Path]:
 
 def exec_tool(call: ToolCall, workspace: Path, *, run_timeout: float = 60.0,
               vision: "Optional[VisionModel]" = None,
-              notebook: "Optional[Notebook]" = None) -> ToolResult:
+              notebook: "Optional[Notebook]" = None,
+              render_fn: "Optional[Callable[[Path, Path], tuple[bool, str]]]" = None) -> ToolResult:
     """Execute one tool call in the sandboxed workspace. Never raises — a tool failure is an
-    observation the agent reflects on, not a crash. ``vision`` enables ``see``; ``notebook`` ``note``."""
+    observation the agent reflects on, not a crash. ``vision`` enables ``see``; ``notebook`` ``note``;
+    ``render_fn`` enables ``render`` (turn a scene file into a PNG the agent can then ``see``)."""
     workspace = Path(workspace)
     name = call.name
 
@@ -199,6 +201,24 @@ def exec_tool(call: ToolCall, workspace: Path, *, run_timeout: float = 60.0,
             return ToolResult(False, f"vision error: {type(e).__name__}: {e}")
         return ToolResult(True, (desc or "(vision returned nothing)")[:_MAX_OUTPUT])
 
+    if name == "render":
+        rel = (call.args.get("path", "scene.gd") or "scene.gd").strip()
+        out_rel = (call.args.get("out", "_render.png") or "_render.png").strip()
+        src = _safe_path(workspace, rel)
+        out = _safe_path(workspace, out_rel)
+        if src is None or not src.is_file():
+            return ToolResult(False, f"no such file to render: {rel!r}")
+        if out is None:
+            return ToolResult(False, f"bad output path: {out_rel!r}")
+        if render_fn is None:
+            return ToolResult(False, "no renderer available (the 'render' tool is disabled)")
+        try:
+            ok, detail = render_fn(src, out)
+        except Exception as e:  # a render failure is an observation, not a crash
+            return ToolResult(False, f"render error: {type(e).__name__}: {e}")
+        return ToolResult(ok, (f"{detail}; saved to {out_rel} - use 'see' to inspect it"
+                               if ok else detail))
+
     if name == "note":
         text = (call.args.get("text") or call.body or "").strip()
         if not text:
@@ -210,7 +230,7 @@ def exec_tool(call: ToolCall, workspace: Path, *, run_timeout: float = 60.0,
                           else "already in notebook (skipped duplicate)")
 
     return ToolResult(False, f"unknown tool: {name!r} "
-                      "(use write_file|read_file|list_files|search|run|see|note|finish)")
+                      "(use write_file|read_file|list_files|search|run|see|render|note|finish)")
 
 
 # ---------------------------------------------------------------- model seam
@@ -264,8 +284,9 @@ _SYSTEM = """You are Icarus, a tool-driving coding agent. You act by emitting to
 
 Respond with EXACTLY ONE fenced tool block and NOTHING ELSE (no prose outside the block):
 ```tool
-name: <write_file|read_file|list_files|search|run|see|note|finish>
-path: <relative path>      # write_file / read_file / list_files / search (dir) / see (image)
+name: <write_file|read_file|list_files|search|run|see|render|note|finish>
+path: <relative path>      # write_file / read_file / list_files / search (dir) / see (image) / render (scene)
+out: <output png path>     # render (renders a scene file to a PNG you can then 'see')
 query: <text or regex>     # search
 question: <what to look for>  # see (describe/inspect an image)
 text: <lesson to remember>   # note (save a durable lesson for future tasks)
@@ -292,7 +313,8 @@ def _extract_plan(reply: str) -> str:
 def run_agent(model: AgentModel, task: str, workspace: Path, *,
               max_steps: int = 12, run_timeout: float = 60.0,
               vision: "Optional[VisionModel]" = None,
-              notebook: "Optional[Notebook]" = None, use_notebook: bool = True) -> AgentResult:
+              notebook: "Optional[Notebook]" = None, use_notebook: bool = True,
+              render_fn: "Optional[Callable[[Path, Path], tuple[bool, str]]]" = None) -> AgentResult:
     """Drive the plan->act->reflect loop until the agent finishes, gets stuck, or runs out of steps.
 
     Returns an :class:`AgentResult` including the stated plan (the approach artifact) and the full
@@ -337,7 +359,8 @@ def run_agent(model: AgentModel, task: str, workspace: Path, *,
         if call.name == "finish":
             return AgentResult(State.DONE, steps, plan, messages, str(workspace), True)
 
-        result = exec_tool(call, workspace, run_timeout=run_timeout, vision=vision, notebook=notebook)
+        result = exec_tool(call, workspace, run_timeout=run_timeout, vision=vision,
+                           notebook=notebook, render_fn=render_fn)
         status = "OK" if result.ok else "ERROR"
         messages.append({"role": "user", "content": f"[{call.name}] {status}\n{result.output}"})
 

@@ -137,6 +137,33 @@ def test_see_missing_image(tmp_path):
     assert not r.ok
 
 
+def test_render_tool_uses_render_fn(tmp_path):
+    (tmp_path / "scene.gd").write_text("extends Node3D\n")
+    calls = []
+
+    def fake_render(src, out):
+        calls.append((src, out))
+        out.write_bytes(b"png")
+        return True, "rendered (variance 40)"
+
+    r = exec_tool(ToolCall("render", {"path": "scene.gd", "out": "p.png"}), tmp_path,
+                  render_fn=fake_render)
+    assert r.ok
+    assert "see" in r.output.lower()
+    assert calls and calls[0][0].name == "scene.gd"
+
+
+def test_render_tool_disabled_without_fn(tmp_path):
+    (tmp_path / "scene.gd").write_text("x")
+    r = exec_tool(ToolCall("render", {"path": "scene.gd"}), tmp_path)
+    assert not r.ok and "renderer" in r.output.lower()
+
+
+def test_render_tool_missing_file(tmp_path):
+    r = exec_tool(ToolCall("render", {"path": "nope.gd"}), tmp_path, render_fn=lambda s, o: (True, ""))
+    assert not r.ok
+
+
 def test_notebook_append_and_dedup(tmp_path):
     nb = Notebook(tmp_path / "nb.md")
     assert nb.append("look_at requires a node in the tree before calling it")

@@ -7,10 +7,11 @@ extends Node
 func _ready() -> void:
 	var args := _parse_args()
 	var scene_path: String = args.get("scene", "")
+	var script_path: String = args.get("script", "")
 	var out_path: String = args.get("out", "")
 	var size_str: String = args.get("size", "512x512")
-	if scene_path == "" or out_path == "":
-		push_error("usage: --scene=<path> --out=<png> [--size=WxH]")
+	if out_path == "" or (scene_path == "" and script_path == ""):
+		push_error("usage: (--scene=<path.tscn> | --script=<path.gd>) --out=<png> [--size=WxH]")
 		get_tree().quit(2)
 		return
 
@@ -27,12 +28,23 @@ func _ready() -> void:
 	sub.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	add_child(sub)
 
-	var packed: PackedScene = load(scene_path)
-	if packed == null:
-		push_error("failed to load scene: " + scene_path)
-		get_tree().quit(3)
-		return
-	sub.add_child(packed.instantiate())
+	var target: Node
+	if script_path != "":
+		var scr = load(script_path)
+		if scr == null:
+			push_error("failed to load script: " + script_path)
+			get_tree().quit(3)
+			return
+		target = Node3D.new()
+		target.set_script(scr)
+	else:
+		var packed: PackedScene = load(scene_path)
+		if packed == null:
+			push_error("failed to load scene: " + scene_path)
+			get_tree().quit(3)
+			return
+		target = packed.instantiate()
+	sub.add_child(target)
 
 	# Let the instanced scene's _ready run and the renderer draw a few frames.
 	for i in range(4):
