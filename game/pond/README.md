@@ -23,6 +23,8 @@ toy (that's superseded).
 | `pond_advice.py` | OP-13 | `pond_advice(state, reach)` — the hint system: suggests the next build by the weakest point |
 | `predator_loss.py` | OP-14 | `predator_loss(state, reach)` — bread eaten this tick (2 per unguarded nest); predators with teeth |
 | `build_cost.py` | OP-15 | `total_cost(buildings)` — bread cost to place a layout (bakery 5, granary 4, well 3, fence 2, nest 1); scarcity |
+| `pond_rank.py` | OP-16 | `pond_rank(score)` — progression tier: hamlet<20 / village<50 / town<100 / city>=100 |
+| `goose_count.py` | OP-17 | `goose_count(buildings)` — the pond's goose population (4 per nest) |
 
 ## How they compose — the full economic loop
 A pond is a `state = {'bread': int, 'buildings': [{'kind','x','y'}, ...]}`. The loop: **spend** bread to
