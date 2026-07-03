@@ -540,3 +540,12 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   such literals (incl. a `print(55)` pond-score). ops/generate_training_data.py now rejects them at
   generation; the committed generated_*_sft.jsonl were cleaned (corpus 82 -> 73 higher-quality pairs);
   the wellformedness test guards that none remain. A real data-quality fix for the one open frontier.
+
+## harness-mod-57 - A tool exception is an observation, not an agent crash
+- harness/icarus/agent/runtime.py: run_agent called `exec_tool(...)` UNWRAPPED, and `write_file`/`read`/`ls`
+  do file ops without try/except -- so a PermissionError (locked file, permissions) / disk-full / any OSError
+  propagated out and KILLED the whole agent run. A real battery task (place_n8) crashed exactly this way
+  under IO contention. Violates the plan's "a tool failure is an observation, not a crash". Wrapped the
+  exec_tool dispatch: any tool exception now becomes a `ToolResult(False, "tool '<name>' errored: ...")` the
+  agent reflects on + continues. Uniform (covers every tool, incl. ones without their own try/except).
+  Regression test: a tool that raises PermissionError -> the run RETURNS a terminal state, never raises.

@@ -394,8 +394,12 @@ def run_agent(model: AgentModel, task: str, workspace: Path, *,
         if call.name == "finish":
             return AgentResult(State.DONE, steps, plan, messages, str(workspace), True)
 
-        result = exec_tool(call, workspace, run_timeout=run_timeout, vision=vision,
-                           notebook=notebook, render_fn=render_fn)
+        try:
+            result = exec_tool(call, workspace, run_timeout=run_timeout, vision=vision,
+                               notebook=notebook, render_fn=render_fn)
+        except Exception as e:  # a tool raising (PermissionError, OSError, disk full, ...) is an
+            # OBSERVATION, not a crash -- the whole agent run must not die because one file write failed.
+            result = ToolResult(False, f"tool '{call.name}' errored: {type(e).__name__}: {e}")
         status = "OK" if result.ok else "ERROR"
         messages.append({"role": "user", "content": f"[{call.name}] {status}\n{result.output}"})
 
