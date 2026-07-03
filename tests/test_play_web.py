@@ -120,3 +120,26 @@ def test_page_escapes_reflected_input():
     page = _page(g).decode("utf-8")
     assert "<script>alert('x')</script>" not in page      # escaped, not live markup
     assert "&lt;script&gt;" in page
+
+
+def test_render_error_returns_500_not_a_server_crash():
+    # a render failure must return a clean 500 and leave the server alive (found by probing).
+    import http.server, threading, time, urllib.request, urllib.error
+    import ops.play_web as pw
+    sess = pw.GameSession()
+    sess.render_png = lambda: (_ for _ in ()).throw(RuntimeError("boom"))
+    httpd = http.server.HTTPServer(("127.0.0.1", 0), pw.make_handler(sess))
+    port = httpd.server_address[1]
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    time.sleep(0.2)
+    try:
+        code = 0
+        try:
+            urllib.request.urlopen(f"http://127.0.0.1:{port}/pond.png", timeout=5)
+        except urllib.error.HTTPError as e:
+            code = e.code
+        assert code == 500                                       # clean error, not a broken pipe
+        page = urllib.request.urlopen(f"http://127.0.0.1:{port}/", timeout=5).read()
+        assert b"One Pond" in page                               # server still alive
+    finally:
+        httpd.shutdown()

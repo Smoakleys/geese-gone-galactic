@@ -150,6 +150,18 @@ def make_handler(session: GameSession):
             pass
 
         def do_GET(self):
+            try:
+                self._route()
+            except Exception:  # a render/action error must return a clean 500, not a traceback + broken pipe
+                try:
+                    self.send_response(500)
+                    self.send_header("Content-Type", "text/plain")
+                    self.end_headers()
+                    self.wfile.write(b"something went wrong -- try again")
+                except Exception:
+                    pass
+
+        def _route(self):
             parsed = urllib.parse.urlparse(self.path)
             if parsed.path == "/pond.png":
                 data = session.render_png()
