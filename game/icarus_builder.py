@@ -21,8 +21,12 @@ from harness.icarus.agent_builder import AgentBuilder, visual_router
 
 
 def default_icarus_builder(workdir, *, fast: str = "gpt-oss:20b", big: str = "qwen3:30b",
-                           max_steps: int = 16, run_timeout: float = 90.0) -> AgentBuilder:
-    """A fully-equipped Icarus: routing + render tool + vision + curated Godot notebook (working copy)."""
+                           max_steps: int = 10, run_timeout: float = 90.0) -> AgentBuilder:
+    """A fully-equipped Icarus: routing + render tool + vision + curated Godot notebook (working copy).
+
+    max_steps=10: every successful build measured finished within ~4-6 steps; a lower cap bounds the
+    worst-case grind on the slow offloaded 30B (a failing build stops sooner and escalates) without
+    affecting builds that succeed. Part of the speed pass."""
     workdir = Path(workdir)
     return AgentBuilder(
         router=visual_router(OllamaAgentModel(fast, temperature=0.2),
