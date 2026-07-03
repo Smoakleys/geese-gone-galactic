@@ -17,7 +17,11 @@ toy (that's superseded).
 | `pond_economy.py` | OP-8 | `tick_bread(buildings)` — net bread/tick over a building list, using the granary synergy |
 | `pond_scene.py` | OP-6 | `build_body(buildings)` — GDScript `add_box` lines (colour + grid position) per building; the state→scene bridge |
 | `pond_status.py` | OP-9 | `pond_status(state, reach)` — `{'bread', 'safe'}`, composing predator safety over the state |
-| `pond_outcome.py` | OP-10 | `pond_outcome(state, reach)` — `'lost'` (no bread) / `'unsafe'` (an exposed nest) / `'thriving'`; the game's win/lose evaluation |
+| `pond_outcome.py` | OP-10 | `pond_outcome(state, reach)` — `'lost'` (no bread) / `'dry'` (a bakery with no well) / `'unsafe'` (an exposed nest) / `'thriving'`; the layered win/lose evaluation |
+| `water_access.py` | OP-11 | `has_water(buildings, reach)` — every bakery must be within `reach` of a well |
+| `pond_score.py` | OP-12 | `pond_score(state)` — bread + weighted building values (bakery 10, granary 5, nest 3, else 2) |
+| `pond_advice.py` | OP-13 | `pond_advice(state, reach)` — the hint system: suggests the next build by the weakest point |
+| `predator_loss.py` | OP-14 | `predator_loss(state, reach)` — bread eaten this tick (2 per unguarded nest); predators with teeth |
 
 ## How they compose
 A pond is a `state = {'bread': int, 'buildings': [{'kind','x','y'}, ...]}`. Placement validates a layout;
