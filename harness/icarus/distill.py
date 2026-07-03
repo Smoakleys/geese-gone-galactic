@@ -18,11 +18,25 @@ from pathlib import Path
 from typing import Iterable
 
 
+def _instruction(ticket) -> str:
+    """The FULL task spec as the SFT instruction: title + acceptance criteria + behavioural contracts.
+
+    Training on the whole requirement (not just the title) teaches the model the exact-output contracts it
+    must satisfy, which is what the gate actually enforces.
+    """
+    parts = [ticket.title.strip()]
+    for c in getattr(ticket, "acceptance_criteria", []) or []:
+        parts.append(f"- {c.text}")
+    for ex in getattr(ticket, "behavior", []) or []:
+        parts.append(f"- must satisfy: {ex['call']} == {ex['expect']!r}")
+    return "\n".join(parts)
+
+
 def build_sft_records(tickets: Iterable, module_dir: Path) -> "list[dict]":
     """One SFT record per gate-passing (ticket, committed module) pair.
 
     A ticket's `behavior` examples name the module(s) it produced; if that module exists in `module_dir`
-    (i.e. it was verified + committed), emit `{instruction: ticket.title, input: "", output: source}`.
+    (i.e. it was verified + committed), emit `{instruction: full-spec, input: "", output: source}`.
     Skips tickets whose module isn't present (not yet built) so the set is exactly the verified successes.
     """
     module_dir = Path(module_dir)
@@ -37,7 +51,7 @@ def build_sft_records(tickets: Iterable, module_dir: Path) -> "list[dict]":
             if src.exists():
                 seen.add(name)
                 records.append({
-                    "instruction": t.title.strip(),
+                    "instruction": _instruction(t),
                     "input": "",
                     "output": src.read_text(encoding="utf-8"),
                     "meta": {"ticket": t.id, "module": name, "gate": "python_behavior+reviewer"},
