@@ -24,6 +24,32 @@ func _ready() -> void:
     cam.current = true
     build(self)
 
+func _unshaded(color: Color) -> StandardMaterial3D:
+    var m := StandardMaterial3D.new()
+    m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    m.albedo_color = color
+    return m
+
+# Helper: add a FLAT horizontal plane (already in the XZ plane -- never rotate it). `y` layers it.
+func add_plane(root: Node3D, size: Vector2, color: Color, y: float = 0.0) -> void:
+    var mi := MeshInstance3D.new()
+    var pm := PlaneMesh.new()
+    pm.size = size
+    mi.mesh = pm
+    mi.position = Vector3(0, y, 0)
+    mi.material_override = _unshaded(color)
+    root.add_child(mi)
+
+# Helper: add a box (building) of `size` at `pos`.
+func add_box(root: Node3D, size: Vector3, color: Color, pos: Vector3) -> void:
+    var mi := MeshInstance3D.new()
+    var bm := BoxMesh.new()
+    bm.size = size
+    mi.mesh = bm
+    mi.position = pos
+    mi.material_override = _unshaded(color)
+    root.add_child(mi)
+
 '''
 
 
