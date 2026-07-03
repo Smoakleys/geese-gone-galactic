@@ -49,6 +49,11 @@ Icarus is a **real, measured agent**, and the whole loop is proven end-to-end:
   the curated seed (`game/godot/godot_lessons.md`); promotion back is deliberate curation.
 - **One live model run at a time.** The GPU is 16GB — running two live-model tasks concurrently (esp.
   both needing the 30B) thrashes/hangs. Never launch overlapping live probes; finish one before the next.
+- **A reviewer only enforces what the criterion PINS.** A local Stage-B reviewer exists now
+  (`game/icarus_builder.py: default_reviewer()`, fail-closed) and catches real bugs — but a
+  right-formula-but-wrong-string typo (`'baker'` vs `'bakery'`) slips a loose criterion. Author tickets
+  with EXACT strings + a concrete input→output example (`fn([...]) == 7`). Durable lever = a deterministic
+  behavioural check (deferred). Working net: **VERIFY every module before committing it to `game/pond`.**
 
 ## 4. Next phase = BREADTH (foundation done + FAST; now grow the game)
 **Speed is solved (docs/SPEED.md).** The 30B is a hardware ceiling (20GB on 16GB), so visuals use a
