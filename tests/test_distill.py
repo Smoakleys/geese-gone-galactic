@@ -52,18 +52,24 @@ def test_regenerator_runs_as_a_script():
     assert (repo / "data" / "onepond_sft.jsonl").exists()
 
 
-def test_committed_sft_dataset_is_wellformed():
-    # bad training data poisons the QLoRA fine-tune -- guard the committed artifact.
+def test_committed_sft_datasets_are_wellformed():
+    # bad training data poisons the QLoRA fine-tune -- guard EVERY committed *_sft.jsonl (authored +
+    # any procedurally-generated dataset).
     import ast
     from pathlib import Path
-    p = Path(__file__).resolve().parents[1] / "data" / "onepond_sft.jsonl"
-    lines = [ln for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
-    assert len(lines) >= 15                                     # a real dataset
-    for ln in lines:
-        r = json.loads(ln)                                     # valid JSONL
-        assert {"instruction", "input", "output"} <= set(r)    # standard QLoRA shape
-        assert len(r["instruction"]) > 20 and r["output"].strip()
-        ast.parse(r["output"])                                 # every solution is valid Python
+    data = Path(__file__).resolve().parents[1] / "data"
+    files = sorted(data.glob("*_sft.jsonl"))
+    assert files, "no SFT datasets committed"
+    total = 0
+    for p in files:
+        lines = [ln for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
+        for ln in lines:
+            r = json.loads(ln)                                 # valid JSONL
+            assert {"instruction", "input", "output"} <= set(r), p.name   # standard QLoRA shape
+            assert len(r["instruction"]) > 20 and r["output"].strip(), p.name
+            ast.parse(r["output"])                             # every solution is valid Python
+        total += len(lines)
+    assert total >= 15                                          # a real corpus
 
 
 def test_generate_training_data_plumbing(tmp_path):
