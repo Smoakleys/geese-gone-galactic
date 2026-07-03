@@ -260,6 +260,21 @@ def test_parse_command_drives_the_game():
     assert state["bread"] == 33                           # 1 bakery * 3
 
 
+def test_save_load_preserves_a_playthrough():
+    # save mid-game, load it back, and continue -- the state must survive the round-trip exactly.
+    from game.pond import serialize_pond, deserialize_pond
+    state = {"bread": 10, "buildings": []}
+    state = add_building(state, "bakery", 0, 0, 8)
+    state = add_building(state, "well", 1, 0, 8)
+    state = step(state)                              # +3 bread -> 13
+
+    loaded = deserialize_pond(serialize_pond(state))
+    assert loaded == state                            # save/load preserves the whole game
+
+    loaded = step(loaded)                             # continue from the loaded save
+    assert loaded["bread"] == 16                      # +3 again, seamless
+
+
 def _nests_and_fences(state):
     nests = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "nest"]
     fences = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "fence"]
