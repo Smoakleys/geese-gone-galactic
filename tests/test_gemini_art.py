@@ -26,3 +26,26 @@ def test_load_key_from_env(monkeypatch, tmp_path):
     assert load_key() == "test-key-123"
     monkeypatch.delenv("GEMINI_API_KEY")
     assert load_key() is None                                            # no key configured -> None
+
+
+def test_reference_prompt_is_a_full_scene_not_the_asset_style():
+    # the discipline compares my scene to a REAL game screenshot -> reference must be a full scene, not a
+    # single-asset white-bg prompt.
+    from ops.gemini_art import REFERENCE_PROMPT
+    assert "screenshot" in REFERENCE_PROMPT and "isometric" in REFERENCE_PROMPT
+    assert "white background" not in REFERENCE_PROMPT                    # not the single-asset style
+
+
+def test_image_request_retries_then_raises(monkeypatch):
+    # a flaky endpoint must be retried (backoff), then surface the error -- not hang or swallow it.
+    import ops.gemini_art as g
+    calls = {"n": 0}
+    def boom(*a, **k):
+        calls["n"] += 1
+        raise OSError("boom")
+    monkeypatch.setattr(g.urllib.request, "urlopen", boom)
+    monkeypatch.setattr(g.time if hasattr(g, "time") else __import__("time"), "sleep", lambda *_: None)
+    import pytest as _pt
+    with _pt.raises(OSError):
+        g._image_request("p", "key", "model", timeout=1, retries=3)
+    assert calls["n"] == 3                                              # retried the full budget
