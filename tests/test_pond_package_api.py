@@ -5,6 +5,15 @@ from __future__ import annotations
 import game.pond as pond
 
 
+def test_every_exported_name_is_importable_and_callable():
+    # complete API guard: every name in __all__ must resolve to a callable (catches an un-exported or
+    # broken function across all game/pond modules, e.g. the has_water miss caught at OP-11).
+    assert len(pond.__all__) >= 22                         # the full composed API
+    for name in pond.__all__:
+        assert hasattr(pond, name), name
+        assert callable(getattr(pond, name)), name
+
+
 def test_public_api_is_exported_and_callable():
     for name in ("tick", "step", "add_building", "is_valid", "is_safe",
                  "production", "tick_bread", "build_body", "pond_status", "pond_outcome"):
