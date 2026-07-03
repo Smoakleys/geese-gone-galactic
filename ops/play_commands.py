@@ -6,6 +6,7 @@ Each command is parsed by the Icarus-built `parse_command` and dispatched to the
   tick           -- advance the economy one tick
   status         -- print a one-line status (bread, rank, safety)
   render <file>  -- render the CURRENT pond to a lit 3D PNG (needs Godot; skips gracefully without)
+  art <file>     -- render the CURRENT pond as painterly ART (composited generated sprites)
   save <file>    -- serialize the pond to a save string / load <file> -- restore it
   load <file>    -- restore a saved pond and keep playing
 Commands here are scripted (this environment is non-interactive); the same loop takes live input.
@@ -52,6 +53,11 @@ def run_command(state: dict, text: str) -> "tuple[dict, str]":
         png = target or "pond.png"
         ok, detail = render_pond_state(state, png)
         return state, (f"rendered -> {png}" if ok else f"render skipped: {detail}")
+    if verb == "art":
+        # "see it as ART": composite the generated painterly sprites for the current pond (the real look)
+        from game.art_view import compose_pond_art
+        out = compose_pond_art(state, target or "pond_art.png")
+        return state, f"art rendered -> {out}"
     if verb == "save":
         from game.pond import serialize_pond
         path = Path(target or "pond.save")
