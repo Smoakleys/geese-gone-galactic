@@ -10,13 +10,27 @@ You are a fresh Claude session on **Geese Gone Galactic (GGG)**. Read this top t
 ---
 
 ## 0. LATEST STATE (2026-07-03) — read this first; sections below are older context
-- **376 tests green** (not the "211" section 2 still says). Mission comprehensively proven.
-- **Game — deep + now VISUALLY 3D-lit.** 28 agent-built `game/pond` logic modules (economy, events,
-  progression, save/load, a command interface, planning). Visuals were pushed hard this session: a
-  detailed goose (sphere body + neck + head + beak + tail), then **LIGHTING** (sun + ambient + lit
-  materials in the scene template → real 3D depth, not flat clip-art), all scenes re-lit, and a lit hero
-  image `game/godot/scenes/detail_world.gd` (OP-35). Honest ceiling: primitives + lighting is as far as it
-  goes; goose-*shaped* art needs real 3D models (see [[ggg-abstract-visuals-fail-judges]]).
+- **417 tests green** (not the "211" section 2 still says). Mission comprehensively proven.
+- **DIRECTION (Bridger, 2026-07-03): VISUALS are the priority + PERSISTENCE is the rule.** Be creative +
+  STUBBORN at hard problems; do NOT task-switch away to easy wins — that persistence IS the goal. See
+  memory [[be-stubborn-not-avoidant]] + [[ggg-visuals-priority]] + ops/backlog.md "Now".
+- **VISUALS REBUILT + VISION-VALIDATED this session (PRs #329-342).** The old cubes + blob goose are gone.
+  Now a real cozy low-poly village via `game/godot/models.py`: rig anti-aliasing (8x MSAA+FXAA) + 1024px;
+  a stylized GOOSE (ellipsoid body, smooth interpolated S-neck, cone beak, eyes, wings, tail); modelled
+  BUILDINGS (roofed bakery, silo granary, nest+eggs, well, fence) + trees; soft palette. `pond_view` +
+  every showcase scene render a village, not boxes. The `godot_render` gate was fixed to accept a natural
+  palette (region green-fraction, not whole-frame mean). **Objectively validated**: the local vision model
+  (`qwen2.5vl`) reads the village as "swans, nests, trees, houses, water" and the goose as "This is a swan"
+  (the OLD art got "a green square with a blue square and an orange shape") — docs/SCORECARD.md. This
+  SUPERSEDES the "primitives can't look like geese" pessimism in [[ggg-abstract-visuals-fail-judges]].
+- **Icarus TAUGHT + made STUBBORN.** One-call `add_building`/`add_goose` template helpers + notebook so
+  Icarus builds at this quality itself; runtime (harness-mod-60) now re-plans on repeated failure + verifies
+  before finishing instead of giving up. New `game/godot/scene_review.py` = a vision-on-render recognition
+  judge (plan Part 2B), now viable. Next visual polish: convert `one_pond.gd` (careful, 13 tests ref it),
+  per-building variety that doesn't fragment the gate's colour proxy, wire scene_review as an advisory.
+- **Game — deep + now a real cozy village look.** 28 agent-built `game/pond` logic modules (economy,
+  events, progression, save/load, a command interface, planning); interactively playable
+  (`python ops/play_commands.py --interactive`).
 - **Gate HARDENED this session** (2 real render-gate gaps found by probing + fixed): `godot_render` now
   fails a degenerate land-only render (< 3 distinct colours) AND a scene that crashed mid-`_ready()` (a
   logged `SCRIPT ERROR` that still emitted a partial frame). Scene helpers return their node (removes a
