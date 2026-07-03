@@ -4,6 +4,15 @@ The Stop hook points the agent here every turn. Keep it current: when you finish
 increment, tick it and add the next. This is guidance, not the stop condition — the
 ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 
+## NOW (2026-07-03) — VISUALS are the priority + are BLOCKED on a free Gemini key
+Bridger: the Pollinations art is "utterly terrible — wrong viewpoints, cramped." Plan = **Gemini (Nano
+Banana) + strict LOCKED-viewpoint prompts**. Pipeline is turnkey (`ops/gemini_art.py`: locked viewpoint,
+bg cutout, `--reference`, retry). **BLOCKED: drop the free key at `ops/gemini_key.local.txt`** (aistudio.
+google.com/apikey, no billing). Then: generate → GRADE vs the reference on a strict rubric → regenerate
+until it holds → lay out with breathing room. READ [[visual-review-discipline]] — do NOT judge visuals
+blind or hand-tune the old Pollinations composite. Non-blocked meanwhile: Icarus fixes from the unaided
+measurement (mod-64 reject placeholder body, mod-65 nudge-if-no-solution — validating now).
+
 ## FOUNDATION COMPLETE (PRs #60-81) — now build BREADTH. See docs/HANDOFF.md.
 The agent runtime, AgentBuilder+ModelRouter (visual AND debugging→qwen3:30b, logic→gpt-oss:20b), Godot
 rig + certified `godot_parse` + `godot_render` checks, the honest procedural scorecard, and the full
