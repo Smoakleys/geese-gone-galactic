@@ -9,6 +9,25 @@ You are a fresh Claude session on **Geese Gone Galactic (GGG)**. Read this top t
 
 ---
 
+## 0. LATEST STATE (2026-07-03) — read this first; sections below are older context
+- **376 tests green** (not the "211" section 2 still says). Mission comprehensively proven.
+- **Game — deep + now VISUALLY 3D-lit.** 28 agent-built `game/pond` logic modules (economy, events,
+  progression, save/load, a command interface, planning). Visuals were pushed hard this session: a
+  detailed goose (sphere body + neck + head + beak + tail), then **LIGHTING** (sun + ambient + lit
+  materials in the scene template → real 3D depth, not flat clip-art), all scenes re-lit, and a lit hero
+  image `game/godot/scenes/detail_world.gd` (OP-35). Honest ceiling: primitives + lighting is as far as it
+  goes; goose-*shaped* art needs real 3D models (see [[ggg-abstract-visuals-fail-judges]]).
+- **Gate HARDENED this session** (2 real render-gate gaps found by probing + fixed): `godot_render` now
+  fails a degenerate land-only render (< 3 distinct colours) AND a scene that crashed mid-`_ready()` (a
+  logged `SCRIPT ERROR` that still emitted a partial frame). Reviewer truncation fixed (harness-mod-52).
+  Scene helpers return their node (removes a null-capture crash class).
+- **Capability**: unaided logic re-measured **13/16 = 0.81** (no regression across the session); corpus of
+  **81 verified self-distillation pairs** ready for QLoRA.
+- **Two open frontiers, both need external input:** (a) the VISUALS fork — real 3D art (tooling-blocked
+  here) vs own the abstract lit style; (b) the QLoRA fine-tune — needs cloud/CUDA GPU (local RDNA4 training
+  not viable; no stack installed). See ops/backlog.md.
+- **Merge discipline FIXED**: gate the commit on a green pytest EXIT CODE, run as its own step ([[ggg-gate-merge-on-green]]).
+
 ## 1. The mission (don't lose it)
 Build a genuinely good game — a cozy comedic **goose base-builder** (Godot, 3D low-poly / 2.5D iso,
 **Pond era only** — no rocket/military/eras in the opening) — **primarily BY a local agentic AI,
