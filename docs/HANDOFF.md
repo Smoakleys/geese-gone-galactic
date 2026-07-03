@@ -33,9 +33,12 @@ Icarus is a **real, measured agent**, and the whole loop is proven end-to-end:
 - **Honest scorecard** (`harness/icarus/eval/`): procedural, non-memorizable battery
   (arithmetic/strings/config/logic/**bread-economy**/debugging/multi-file/search/**gdscript**/**render**)
   scored UNAIDED. Icarus is strong at code + game LOGIC (economy 3/3), and now renders visuals via routing.
-- **The gate is unchanged and authoritative**: certified Stage-A checks, fresh default-FAIL reviewer,
-  sole-commit-authority Gatekeeper, monotonic ratchet. **Proven capstone**: Icarus → full gate →
-  committed, rendered pond scene.
+- **The gate is authoritative and now HARDENED**: certified Stage-A checks (`python_syntax`, `json`,
+  `godot_parse`, `godot_render`, and **`python_behavior`** — deterministic exact-output gating from a
+  ticket's `behavior` examples), a **real local Stage-B reviewer** (`game/icarus_builder.py:
+  default_reviewer()` = `LLMReviewer(OllamaChatClient)`, fail-closed), sole-commit-authority Gatekeeper,
+  monotonic ratchet. **Proven capstone**: Icarus → full gate → committed, rendered pond scene; and
+  spec-driven rebuilds where the behavioural check FORCES a pinned requirement before commit.
 - **Ops**: control site + `ops/watchdog.py` (emails on staleness) + a **continuation Stop hook**
   (installed in the user settings; forces this loop to keep going). Emails per increment via
   `ops/notify.py iter`. See [[ggg-notify-and-remote-control]].
