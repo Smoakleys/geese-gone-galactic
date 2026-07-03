@@ -82,6 +82,15 @@ class GameSession:
         return (f"bread {self.state['bread']} · geese {goose_count(self.state['buildings'])} · "
                 f"{pond_rank(pond_score(self.state))} · {'safe' if st['safe'] else 'unsafe'}")
 
+    def goal(self) -> str:
+        """The player's objective + a win banner at the top rank."""
+        if pond_rank(pond_score(self.state)) == "city":
+            return "🎉 You grew a whole City! 🎉"
+        return f"Goal: grow your pond into a City — currently a {pond_rank(pond_score(self.state))}"
+
+    def won(self) -> bool:
+        return pond_rank(pond_score(self.state)) == "city"
+
     def render_png(self) -> bytes:
         out = Path(compose_pond_art(self.state, Path(_tmp_png())))
         data = out.read_bytes()
@@ -114,8 +123,11 @@ def _page(session: GameSession, msg: "str | None" = None) -> bytes:
    text-decoration:none;font-weight:600;box-shadow:0 3px 0 #5a9a4c}} .btn:hover{{filter:brightness(1.07)}}
  .tick{{background:#e8a54c;box-shadow:0 3px 0 #c6842f}} .ev{{background:#6aa9d0;box-shadow:0 3px 0 #4c86ad}}
  .reset{{background:#b48; box-shadow:0 3px 0 #935}}
+ .goal{{display:inline-block;padding:6px 16px;border-radius:20px;font-weight:700;margin:4px;
+   background:{'#ffe08a' if session.won() else '#eef4ea'};color:#5a6b3f}}
 </style></head><body>
 <h1>🪿 One Pond</h1>
+<div class="goal">{session.goal()}</div>
 <div class="status">{session.status()}</div>
 <div class="msg">{msg}</div>
 <img src="/pond.png?t={int(time.time()*1000)}" alt="your pond">
