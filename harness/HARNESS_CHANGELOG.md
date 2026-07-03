@@ -366,3 +366,10 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   (in-bounds + no-overlap) with the bread economy (bakeries +3/tick, nests -1/tick): validate the layout,
   print INVALID if bad, else the final bread. Icarus's logic strength; on the default battery. Regression
   test covers the verifier. 225 tests.
+
+## harness-mod-32 - Forgiving parse of an unclosed tool block (Icarus runtime robustness)
+- harness/icarus/agent/runtime.py: parse_tool_call now falls back to parsing an UNCLOSED ```tool block
+  (the model dropped the closing fence, or its output was truncated at the context limit) instead of
+  returning None and wasting the turn. STRICT improvement: a properly closed block always wins, and the
+  fallback only fires when parse would otherwise be None -- so it can never lower a score, only recover
+  turns that were previously lost. Tests cover the unclosed recovery + closed-block-preference. 228 tests.

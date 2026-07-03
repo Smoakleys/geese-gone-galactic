@@ -49,7 +49,13 @@ def parse_tool_call(text: str) -> Optional[ToolCall]:
     None when no block is present (the loop treats that as 'reflect and try again')."""
     blocks = _TOOL_BLOCK.findall(text)
     if not blocks:
-        return None
+        # Forgiving fallback: an UNCLOSED ```tool block — the model forgot the closing fence or its
+        # output was truncated at the context limit. Parse from the opening fence to the end rather
+        # than wasting the turn. A properly closed block always wins (handled above).
+        m = re.search(r"```tool[ \t]*\r?\n(.*)", text, re.DOTALL)
+        if not m:
+            return None
+        blocks = [m.group(1)]
     lines = blocks[-1].splitlines()
     name = ""
     args: dict[str, str] = {}

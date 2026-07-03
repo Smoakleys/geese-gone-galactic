@@ -36,6 +36,21 @@ def test_parse_none_when_no_block():
     assert parse_tool_call("no tool here") is None
 
 
+def test_parse_recovers_unclosed_block():
+    # model dropped the closing fence / output was truncated -> recover instead of wasting the turn
+    txt = "I'll write it.\n```tool\nname: write_file\npath: a.py\nbody:\nprint(1)\n"
+    call = parse_tool_call(txt)
+    assert call is not None and call.name == "write_file"
+    assert call.args["path"] == "a.py" and "print(1)" in call.body
+
+
+def test_parse_prefers_closed_block_over_unclosed_tail():
+    # a complete block still wins; the fallback only fires when there is no closed block
+    txt = "```tool\nname: finish\nsummary: done\n```\nthen ```tool\nname: write_file\n"
+    call = parse_tool_call(txt)
+    assert call is not None and call.name == "finish"
+
+
 def test_write_then_run_to_finish(tmp_path):
     replies = [
         'PLAN: write hello.py then run it.\n```tool\nname: write_file\npath: hello.py\nbody:\nprint("HELLO")\n```',
