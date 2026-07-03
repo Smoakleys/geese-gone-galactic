@@ -19,8 +19,15 @@ You are a fresh Claude session on **Geese Gone Galactic (GGG)**. Read this top t
   goes; goose-*shaped* art needs real 3D models (see [[ggg-abstract-visuals-fail-judges]]).
 - **Gate HARDENED this session** (2 real render-gate gaps found by probing + fixed): `godot_render` now
   fails a degenerate land-only render (< 3 distinct colours) AND a scene that crashed mid-`_ready()` (a
-  logged `SCRIPT ERROR` that still emitted a partial frame). Reviewer truncation fixed (harness-mod-52).
-  Scene helpers return their node (removes a null-capture crash class).
+  logged `SCRIPT ERROR` that still emitted a partial frame). Scene helpers return their node (removes a
+  null-capture crash class).
+- **AGENT capability HARDENED — 3 context-truncation bugs found by probing (all silently dropped exactly
+  the content that mattered):** harness-mod-52 the REVIEWER saw only the first 2KB of a scene (boilerplate),
+  judging blind; harness-mod-53 ICARUS saw only the first 2KB of its NOTEBOOK, missing 5 lessons incl. the
+  `.translation` rule (caused OP-35); harness-mod-54 the `run` tool fed back the first 2KB of output, hiding
+  the ERROR at the end (stderr is appended last) — starving Icarus's debug loop. All fixed + proven; the
+  agent now sees full artifacts, all its lessons, and the actual errors. Probing WHY things fail was the
+  session's most productive method.
 - **Capability**: unaided logic re-measured **13/16 = 0.81** (no regression across the session); corpus of
   **81 verified self-distillation pairs** ready for QLoRA.
 - **Two open frontiers, both need external input:** (a) the VISUALS fork — real 3D art (tooling-blocked
