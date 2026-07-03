@@ -500,6 +500,8 @@ def gen_pond_from_template(rng: Random) -> TaskInstance:
         from game.godot.scene_template import compose_scene
         cand = None
         for p in sorted(ws.rglob("*.gd")):
+            if p.name == "_composed_scene.gd":     # skip our own prior output, not the agent's content
+                continue
             try:
                 if "func build" in p.read_text():
                     cand = p
