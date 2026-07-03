@@ -42,12 +42,13 @@ def test_full_game_plays_to_a_thriving_outcome():
     from game.pond.pond_outcome import pond_outcome
     state = {"bread": 5, "buildings": []}
     state = add_building(state, "bakery", 0, 0, 8)
+    state = add_building(state, "well", 1, 0, 8)          # water for the bakery (else 'dry')
     state = add_building(state, "nest", 3, 3, 8)
     state = add_building(state, "fence", 3, 4, 8)        # protect the nest
     for _ in range(3):
         state = step(state)                              # +3 bakery - 1 nest = +2/tick
     assert state["bread"] == 11
-    assert pond_outcome(state, 2) == "thriving"          # solvent AND safe
+    assert pond_outcome(state, 2) == "thriving"          # solvent, watered, AND safe
 
 
 def test_full_game_can_be_lost_by_starvation():

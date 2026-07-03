@@ -10,6 +10,11 @@ def test_lost_when_no_bread():
     assert pond_outcome({"bread": -1, "buildings": []}, 2) == "lost"
 
 
+def test_dry_when_a_bakery_lacks_a_well():
+    # water access is checked after bread and before safety
+    assert pond_outcome({"bread": 5, "buildings": [{"kind": "bakery", "x": 0, "y": 0}]}, 2) == "dry"
+
+
 def test_unsafe_when_a_nest_is_unprotected():
     assert pond_outcome({"bread": 5, "buildings": [{"kind": "nest", "x": 9, "y": 9}]}, 2) == "unsafe"
 
