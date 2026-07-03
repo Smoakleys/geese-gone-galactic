@@ -37,6 +37,15 @@ true unaided-logic rate sits in a ~0.73–0.85 band run-to-run (stochastic model
 self-repair would lift it). The signal that matters: **the game's own mechanics are solidly in Icarus's
 unaided reach** — every One Pond logic generator (economy/water/predator/granary/score) passed this run.
 
+## HONEST behaviourally-gated capstone (2026-07-03, post-harness-mod-50): 14/14 @ autonomy 1.0 in 626s
+The FIRST full-backlog run where the deterministic `python_behavior` gate actually participated (it was
+silently skipped in the earlier 9/9 and 11/11 capstones — see the harness-mod-50 correction below). The
+deepened **14-ticket backlog (OP-1..OP-14)** committed **14/14 at autonomy 1.0**, unattended, under BOTH
+the behavioural check AND the reviewer now live. OP-13 (the 4-branch advice priority) committed only after
+a gate-forced rework — a harder composed rule genuinely tested the now-active gate, and the loop still
+landed it within `max_rounds`. So the "behaviourally-gated capstone" claim is finally TRUE, and it holds
+at 14/14 @ 1.0. This supersedes the earlier capstones below (which were reviewer-gated only).
+
 ## Full-backlog capstone (2026-07-03)
 The **entire authored One Pond backlog (OP-1..OP-9)** run through the FULL hardened gate — certified
 deterministic checks (`python_syntax`, `godot_parse`, `godot_render`, `python_behavior`) + a real local
