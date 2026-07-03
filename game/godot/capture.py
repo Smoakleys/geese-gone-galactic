@@ -38,6 +38,15 @@ def render_gdscript(scene_gd: Path, out_png: Path, *, size: str = "512x512",
                 capture_output=True, text=True, timeout=timeout)
         except Exception as e:  # subprocess/timeout — an observation, not a crash
             return False, f"render crashed: {e}"
+        # A GDScript runtime error during _ready() (e.g. calling a method on a null the model expected the
+        # helper to return) still produces a PARTIAL PNG at rc=0 — the nodes added before the crash render,
+        # the rest don't. That would slip a broken, half-built scene through the gate, so a logged
+        # SCRIPT ERROR is a failed render even when a frame came out.
+        engine_out = (proc.stdout or "") + "\n" + (proc.stderr or "")
+        if "SCRIPT ERROR" in engine_out:
+            first = next((ln.strip() for ln in engine_out.splitlines() if "SCRIPT ERROR" in ln),
+                         "SCRIPT ERROR")
+            return False, f"scene raised a runtime error: {first[:160]}"
         if not out_png.exists():
             tail = (proc.stderr or proc.stdout or "").strip()[-200:]
             return False, f"no PNG produced (rc={proc.returncode}): {tail}"
