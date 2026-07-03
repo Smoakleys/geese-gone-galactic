@@ -22,13 +22,15 @@ toy (that's superseded).
 | `pond_score.py` | OP-12 | `pond_score(state)` — bread + weighted building values (bakery 10, granary 5, nest 3, else 2) |
 | `pond_advice.py` | OP-13 | `pond_advice(state, reach)` — the hint system: suggests the next build by the weakest point |
 | `predator_loss.py` | OP-14 | `predator_loss(state, reach)` — bread eaten this tick (2 per unguarded nest); predators with teeth |
+| `build_cost.py` | OP-15 | `total_cost(buildings)` — bread cost to place a layout (bakery 5, granary 4, well 3, fence 2, nest 1); scarcity |
 
-## How they compose
-A pond is a `state = {'bread': int, 'buildings': [{'kind','x','y'}, ...]}`. Placement validates a layout;
-`step` advances the economy with granary synergy; `pond_status` reads safety; `pond_scene.build_body`
-(wrapped by `game/godot/scene_template.py`) renders the state to a Godot scene (`game/godot/scenes/
-one_pond_full.gd`). Integration tests (`tests/test_one_pond_integration.py`) drive the whole loop:
-place → tick → status → render.
+## How they compose — the full economic loop
+A pond is a `state = {'bread': int, 'buildings': [{'kind','x','y'}, ...]}`. The loop: **spend** bread to
+build (`build_cost.total_cost`) on a `placement`-validated layout that needs `water_access`; **earn** it
+back as `step` advances the granary-synergy economy; **lose** it to predators (`predator_loss`) when nests
+are unguarded. `pond_status`/`pond_outcome`/`pond_score` read the health, `pond_advice` suggests the next
+build, and `pond_scene.build_body` (wrapped by `game/godot/scene_template.py`) renders the state to a Godot
+scene. `tests/test_one_pond_integration.py` drives the whole loop; `ops/play_onepond.py` plays it end to end.
 
 ## Adding a mechanic
 Author a ticket in `game/onepond_tickets.py` with PINNED acceptance criteria (exact strings) and
