@@ -110,3 +110,13 @@ def test_load_of_a_corrupt_save_does_not_crash(tmp_path, monkeypatch):
         msg = g.act("load")                               # must return, not raise
         assert "corrupt" in msg
         assert len(g.state["buildings"]) == 1             # current pond preserved
+
+
+def test_page_escapes_reflected_input():
+    # a crafted action must not be reflected as raw HTML into the page (no injection).
+    from ops.play_web import GameSession, _page
+    g = GameSession()
+    g.act("<script>alert('x')</script>")
+    page = _page(g).decode("utf-8")
+    assert "<script>alert('x')</script>" not in page      # escaped, not live markup
+    assert "&lt;script&gt;" in page

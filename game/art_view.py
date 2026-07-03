@@ -114,17 +114,17 @@ def compose_pond_art(state: dict, out_png: "str | Path", *, size: "tuple[int, in
         canvas.alpha_composite(layer)
 
     buildings = state.get("buildings", [])
-    xs = [b["x"] for b in buildings] or [0]
-    ys = [b["y"] for b in buildings] or [0]
+    xs = [b.get("x", 0) for b in buildings] or [0]        # defensive: a malformed building (no x/y) sits
+    ys = [b.get("y", 0) for b in buildings] or [0]        # at the origin rather than crashing the render
     ox, oy = (min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0
 
     # collect drawables (kind, grid x, grid y) then paint back-to-front by depth = gx+gy
     items: "list[tuple[float, float, str]]" = []
     for b in buildings:
-        items.append((b["x"] - ox, b["y"] - oy, b.get("kind", "")))
+        items.append((b.get("x", 0) - ox, b.get("y", 0) - oy, b.get("kind", "")))
     for b in buildings:                                   # a goose beside each nest
         if b.get("kind") == "nest":
-            items.append((b["x"] - ox + 0.45, b["y"] - oy + 0.2, "goose"))
+            items.append((b.get("x", 0) - ox + 0.45, b.get("y", 0) - oy + 0.2, "goose"))
     for gx, gy in [(-2.4, -2.4), (2.4, -2.4), (2.4, 2.4), (-2.4, 2.4)]:   # corner trees (on the island)
         items.append((gx, gy, "tree"))
 

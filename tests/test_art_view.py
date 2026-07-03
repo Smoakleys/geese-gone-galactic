@@ -47,3 +47,9 @@ def test_full_pond_composites_all_building_kinds(tmp_path):
     out = compose_pond_art(s, tmp_path / "full.png", size=(700, 520))
     from PIL import Image
     assert len(Image.open(out).convert("RGB").getcolors(maxcolors=200000)) > 400   # rich real-art scene
+
+
+def test_art_view_survives_a_malformed_building(tmp_path):
+    # a building missing x/y (a corrupt state) must render at the origin, not crash the game.
+    out = compose_pond_art({"bread": 5, "buildings": [{"kind": "nest"}]}, tmp_path / "m.png", size=(300, 220))
+    assert out.exists()
