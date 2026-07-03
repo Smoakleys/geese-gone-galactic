@@ -8,7 +8,7 @@ from harness.models import Stage
 
 def test_one_pond_tickets_well_formed_and_reference_real_gates():
     tickets = one_pond_tickets()
-    assert [t.id for t in tickets] == ["OP-1", "OP-2", "OP-3"]
+    assert [t.id for t in tickets] == ["OP-1", "OP-2", "OP-3", "OP-4"]
     # Stage-A hints must name checks that actually exist and are certified elsewhere in the suite.
     real_stage_a_checks = {"godot_parse", "godot_render", "python_syntax", "json_valid"}
     for t in tickets:
