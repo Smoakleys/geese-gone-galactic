@@ -125,6 +125,23 @@ def test_advice_guides_a_pond_to_thriving():
     assert pond_outcome(state, 2) == "thriving"             # the guided pond thrives
 
 
+def test_predators_drain_an_unsafe_pond_over_time():
+    # predator_loss gives predator-safety a real economic bite: two identical bakery+nest ponds, one fenced.
+    from game.pond.predator_loss import predator_loss
+    safe = {"bread": 10, "buildings": [{"kind": "bakery", "x": 0, "y": 0},
+                                       {"kind": "nest", "x": 2, "y": 2}, {"kind": "fence", "x": 3, "y": 2}]}
+    unsafe = {"bread": 10, "buildings": [{"kind": "bakery", "x": 0, "y": 0},
+                                         {"kind": "nest", "x": 2, "y": 2}]}
+    for _ in range(3):
+        safe = step(safe)
+        safe["bread"] = max(safe["bread"] - predator_loss(safe, 2), 0)
+        unsafe = step(unsafe)
+        unsafe["bread"] = max(unsafe["bread"] - predator_loss(unsafe, 2), 0)
+    assert safe["bread"] == 16          # +2/tick, no predator loss
+    assert unsafe["bread"] == 10        # +2/tick economy, -2/tick predators -> flat
+    assert unsafe["bread"] < safe["bread"]
+
+
 def _nests_and_fences(state):
     nests = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "nest"]
     fences = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "fence"]
