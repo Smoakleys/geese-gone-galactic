@@ -762,6 +762,27 @@ def one_pond_tickets() -> "list[Ticket]":
                 AcceptanceCriterion(id="AC3", text="reads as the pond world with buildings and a detailed goose",
                                     stage=Stage.B, rubric_ref="onepond/detailworld"),
             ]),
+        Ticket(
+            id="OP-36",
+            title=("Write content.gd with ONLY `func build(root: Node3D) -> void:` using the helpers "
+                   "add_plane(root, size, color, y=0.0), add_box(root, size, color, pos), and "
+                   "add_sphere(root, radius, color, pos). POSITION everything with the pos/y ARGUMENTS only "
+                   "(do NOT set .position/.translation). Build One Pond with a DETAILED FLOCK: a GREEN land "
+                   "plane Vector2(16, 16); a BLUE pond Vector2(6, 6) at y=0.1; and TWO detailed geese at "
+                   "DIFFERENT spots beside the pond. Each goose = a WHITE sphere BODY (radius ~0.7), a "
+                   "CURVED NECK of TWO smaller WHITE spheres (radius ~0.25) stepping up and forward, a WHITE "
+                   "sphere HEAD (radius ~0.35), and an ORANGE beak box Color(1, 0.5, 0) at the head front. "
+                   "Space the two geese apart. Use Color.GREEN/Color.BLUE/Color.WHITE (Godot 4). No "
+                   "Camera3D, no _ready(), don't redefine the helpers."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="scene.gd parses under godot --check-only",
+                                    stage=Stage.A, check_hint="godot_parse"),
+                AcceptanceCriterion(id="AC2", text="renders a visible multi-element scene",
+                                    stage=Stage.A, check_hint="godot_render"),
+                AcceptanceCriterion(id="AC3", text="reads as a pond with a flock of detailed geese",
+                                    stage=Stage.B, rubric_ref="onepond/detailflock"),
+            ]),
     ]
     for t in tickets:
         t.freeze()
