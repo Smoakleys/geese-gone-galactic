@@ -69,3 +69,16 @@ def test_page_shows_message_and_event_buttons():
     for e in EVENTS:
         assert f"event_{e}" in html                  # an event button per event
     assert "do=reset" in html
+
+
+def test_web_save_and_load(tmp_path, monkeypatch):
+    import ops.play_web as pw
+    monkeypatch.setattr(pw, "_SAVE", tmp_path / "web.save")
+    g = pw.GameSession()
+    g.act("build_bakery"); g.act("build_nest")
+    assert g.act("save") == "pond saved" and (tmp_path / "web.save").exists()
+    fresh = pw.GameSession()
+    assert fresh.act("load") == "pond loaded"
+    assert len(fresh.state["buildings"]) == 2            # recovered the saved pond
+    monkeypatch.setattr(pw, "_SAVE", tmp_path / "none.save")
+    assert "no saved" in pw.GameSession().act("load")

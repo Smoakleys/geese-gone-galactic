@@ -20,8 +20,10 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from game.pond import (add_building, step, goose_count, pond_score, pond_rank,   # noqa: E402
-                       pond_status, apply_event)
+                       pond_status, apply_event, serialize_pond, deserialize_pond)
 from game.art_view import compose_pond_art                                                   # noqa: E402
+
+_SAVE = Path(__file__).resolve().parents[1] / "onepond_web.save"    # gitignored player save
 
 GRID = 8
 REACH = 2
@@ -49,6 +51,14 @@ class GameSession:
         if action == "reset":
             self.state = {"bread": 30, "buildings": []}
             return "a fresh pond"
+        if action == "save":
+            _SAVE.write_text(serialize_pond(self.state), encoding="utf-8")
+            return "pond saved"
+        if action == "load":
+            if not _SAVE.is_file():
+                return "no saved pond yet"
+            self.state = deserialize_pond(_SAVE.read_text(encoding="utf-8").strip())
+            return "pond loaded"
         if action.startswith("event_"):
             name = action[len("event_"):]
             if name not in EVENTS:
@@ -111,6 +121,8 @@ def _page(session: GameSession, msg: "str | None" = None) -> bytes:
 <img src="/pond.png?t={int(time.time()*1000)}" alt="your pond">
 <div class="bar">{builds}<a class="btn tick" href="/act?do=tick">Tick ⏱</a></div>
 <div class="bar">{events}<a class="btn reset" href="/act?do=reset">Reset</a></div>
+<div class="bar"><a class="btn ev" href="/act?do=save">Save</a>
+<a class="btn ev" href="/act?do=load">Load</a></div>
 </body></html>"""
     return html.encode("utf-8")
 
