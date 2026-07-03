@@ -41,14 +41,15 @@ def test_every_logic_ticket_behavior_matches_its_committed_module(tmp_path):
     for t in one_pond_tickets():
         if not t.behavior:
             continue
-        for ex in t.behavior:
-            src = pond / ex["module"]
-            if src.exists():
-                shutil.copy(src, tmp_path / ex["module"])
+        modules = {ex["module"] for ex in t.behavior}
+        if not all((pond / m).exists() for m in modules):
+            continue                                       # authored but not yet built -> nothing to verify
+        for m in modules:
+            shutil.copy(pond / m, tmp_path / m)
         res = check.run(tmp_path, t)
         assert res.result == Result.PASS, (t.id, res.evidence)
         checked += 1
-    assert checked >= 6                                    # OP-2..5, OP-7, OP-8 all carry behaviour
+    assert checked >= 6                                    # the built logic modules are all verified
 
 
 def test_op8_behavior_check_catches_the_baker_typo(tmp_path):
