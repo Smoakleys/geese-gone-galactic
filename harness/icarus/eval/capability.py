@@ -245,7 +245,7 @@ def gen_render(rng: Random) -> TaskInstance:
     godot = _gp() or "godot"
 
     def verify(ws: Path) -> "tuple[bool, str]":
-        from game.godot.capture import image_variance, render_gdscript
+        from game.godot.capture import brightest_mean, render_gdscript
         gd = ws / "scene.gd"
         if not gd.exists():
             return False, "scene.gd not found"
@@ -254,10 +254,11 @@ def gen_render(rng: Random) -> TaskInstance:
         if not ok:
             return False, detail
         try:
-            var = image_variance(out)
+            b = brightest_mean(out)
         except Exception as e:
             return False, f"could not read render: {e}"
-        return var >= 6.0, f"render variance {var:.1f} (need >=6; ~0 means blank/black)"
+        # BLANK = near-black (camera saw nothing). A solid bright fill is a valid render.
+        return b >= 20.0, f"brightest-channel mean {b:.1f} (blank/black if ~0)"
 
     prompt = (
         "Write a Godot 4 GDScript file named scene.gd (extends Node3D). In _ready() add a Camera3D "

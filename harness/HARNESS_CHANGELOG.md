@@ -269,3 +269,17 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   it cannot reliably fix a non-rendering 3D scene. The bottleneck is the model's 3D-scene knowledge, not
   the feedback. Per the gym rule, scaffolding that doesn't move the score isn't the lever here: the real
   lever is model capability (the brain bake-off) or learned 3D patterns. Gate untouched. 195 tests.
+
+## harness-mod-20 - CRITICAL: the render verifier was broken (variance != blank); Icarus renders 3/3
+- game/godot/capture.py: the render blank-check was `variance >= 6`, which wrongly FAILS a valid render
+  that fills the frame with a solid colour (uniform pixels have ~0 variance). Replaced with brightness
+  (brightest_mean < BLANK_FLOOR == near-black == blank). A bright-green ground plane filling the view is
+  now correctly a PASS. gen_render verify updated to match; regression test added.
+- Impact / correction: this bug caused FALSE render failures and misled harness-mod-18/19. Re-checking
+  the actual renders Icarus produced, its true UNAIDED render score is 3/3 = 1.00, NOT 1/3. gpt-oss:20b
+  renders correctly; the seeded notebook lessons (look_at AFTER add_child; `size` not `orthogonal_size`)
+  even helped it. The "model can't do 3D / scaffolding doesn't help" conclusions were artifacts of a bad
+  gate, now retracted.
+- Lesson (the harness's core thesis): a bad verifier corrupts the whole improvement loop; LOOKING at the
+  actual artifact (Reading the PNG) is what caught it - I nearly pulled 50GB of models chasing a phantom
+  limit. 196 tests.
