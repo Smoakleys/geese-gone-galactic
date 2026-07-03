@@ -28,6 +28,19 @@ builds the game — now holds for visuals, not just logic. HONEST caveat: the lo
 gpt-oss emitted prose instead of a final tool call after rendering; the scene is still produced + gated
 (materialize_templated_scene harvests it regardless). Lead: harden the loop's prose-not-a-tool-call exit.
 
+## VALIDATED mod-64/65: 0.60 → 0.80 on the SAME seed (2026-07-03, Step D — a real measured win)
+Re-ran the identical battery (seed 4242, 20 logic tasks, unaided) AFTER mod-64 (reject placeholder body) +
+mod-65 (nudge-if-no-solution): **16/20 = 0.80**, up from 12/20 = 0.60. Per-task diff vs the 0.60 baseline:
+- **6 targeted fails now PASS**: fizzbuzz, readsum, readsorted, secret, pondtick (mod-65 → it actually wrote
+  a solution), pondscore (mod-64 → rejected the `<file contents>` placeholder). Exactly the empty-output/
+  no-solution class the fixes targeted.
+- Still fail: granary (empty — the nudge didn't rescue it), fixbug (wrong logic — model limit).
+- 2 tasks flipped PASS→FAIL (json "config.json not found", fixrange 55≠66). mod-64/65 CANNOT cause these
+  (both wrote real, non-placeholder solutions, so neither trigger fired) → n=1 stochastic model variance,
+  not a regression from the change.
+- **Step D verdict: unaided rose (+0.20) → KEEP mod-64/65.** The targeted failure class is genuinely fixed;
+  the residual (granary, fixbug, stochastic flips) is the model ceiling → the fine-tune lever (compute-blocked).
+
 ## CLEAN unaided re-measurement — 12/20 = 0.60 on a FRESH seed (2026-07-03, post mod-60-63)
 Ran the unaided battery (`use_notebook=False`, no best-of-N, ≤1 self-repair) on the **20 LOGIC** generators,
 fresh **seed 4242** (never distilled from), after this session's runtime changes (mod-60-63). Result:
