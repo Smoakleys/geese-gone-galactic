@@ -339,3 +339,10 @@ without a matching entry. Reverts are one command via the token in `harness/reve
 - docs/HANDOFF.md: recorded the "one live model run at a time on the 16GB GPU" discipline - concurrent
   live-model tasks (esp. both needing the 30B) thrash/hang (learned the hard way: two overlapping live
   probes stalled). 214 tests.
+
+## harness-mod-28 - Bakery scene task: a building on the ground (breadth)
+- harness/icarus/eval/capability.py: gen_bakery_scene - a visual task (routes to the 30B) requiring a
+  scene with a green ground AND a distinctly-coloured building box on it. Gated by green_dominance
+  (ground visible) + significant_colors>=3 (a building region present, not a bare plane). Verify tested
+  offline via synthetic renders (monkeypatched); live confirmation runs when the GPU is free (one live
+  run at a time). 216 tests.

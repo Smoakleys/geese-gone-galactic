@@ -330,10 +330,42 @@ def gen_render(rng: Random) -> TaskInstance:
     return TaskInstance(f"render_scene_{rng.randint(1000, 9999)}", "render", prompt, verify)
 
 
+def gen_bakery_scene(rng: Random) -> TaskInstance:
+    """Breadth: a scene with a BUILDING on the ground (not just a flat plane) — visual, routes to 30B."""
+    def verify(ws: Path) -> "tuple[bool, str]":
+        from game.godot.capture import green_dominance, render_gdscript, significant_colors
+        gd_file = ws / "scene.gd"
+        if not gd_file.exists():
+            return False, "scene.gd not found"
+        out = ws / "_render.png"
+        ok, detail = render_gdscript(gd_file, out)
+        if not ok:
+            return False, detail
+        try:
+            gd = green_dominance(out)
+            cols = significant_colors(out)
+        except Exception as e:
+            return False, f"could not read render: {e}"
+        # a real bakery scene: green ground visible AND a distinct building region (>= 3 colours)
+        if gd < 15:
+            return False, f"no green ground (dominance {gd:.0f})"
+        if cols < 3:
+            return False, f"green ground but no building on it (only {cols} colour region(s))"
+        return True, f"ground + building (green-dominance {gd:.0f}, {cols} colour regions)"
+
+    return TaskInstance(
+        f"bakery_scene_{rng.randint(1000, 9999)}", "render",
+        "Write a Godot 4 GDScript file scene.gd (extends Node3D). In _ready(): a current orthogonal "
+        "Camera3D aimed at the origin; a large green UNSHADED ground plane (PlaneMesh); AND a distinctly "
+        "coloured (e.g. brown/tan) UNSHADED building box (BoxMesh, ~2-3 units, raised so it sits ON the "
+        "ground) near the centre. The render must show the green ground WITH a building on it, not a "
+        "bare plane.", verify)
+
+
 def default_generators() -> "list[Callable[[Random], TaskInstance]]":
     return [gen_sum, gen_reverse, gen_json, gen_fizzbuzz,
             gen_fix_bug, gen_read_sum, gen_find_secret, gen_economy, gen_placement,
-            gen_gdscript, gen_render]
+            gen_gdscript, gen_render, gen_bakery_scene]
 
 
 def sample_battery(seed: int = 0, per_generator: int = 1,
