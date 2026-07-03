@@ -66,11 +66,16 @@ def compose_pond_art(state: dict, out_png: "str | Path", *, size: "tuple[int, in
     """Composite ``state`` into an art PNG at ``out_png``. Returns the path. Always renders."""
     from PIL import Image, ImageDraw
     W, H = size
-    canvas = Image.new("RGBA", (W, H), _GRASS + (255,))
+    # a soft sky-gradient background so the island reads as a floating game screen, not white corners
+    grad = Image.new("RGB", (1, H))
+    for y in range(H):
+        t = y / max(1, H - 1)
+        grad.putpixel((0, y), (int(150 + 55 * t), int(202 - 12 * t), int(232 - 34 * t)))
+    canvas = grad.resize((W, H)).convert("RGBA")
 
-    ground = _load("ground")
+    ground = _load("ground")                              # prefers ground_cutout (transparent island)
     if ground is not None:
-        canvas.paste(ground.resize((W, H)).convert("RGBA"), (0, 0))
+        canvas.alpha_composite(ground.resize((W, H)).convert("RGBA"))
 
     cx0, cy0 = W // 2, int(H * 0.46)                      # screen centre of the grid origin
 
