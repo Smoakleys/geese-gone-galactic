@@ -23,10 +23,19 @@ the certified `godot_parse` + `godot_render` gates (see `game/godot/scenes/one_p
 
 ## Honest reading
 Icarus writes fresh logic well — all four One Pond mechanics unaided — and, via model routing, builds
-the game's visuals. Its **standing weakness is debugging existing broken code** (`fix_bug`): reading a
-wrong program and correcting it is harder for it than writing a correct one from scratch. That is the
-next capability to lift — candidate levers: a sharper error-reading step, or a diff-focused re-plan
-trigger when a `run` observation shows the wrong output.
+the game's visuals. Its **standing weakness is debugging existing broken code**.
+
+**Debugging characterization (2026-07-03): 2/4, and it's GENERAL** — fails on both bug-types
+(wrong-operator `fix_bug` AND off-by-one `fix_range_bug`), ~50%. Diagnosed by looking at a failed
+workspace: **the file is left completely unedited** (`print(31 - 63)` still there). So the failure mode
+is not *mis*-fixing — it's **finishing without applying the fix at all**: Icarus reads the broken file,
+"understands" it, and calls `finish` without ever writing the corrected file or running to confirm.
+
+**The lever this points at:** a *verify-before-finish* discipline — Icarus should not `finish` a fix-it
+task without having made an edit and run the file to confirm the output changed. Candidate implementations
+(each needs a measured before→after per the plan): a short "run to confirm before finishing" nudge; or a
+runtime guard that questions a `finish` when no `write_file`/`run` happened this task. Deferred to a
+focused measured cycle so a prompt change isn't kept unless the unaided score actually rises.
 
 ## Caveat
 An earlier routed full-battery run measured 4/6, but it was the victim of GPU contention (two 30B tasks
