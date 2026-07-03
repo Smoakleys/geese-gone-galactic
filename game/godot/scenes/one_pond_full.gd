@@ -8,13 +8,26 @@ func _ready() -> void:
     cam.projection = Camera3D.PROJECTION_ORTHOGONAL
     cam.size = 18
     cam.current = true
+    # A sun + soft ambient so the low-poly shapes are LIT (gradients on spheres, face-shading on boxes) --
+    # this reads as 3D depth instead of flat cut-outs. Ambient keeps shadowed sides visible, not black.
+    var sun := DirectionalLight3D.new()
+    sun.rotation_degrees = Vector3(-50, -40, 0)
+    add_child(sun)
+    var worldenv := WorldEnvironment.new()
+    var env := Environment.new()
+    env.background_mode = Environment.BG_COLOR
+    env.background_color = Color(0.2, 0.2, 0.22)
+    env.ambient_light_color = Color(0.55, 0.55, 0.6)
+    env.ambient_light_energy = 0.6
+    worldenv.environment = env
+    add_child(worldenv)
     build(self)
 
 
-func _unshaded(color):
+func _mat(color):
     var m := StandardMaterial3D.new()
-    m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
     m.albedo_color = color
+    m.roughness = 0.9
     return m
 
 # Helper: add a FLAT horizontal plane (already in the XZ plane -- never rotate it). `y` layers it.
@@ -27,7 +40,7 @@ func add_plane(root, size, color, y = 0.0):
     pm.size = sz
     mi.mesh = pm
     mi.position = Vector3(0, y, 0)
-    mi.material_override = _unshaded(color)
+    mi.material_override = _mat(color)
     root.add_child(mi)
 
 # Helper: add a box (building) of `size` at `pos`.
@@ -38,7 +51,18 @@ func add_box(root, size, color, pos = Vector3.ZERO):
     bm.size = sz
     mi.mesh = bm
     mi.position = pos
-    mi.material_override = _unshaded(color)
+    mi.material_override = _mat(color)
+    root.add_child(mi)
+
+# Helper: add a SPHERE (rounded shape -- a goose body/head, a berry) of radius `r` at `pos`.
+func add_sphere(root, r, color, pos = Vector3.ZERO):
+    var mi := MeshInstance3D.new()
+    var sm := SphereMesh.new()
+    sm.radius = float(r)
+    sm.height = float(r) * 2.0
+    mi.mesh = sm
+    mi.position = pos
+    mi.material_override = _mat(color)
     root.add_child(mi)
 
 func build(root: Node3D) -> void:
