@@ -17,20 +17,29 @@ class OllamaAgentModel:
     def __init__(self, model_id: str = "gpt-oss:20b",
                  endpoint: str = "http://localhost:11434",
                  timeout: float = 240.0, temperature: float = 0.3, num_ctx: int = 8192,
-                 retries: int = 3) -> None:
+                 retries: int = 3, keep_alive: str = "30m",
+                 num_predict: "int | None" = None) -> None:
         self.model_id = model_id
         self.endpoint = endpoint.rstrip("/")
         self.timeout = timeout
         self.temperature = temperature
         self.num_ctx = num_ctx
         self.retries = retries
+        # keep_alive keeps the model resident between turns so it is not evicted + reloaded (a reload of
+        # the offloaded 30B costs many seconds every turn). num_predict optionally caps generation.
+        self.keep_alive = keep_alive
+        self.num_predict = num_predict
 
     def complete(self, messages: list[dict[str, str]]) -> str:
+        options = {"temperature": self.temperature, "num_ctx": self.num_ctx}
+        if self.num_predict is not None:
+            options["num_predict"] = self.num_predict
         payload = {
             "model": self.model_id,
             "messages": messages,
             "stream": False,
-            "options": {"temperature": self.temperature, "num_ctx": self.num_ctx},
+            "keep_alive": self.keep_alive,
+            "options": options,
         }
         data = json.dumps(payload).encode("utf-8")
         last_err: Exception | None = None

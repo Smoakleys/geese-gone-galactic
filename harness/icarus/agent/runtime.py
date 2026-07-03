@@ -316,6 +316,24 @@ def _extract_plan(reply: str) -> str:
     return before[:400] if before else "(no plan stated)"
 
 
+_CONTEXT_KEEP_RECENT = 8  # most-recent conversation messages kept verbatim when trimming
+
+
+def _trim_context(messages: "list[dict[str, str]]", plan: str) -> "list[dict[str, str]]":
+    """Bound the context SENT to the model so a long run stays fast (the plan's 'trim raw tool output
+    after use'). Keeps the setup (system + task, and the notebook if present) and the most-recent
+    exchanges; older middle turns collapse to a one-line marker carrying the plan. The full transcript
+    is untouched — only the model's input shrinks, so per-turn prompt cost stops growing with steps."""
+    first_assistant = next((i for i, m in enumerate(messages) if m["role"] == "assistant"), len(messages))
+    head, convo = messages[:first_assistant], messages[first_assistant:]
+    if len(convo) <= _CONTEXT_KEEP_RECENT:
+        return messages
+    marker = {"role": "user", "content":
+              f"[{len(convo) - _CONTEXT_KEEP_RECENT} earlier steps trimmed to save context. "
+              f"Your plan: {plan[:200]}]"}
+    return head + [marker] + convo[-_CONTEXT_KEEP_RECENT:]
+
+
 def run_agent(model: AgentModel, task: str, workspace: Path, *,
               max_steps: int = 12, run_timeout: float = 60.0,
               vision: "Optional[VisionModel]" = None,
@@ -340,7 +358,7 @@ def run_agent(model: AgentModel, task: str, workspace: Path, *,
     steps = 0
     for steps in range(1, max_steps + 1):
         try:
-            reply = model.complete(messages)
+            reply = model.complete(_trim_context(messages, plan))
         except Exception as e:  # model/network failure must not crash the loop — degrade to STUCK
             consecutive_bad += 1
             if consecutive_bad >= 3:
