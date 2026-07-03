@@ -13,8 +13,17 @@ This is the concrete workflow. Steps 1–2 are built and run here; step 3 is an 
 `{"instruction","input","output"}` shape. The instruction is the FULL spec (title + acceptance criteria +
 `{call == expect}` contracts); the output is the verified solution. Only gate-passing modules are included,
 so the data is correct by construction (guarded by `tests/test_distill.py`). Grow it by authoring +
-building more tickets — each adds a diverse verified pair (currently ~20 across formula/boolean/string/
-search/dict/sort shapes).
+building more tickets — each adds a diverse verified pair (currently ~22 across 8 shapes: formula/boolean/
+string/search/dict/sort/iteration/set).
+
+**SCALING to the hundreds/thousands QLoRA wants (PLAN Lever 1 — the procedural battery).** Hand-authored
+tickets don't scale; the `gen_*` generators in `harness/icarus/eval/capability.py` produce INFINITE
+non-repeating instances, each with its own deterministic checker. The batch data-gen job (a long GPU run,
+same class as the QLoRA step): loop over seeded generator instances → run each through the agent loop
+(`OllamaAgentModel` + the runtime) → keep ONLY instances whose checker passes → append `{instruction:
+prompt, output: the solution Icarus wrote}` to the dataset. Best-of-N per instance (keep the passing
+sample) raises yield. This is Atropos's `--save-top-n-per-group` pattern: infinite gym + gate filter =
+large, verified, non-memorisable SFT data with no hand-authoring.
 
 ## 2. Sanity-check the data
 `python -m pytest tests/test_distill.py -q` — every record is valid JSONL and every `output` parses as
