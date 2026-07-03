@@ -13,7 +13,9 @@ geese). Every module was produced by the local agent through the gate and is beh
 Icarus's gate-passing solutions are also captured as self-distillation training data (`data/*_sft.jsonl`,
 see `docs/DISTILL.md`) to raise its unaided capability.
 
-**Try it:** `python ops/play_onepond.py` plays a guided pond to a thriving outcome and prints the transcript.
+**Play it:** `python ops/play_commands.py --interactive` — a live text game: type `build bakery`, `event
+harvest`, `tick`, `status`, `render pond.png` (a lit 3D image of your pond), `save`/`load`, `quit`. Or
+`python ops/play_onepond.py` for a scripted guided pond to a thriving outcome with the transcript.
 
 - Honest capability: the full authored backlog commits **11/11 at autonomy 1.0** through the hardened gate,
   unattended; unaided-logic sits in a ~0.73–0.85 band (see `docs/SCORECARD.md`).
