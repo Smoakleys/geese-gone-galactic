@@ -52,6 +52,20 @@ def one_pond_tickets() -> "list[Ticket]":
                 AcceptanceCriterion(id="AC2", text="is_valid(cells, n) rejects out-of-bounds or "
                                     "overlapping placements", stage=Stage.B, rubric_ref="onepond/placement"),
             ]),
+        Ticket(
+            id="OP-4",
+            title=("pond_state.py: a One Pond simulation. A dict state holds 'bread' (int) and 'buildings' "
+                   "(a list of dicts with 'kind','x','y'). step(state) returns the next state after one "
+                   "tick: each 'bakery' adds 3 bread, each 'nest' subtracts 1 (bread never below 0). "
+                   "add_building(state, kind, x, y, n) adds a building only if (x,y) is in-bounds on the "
+                   "n-by-n grid and not already occupied, else returns the state unchanged. Pure Python."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="step ticks bread by building counts; add_building "
+                                    "validates placement", stage=Stage.B, rubric_ref="onepond/state"),
+            ]),
     ]
     for t in tickets:
         t.freeze()
