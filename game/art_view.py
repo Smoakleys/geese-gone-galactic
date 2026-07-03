@@ -113,11 +113,12 @@ def compose_pond_art(state: dict, out_png: "str | Path", *, size: "tuple[int, in
     for gx, gy in [(-2.4, -2.4), (2.4, -2.4), (2.4, 2.4), (-2.4, 2.4)]:   # corner trees (on the island)
         items.append((gx, gy, "tree"))
 
-    draw = ImageDraw.Draw(canvas)
     for gx, gy, kind in sorted(items, key=lambda t: t[0] + t[1]):
         sx, sy = screen(gx, gy)
         spr = _scaled(kind, _SIZES.get(kind, 120))
         if spr is not None:
+            if int(abs(gx * 3.0 + gy * 5.0)) % 2:     # deterministic mirror so identical props don't copy-paste
+                spr = spr.transpose(Image.FLIP_LEFT_RIGHT)
             canvas.alpha_composite(spr, (sx - spr.width // 2, sy - spr.height))   # anchor at the feet
         else:
             _placeholder(canvas, sx, sy, kind)
