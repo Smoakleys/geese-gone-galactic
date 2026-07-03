@@ -182,6 +182,13 @@ class OllamaChatClient(ChatClient):
 
 # -- prompt rendering / parsing (production path; kept tiny + testable) ------------------
 
+# Per-artifact character cap in the review prompt. A TEMPLATED Godot scene is
+# camera + helpers (~1.8 KB) + the meaningful build(); the old 2 KB cap cut build() off, so the
+# reviewer judged scenes nearly blind. 6 KB shows a full scene / long module while staying well inside
+# num_ctx (8192). (Note: for ABSTRACT low-poly scenes even a fully-fed text reviewer is an unreliable
+# VISUAL judge -- see memory ggg-abstract-visuals-fail-judges; this only removes the truncation blindfold.)
+_ARTIFACT_CHAR_CAP = 6000
+
 
 def _render_prompt(request: ModelRequest) -> str:
     lines = [
@@ -192,7 +199,7 @@ def _render_prompt(request: ModelRequest) -> str:
         "Artifact files:",
     ]
     for name, body in request.artifact_text.items():
-        snippet = body if len(body) < 2000 else body[:2000] + "…"
+        snippet = body if len(body) < _ARTIFACT_CHAR_CAP else body[:_ARTIFACT_CHAR_CAP] + "…"
         lines.append(f"--- {name} ---\n{snippet}")
     lines.append("\nCriteria:")
     for q in request.questions:
