@@ -66,3 +66,21 @@ def test_generate_cuts_white_background_to_transparency(tmp_path, monkeypatch):
     assert g.generate("a goose", out, "key")
     corner = Image.open(out).convert("RGBA").getpixel((0, 0))
     assert corner[3] == 0                                                     # white bg cut to transparent
+
+
+def test_contact_sheet_tiles_generated_assets(tmp_path, monkeypatch):
+    # the review step needs all assets in one image to grade against the reference.
+    from PIL import Image
+    import ops.gemini_art as g
+    monkeypatch.setattr(g, "ART_DIR", tmp_path)
+    Image.new("RGBA", (40, 40), (0, 180, 0, 255)).save(tmp_path / "gemini_goose.png")
+    Image.new("RGBA", (40, 40), (180, 0, 0, 255)).save(tmp_path / "gemini_bakery.png")
+    out = g.make_contact_sheet(tmp_path / "sheet.png", ["goose", "bakery"])
+    assert out is not None and out.is_file()
+    assert Image.open(out).size[0] > 0
+
+
+def test_contact_sheet_none_when_no_assets(tmp_path, monkeypatch):
+    import ops.gemini_art as g
+    monkeypatch.setattr(g, "ART_DIR", tmp_path)
+    assert g.make_contact_sheet(tmp_path / "sheet.png", ["goose"]) is None    # nothing generated yet
