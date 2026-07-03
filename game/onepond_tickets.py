@@ -376,6 +376,26 @@ def one_pond_tickets() -> "list[Ticket]":
                 {"module": "pond_rank.py", "call": "pond_rank(75)", "expect": "town"},
                 {"module": "pond_rank.py", "call": "pond_rank(100)", "expect": "city"},
             ]),
+        Ticket(
+            id="OP-17",
+            title=("goose_count.py: how many geese live in the pond. goose_count(buildings) returns the "
+                   "int goose population: each building of kind 'nest' houses 4 geese; all other kinds "
+                   "house none. Buildings are dicts with a 'kind'. Pure Python returning an int."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="4 geese per nest, 0 for other kinds",
+                                    stage=Stage.B, rubric_ref="onepond/geese"),
+            ],
+            behavior=[
+                {"module": "goose_count.py",
+                 "call": "goose_count([{'kind':'nest'},{'kind':'nest'}])", "expect": 8},
+                {"module": "goose_count.py",
+                 "call": "goose_count([{'kind':'nest'},{'kind':'bakery'}])", "expect": 4},
+                {"module": "goose_count.py", "call": "goose_count([])", "expect": 0},
+                {"module": "goose_count.py", "call": "goose_count([{'kind':'bakery'}])", "expect": 0},
+            ]),
     ]
     for t in tickets:
         t.freeze()
