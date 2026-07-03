@@ -52,7 +52,12 @@ def pond_state_to_scene_gd(state: dict) -> str:
         if b.get("kind") == "nest":
             wx, wz = b["x"] * _SPACING - ox + 1.2, b["y"] * _SPACING - oz
             body += M.goose_lines((wx, 0.0, wz), s=0.45, face=-1)
-    cam_size = max(9.0, span * 1.4 + 4.0)                     # tight frame: props stay a visible fraction
+    # decorative trees at the four corners (outside the pond + footprint) so the world feels lived-in.
+    # Kept close + small, and the frame stays tight, so buildings still each clear the gate's 2% colour bar.
+    td = span + 2.6
+    for tx, tz in ((td, td), (-td, td), (td, -td), (-td, -td)):
+        body += M.tree_lines((tx, 0.0, tz), s=0.75)
+    cam_size = max(9.5, span * 1.4 + 4.5)                     # tight frame incl. the corner trees
     return M.compose_model_scene(body, cam_target=(0, 0.8, 0), cam_size=cam_size)
 
 
