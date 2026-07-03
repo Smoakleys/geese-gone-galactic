@@ -82,8 +82,7 @@ INTERACTIVELY PLAYABLE (`python ops/play_commands.py --interactive`). 400 tests.
       scene gate, route it to the VISION model on the render (plan's see-screenshot), noting even 7B vl is a
       harsh judge of these abstract shapes.
 - [ ] **More authored One Pond LOGIC tickets** — each = game content + a verified self-distillation pair;
-- [ ] **More authored One Pond LOGIC tickets** — each = game content + a verified self-distillation pair;
-      diversity is now good (8 task shapes), so prefer visual/new-domain tickets over more same-shape logic.
+      diversity is now good (many task shapes), so prefer visual/new-domain tickets over more same-shape logic.
 - [x] **Retire the python economy toy** (`game/onepond`) — DECIDED: KEEP IT, documented-as-dead. Investigated
       (2026-07-03): its 3 dependent tests are ~914 lines (`test_phase4_onepond` alone is 680) that exercise
       real HARNESS governance — the check registry, flywheel harvest, cold audits, the ratchet — using the
