@@ -43,7 +43,6 @@ data/training_all.jsonl
 onepond_web.save
 ops/gemini_config.local.json
 ops/gemini_key.local.txt
-assets/art/gemini_*.png
 onepond_art.png
 pond_art.png
 pond.png

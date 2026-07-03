@@ -53,3 +53,13 @@ def test_art_view_survives_a_malformed_building(tmp_path):
     # a building missing x/y (a corrupt state) must render at the origin, not crash the game.
     out = compose_pond_art({"bread": 5, "buildings": [{"kind": "nest"}]}, tmp_path / "m.png", size=(300, 220))
     assert out.exists()
+
+
+def test_load_prefers_gemini_asset(tmp_path, monkeypatch):
+    # once the locked-viewpoint Gemini art is generated, the game must use it automatically.
+    from PIL import Image
+    import game.art_view as av
+    monkeypatch.setattr(av, "ART_DIR", tmp_path)
+    Image.new("RGBA", (8, 8), (200, 0, 0, 255)).save(tmp_path / "goose.png")          # old base
+    Image.new("RGBA", (8, 8), (0, 200, 0, 255)).save(tmp_path / "gemini_goose.png")   # gemini
+    assert av._load("goose").getpixel((0, 0))[:3] == (0, 200, 0)                      # picked gemini
