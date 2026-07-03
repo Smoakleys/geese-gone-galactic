@@ -15,7 +15,15 @@ def one_pond_tickets() -> "list[Ticket]":
     """The authored One Pond backlog, frozen and ready to run."""
     tickets = [
         Ticket(
-            id="OP-1", title="One Pond scene.gd: green land + a blue water pond + a building",
+            # Templated (fast) scene ticket: routes to the fast resident model; default_icarus_builder's
+            # post_build composes the content.gd into a full scene.gd before the Godot gates. ~90s vs ~20m.
+            id="OP-1",
+            title=("Write content.gd with ONLY `func build(root: Node3D) -> void:` using the provided "
+                   "helpers add_plane(root, size, color, y=0.0) and add_box(root, size, color, pos). Build "
+                   "the One Pond: a GREEN land plane size Vector2(16,16); a BLUE water pond size "
+                   "Vector2(6,6) at y=0.1; and a brown add_box beside the pond. Do NOT add a Camera3D, "
+                   "_ready(), your own meshes, or redefine the helpers -- just call them with "
+                   "Color.GREEN/Color.BLUE (Godot 4)."),
             kind=TicketKind.SYSTEM,
             acceptance_criteria=[
                 AcceptanceCriterion(id="AC1", text="scene.gd parses under godot --check-only",
