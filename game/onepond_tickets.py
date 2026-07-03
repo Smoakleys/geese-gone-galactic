@@ -79,6 +79,22 @@ def one_pond_tickets() -> "list[Ticket]":
                 AcceptanceCriterion(id="AC2", text="is_safe true only when every nest is within reach of a "
                                     "fence", stage=Stage.B, rubric_ref="onepond/predator"),
             ]),
+        Ticket(
+            id="OP-6",
+            title=("pond_scene.py: bridge pond state to a renderable scene. build_body(buildings) takes a "
+                   "list of dicts each {'kind': str, 'x': int, 'y': int} and returns a STRING of "
+                   "newline-separated GDScript statements that, for each building, call "
+                   "add_box(root, Vector3(1, 1, 1), COLOR, Vector3(x * 2, 0.5, y * 2)) where COLOR is "
+                   "Color(0.5, 0.3, 0.1) for 'bakery', Color(0.8, 0.7, 0.4) for 'nest', "
+                   "Color(0.5, 0.5, 0.5) for 'fence', else Color.WHITE. Pure Python returning a string; "
+                   "no Godot needed."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="returns an add_box GDScript line per building with the "
+                                    "right colour + grid position", stage=Stage.B, rubric_ref="onepond/scene"),
+            ]),
     ]
     for t in tickets:
         t.freeze()
