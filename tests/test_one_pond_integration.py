@@ -206,6 +206,21 @@ def test_a_pond_climbs_ranks_as_it_grows():
     assert len(set(ranks)) >= 3                           # passed through several tiers
 
 
+def test_defense_planning_utilities_compose():
+    # the utility fns compose into a real feature: inventory + threat-priority + nearest-fence lookup.
+    from game.pond import nearest_fence, sorted_by_distance, count_by_kind, unique_kinds
+    buildings = [{"kind": "nest", "x": 0, "y": 0}, {"kind": "nest", "x": 8, "y": 8},
+                 {"kind": "fence", "x": 1, "y": 0}]
+    nests = [(b["x"], b["y"]) for b in buildings if b["kind"] == "nest"]
+    fences = [(b["x"], b["y"]) for b in buildings if b["kind"] == "fence"]
+
+    assert count_by_kind(buildings) == {"nest": 2, "fence": 1}          # inventory
+    assert unique_kinds(buildings) == ["fence", "nest"]                 # legend
+    assert sorted_by_distance(nests, (4, 4)) == [(0, 0), (8, 8)]        # threat priority (tie -> stable)
+    assert nearest_fence((0, 0), fences) == (1, 0)                      # the near nest has cover
+    assert nearest_fence((8, 8), fences) == (1, 0)                      # the far nest's only (distant) fence
+
+
 def _nests_and_fences(state):
     nests = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "nest"]
     fences = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "fence"]
