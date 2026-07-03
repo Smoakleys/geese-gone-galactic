@@ -66,6 +66,19 @@ def one_pond_tickets() -> "list[Ticket]":
                 AcceptanceCriterion(id="AC2", text="step ticks bread by building counts; add_building "
                                     "validates placement", stage=Stage.B, rubric_ref="onepond/state"),
             ]),
+        Ticket(
+            id="OP-5",
+            title=("predator.py: a One Pond predator-safety rule. is_safe(nests, fences, reach) takes a "
+                   "list of nest (x, y) tuples and a list of fence (x, y) tuples, and returns True only if "
+                   "EVERY nest is within Manhattan distance `reach` (abs(dx)+abs(dy) <= reach) of at least "
+                   "one fence. An empty nest list is safe. Pure Python."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="is_safe true only when every nest is within reach of a "
+                                    "fence", stage=Stage.B, rubric_ref="onepond/predator"),
+            ]),
     ]
     for t in tickets:
         t.freeze()
