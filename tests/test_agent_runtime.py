@@ -329,3 +329,30 @@ def test_run_agent_injects_notebook_unless_stripped(tmp_path):
     res2 = run_agent(ScriptedAgentModel(replies), "task", tmp_path, notebook=nb, use_notebook=False)
     joined2 = "\n".join(m["content"] for m in res2.transcript)
     assert "REMEMBER-THIS-LESSON" not in joined2
+
+
+def _tool(*rows):
+    nl = chr(10)
+    return "```tool" + nl + nl.join(rows) + nl + "```"
+
+
+def test_finish_without_verifying_gets_a_one_time_nudge(tmp_path):
+    # Self-verify (plan Part 2A): finishing right after writing code, with no run/render, is nudged ONCE.
+    from harness.icarus.agent.runtime import run_agent, ScriptedAgentModel, State
+    w = _tool("name: write_file", "path: a.py", "body:", "print(1)")
+    fin = _tool("name: finish", "summary: done")
+    res = run_agent(ScriptedAgentModel([w, fin, fin]), "task", tmp_path, max_steps=5)
+    nudges = [m for m in res.transcript if m["role"] == "user" and "[VERIFY]" in m["content"]]
+    assert len(nudges) == 1
+    assert res.state == State.DONE
+
+
+def test_finish_after_verifying_is_not_nudged(tmp_path):
+    # wrote then RAN -> already verified -> finish accepted immediately, no nudge.
+    from harness.icarus.agent.runtime import run_agent, ScriptedAgentModel, State
+    w = _tool("name: write_file", "path: a.py", "body:", "print(1)")
+    run = _tool("name: run", "cmd: python a.py")
+    fin = _tool("name: finish", "summary: done")
+    res = run_agent(ScriptedAgentModel([w, run, fin]), "task", tmp_path, max_steps=5)
+    assert not any("[VERIFY]" in m["content"] for m in res.transcript if m["role"] == "user")
+    assert res.state == State.DONE

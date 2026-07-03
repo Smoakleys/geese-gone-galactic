@@ -372,6 +372,9 @@ def run_agent(model: AgentModel, task: str, workspace: Path, *,
     plan = ""
     consecutive_bad = 0
     consecutive_errors = 0
+    wrote_files = False          # did it produce an artifact...
+    verified = False             # ...and actually run/render/see it before finishing?
+    nudged_verify = False        # the verify reminder fires at most once (never blocks finishing outright)
     steps = 0
     for steps in range(1, max_steps + 1):
         try:
@@ -398,7 +401,22 @@ def run_agent(model: AgentModel, task: str, workspace: Path, *,
         consecutive_bad = 0
 
         if call.name == "finish":
+            # Self-verify before submitting (plan Part 2A): if it wrote an artifact but never ran/rendered/
+            # saw it, nudge ONCE to verify. Advisory, not a hard block -- if it insists (or already
+            # verified, or wrote nothing), the next finish is accepted.
+            if wrote_files and not verified and not nudged_verify:
+                nudged_verify = True
+                messages.append({"role": "user", "content":
+                    "[VERIFY] You wrote code but have not RUN or RENDERED it. Before finishing, verify it "
+                    "actually works: use `run` (code) or `render` then `see` (a scene), read the result, and "
+                    "fix any error. Then finish. Don't submit unverified work."})
+                continue
             return AgentResult(State.DONE, steps, plan, messages, str(workspace), True)
+
+        if call.name == "write_file":
+            wrote_files = True
+        elif call.name in ("run", "render", "see"):
+            verified = True
 
         try:
             result = exec_tool(call, workspace, run_timeout=run_timeout, vision=vision,

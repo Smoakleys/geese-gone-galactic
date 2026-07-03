@@ -28,10 +28,13 @@ def _ticket(tid: str) -> Ticket:
 
 
 def test_autonomous_runner_drives_agent_across_tickets(tmp_path, git_repo):
+    # each ticket writes, RUNS it (self-verify, per harness-mod-61), then finishes -> DONE + commit
     replies = [
         '```tool\nname: write_file\npath: solution.py\nbody:\nprint(1)\n```',
+        '```tool\nname: run\ncmd: python solution.py\n```',
         '```tool\nname: finish\nsummary: done\n```',
         '```tool\nname: write_file\npath: solution.py\nbody:\nprint(2)\n```',
+        '```tool\nname: run\ncmd: python solution.py\n```',
         '```tool\nname: finish\nsummary: done\n```',
     ]
     store = RunStore(tmp_path / "state.json")
