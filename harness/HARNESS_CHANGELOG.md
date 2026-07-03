@@ -506,3 +506,12 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   num_ctx 8192. HONEST SCOPE: this removes the truncation blindfold only; for abstract low-poly scenes even
   a fully-fed TEXT reviewer is an unreliable visual judge (see memory ggg-abstract-visuals-fail-judges) --
   the real lever for goose-recognizability is art or a vision gate, not this. 367 tests.
+
+## harness-mod-53 - Inject the WHOLE curated notebook (cap 2000 -> 8000)
+- harness/icarus/agent/runtime.py: run_agent injected only `nb[:2000]` of the notebook. The curated Godot
+  seed is 3117 chars, so the LATER lessons (5 of them, incl. the Godot-4 "`.position` not `.translation`"
+  rule at char ~2586) were silently cut off -- Icarus never saw them and then made exactly that
+  `.translation` mistake in OP-35. Raised to a named `_NOTEBOOK_CHAR_CAP = 8000` so the whole curated,
+  high-signal seed is injected within num_ctx 8192. Same truncation-blindfold class as harness-mod-52
+  (the reviewer). Guard test asserts the seed fits the cap so a future growth spurt can't re-truncate
+  silently. This is a real agent-capability fix: Icarus's curated Godot lessons now actually reach it.
