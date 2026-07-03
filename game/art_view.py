@@ -76,13 +76,20 @@ def compose_pond_art(state: dict, out_png: "str | Path", *, size: "tuple[int, in
     if pond is not None:
         canvas.alpha_composite(pond, (cx0 - pond.width // 2, cy0 - pond.height // 3))
     else:
-        # soft blue water ellipse (reads as a natural pond; a hard diamond looked pasted-on)
+        # a hand-drawn cozy pond: grassy bank + water + ripple highlight + a few lily pads (reads as
+        # intentional, not a placeholder; replaced by pond.png once it generates)
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         pd = ImageDraw.Draw(layer)
         pw, ph = int(W * 0.30), int(H * 0.17)
-        pd.ellipse([cx0 - pw // 2, cy0 - ph // 2, cx0 + pw // 2, cy0 + ph // 2], fill=(96, 158, 204, 205))
-        pd.ellipse([cx0 - pw // 2 + 10, cy0 - ph // 2 + 6, cx0 + pw // 2 - 10, cy0 - ph // 6],
-                   fill=(150, 200, 230, 90))          # a light highlight band
+        pd.ellipse([cx0 - pw // 2 - 9, cy0 - ph // 2 - 6, cx0 + pw // 2 + 9, cy0 + ph // 2 + 6],
+                   fill=(86, 132, 74, 190))           # grassy bank
+        pd.ellipse([cx0 - pw // 2, cy0 - ph // 2, cx0 + pw // 2, cy0 + ph // 2], fill=(92, 156, 202, 235))
+        pd.ellipse([cx0 - pw // 2 + 12, cy0 - ph // 2 + 7, cx0 + pw // 2 - 12, cy0 - ph // 8],
+                   fill=(156, 204, 232, 95))          # ripple highlight
+        for lx, ly, lr in [(-0.30, 0.12, 15), (0.24, -0.14, 12), (0.06, 0.26, 13)]:
+            px, py = cx0 + int(lx * pw), cy0 + int(ly * ph)
+            pd.ellipse([px - lr, py - lr // 2, px + lr, py + lr // 2], fill=(96, 158, 82, 235))
+            pd.ellipse([px - 3, py - 2, px + 3, py + 2], fill=(210, 120, 150, 210))   # a tiny flower
         canvas.alpha_composite(layer)
 
     buildings = state.get("buildings", [])
