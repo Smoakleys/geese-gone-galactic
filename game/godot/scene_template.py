@@ -61,6 +61,7 @@ func add_plane(root, size, color, y = 0.0):
     mi.position = Vector3(0, y, 0)
     mi.material_override = _mat(color)
     root.add_child(mi)
+    return mi   # position via the args; the node is returned too (use .position, NOT .translation, in Godot 4)
 
 # Helper: add a box (building) of `size` at `pos`.
 func add_box(root, size, color, pos = Vector3.ZERO):
@@ -72,6 +73,7 @@ func add_box(root, size, color, pos = Vector3.ZERO):
     mi.position = pos
     mi.material_override = _mat(color)
     root.add_child(mi)
+    return mi
 
 # Helper: add a SPHERE (rounded shape -- a goose body/head, a berry) of radius `r` at `pos`.
 func add_sphere(root, r, color, pos = Vector3.ZERO):
@@ -83,6 +85,7 @@ func add_sphere(root, r, color, pos = Vector3.ZERO):
     mi.position = pos
     mi.material_override = _mat(color)
     root.add_child(mi)
+    return mi
 
 '''
 
