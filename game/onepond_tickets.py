@@ -257,6 +257,31 @@ def one_pond_tickets() -> "list[Ticket]":
                 {"module": "water_access.py",
                  "call": "has_water([{'kind':'well','x':0,'y':0}], 2)", "expect": True},
             ]),
+        Ticket(
+            id="OP-12",
+            title=("pond_score.py: a net-worth score for the pond. pond_score(state) returns an int = "
+                   "state['bread'] plus, for each building in state['buildings'], 10 for a 'bakery', 5 for "
+                   "a 'granary', 3 for a 'nest', and 2 for any other kind. Buildings are dicts with a "
+                   "'kind'. Pure Python returning an int."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="bread plus weighted building values "
+                                    "(bakery 10, granary 5, nest 3, else 2)",
+                                    stage=Stage.B, rubric_ref="onepond/score"),
+            ],
+            behavior=[
+                {"module": "pond_score.py", "call": "pond_score({'bread': 5, 'buildings': []})",
+                 "expect": 5},
+                {"module": "pond_score.py",
+                 "call": "pond_score({'bread': 0, 'buildings': [{'kind':'bakery'}]})", "expect": 10},
+                {"module": "pond_score.py",
+                 "call": "pond_score({'bread': 10, 'buildings': [{'kind':'bakery'},{'kind':'granary'},{'kind':'nest'}]})",
+                 "expect": 28},
+                {"module": "pond_score.py",
+                 "call": "pond_score({'bread': 1, 'buildings': [{'kind':'well'}]})", "expect": 3},
+            ]),
     ]
     for t in tickets:
         t.freeze()
