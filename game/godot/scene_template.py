@@ -10,6 +10,7 @@ The fast gpt-oss:20b can then build real scenes ~3-5x faster. This is a curated 
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 # 4-space indented on purpose: the local models emit 4-space GDScript, and a scene may not mix tabs and
@@ -98,7 +99,16 @@ def compose_scene(build_gd: str) -> str:
         stmts = [ln for ln in body.splitlines() if not ln.strip().startswith("extends")]
         indented = "\n".join(("    " + ln) if ln.strip() else ln for ln in stmts)
         build_fn = "func build(root: Node3D) -> void:\n" + indented
-    return _CAMERA + _HELPERS + build_fn.strip("\n") + "\n"
+    return _CAMERA + _HELPERS + _sanitize(build_fn).strip("\n") + "\n"
+
+
+def _sanitize(build_fn: str) -> str:
+    """The helpers are FILE-LEVEL, so fix the ways a small model wrongly reaches for them: drop any
+    ``var x = preload/load(...)`` line, and strip an object prefix on a helper call
+    (``helpers.add_plane`` / ``self.add_box`` -> ``add_plane`` / ``add_box``)."""
+    fn = re.sub(r"(?m)^\s*var\s+\w+\s*=\s*(?:preload|load)\([^\n]*\n", "", build_fn)
+    fn = re.sub(r"\b[A-Za-z_]\w*\.(add_plane|add_box)\b", r"\1", fn)
+    return fn
 
 
 def materialize_templated_scene(artifact_dir: "Path | str") -> None:
