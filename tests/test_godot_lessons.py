@@ -13,6 +13,9 @@ def test_godot_notebook_has_the_key_lessons():
     assert "current" in text
     # framing guidance (general domain knowledge, not a per-ticket answer)
     assert "size" in text.lower()
+    # Godot-4 API gotchas earned from a real blank OP-1 scene (lowercase Color / CubeMesh error at runtime)
+    assert "Color.GREEN" in text
+    assert "BoxMesh" in text
 
 
 def test_godot_notebook_entries_are_nonempty():
