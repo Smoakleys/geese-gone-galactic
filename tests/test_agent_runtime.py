@@ -36,6 +36,18 @@ def test_parse_none_when_no_block():
     assert parse_tool_call("no tool here") is None
 
 
+def test_curated_notebook_fits_the_injection_cap():
+    # run_agent injects nb[:_NOTEBOOK_CHAR_CAP]; if the curated seed exceeds it, later lessons are silently
+    # cut from Icarus's prompt (that dropped the Godot-4 `.translation` rule -> the OP-35 bug). Guard it.
+    from harness.icarus.agent.runtime import _NOTEBOOK_CHAR_CAP
+    from game.godot.lessons import LESSONS_PATH
+    seed = LESSONS_PATH.read_text(encoding="utf-8")
+    assert "translation" in seed                          # the late lesson exists
+    assert len(seed) <= _NOTEBOOK_CHAR_CAP, (
+        f"curated notebook {len(seed)} chars > cap {_NOTEBOOK_CHAR_CAP}: later lessons would be truncated "
+        "out of the prompt — raise _NOTEBOOK_CHAR_CAP or split the seed")
+
+
 def test_parse_is_crash_proof_on_garbage():
     # A local model can emit anything; the parser must never raise (a crash would derail the agent loop).
     for junk in ("", "```tool\n```", "```tool\n\x00\x01 random :: :\n```", "```tool\nname:\n```"):

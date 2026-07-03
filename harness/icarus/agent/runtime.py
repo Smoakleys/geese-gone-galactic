@@ -317,6 +317,10 @@ def _extract_plan(reply: str) -> str:
 
 
 _CONTEXT_KEEP_RECENT = 8  # most-recent conversation messages kept verbatim when trimming
+# The CURATED notebook is injected whole; 2000 chars silently cut off the LATER lessons (e.g. the Godot-4
+# `.position` not `.translation` rule at char ~2586) so Icarus never saw them — it then made exactly that
+# mistake in OP-35. The seed is bounded + high-signal, so inject it in full within num_ctx (8192).
+_NOTEBOOK_CHAR_CAP = 8000
 
 
 def _trim_context(messages: "list[dict[str, str]]", plan: str) -> "list[dict[str, str]]":
@@ -351,7 +355,8 @@ def run_agent(model: AgentModel, task: str, workspace: Path, *,
         nb = notebook.read().strip()
         if nb:
             messages.append({"role": "user", "content":
-                             "NOTEBOOK - lessons you saved from past tasks; use them:\n" + nb[:2000]})
+                             "NOTEBOOK - lessons you saved from past tasks; use them:\n"
+                             + nb[:_NOTEBOOK_CHAR_CAP]})
     messages.append({"role": "user", "content": f"TASK:\n{task}\n\nEmit your first tool call now."})
     plan = ""
     consecutive_bad = 0
