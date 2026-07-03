@@ -558,3 +558,10 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   LOGIC_GENERATORS (the procedural data gym, ops/generate_training_data.py). Grows the gym's breadth with
   HIGH-QUALITY, real-code tasks -> richer, cleaner future SFT data for the fine-tune. Verifier test: a
   general read-and-compute solution passes, a wrong one fails.
+
+## harness-mod-59 - More gym breadth: sorting + text-search input-reading generators
+- harness/icarus/eval/capability.py: added gen_read_sorted (read numbers -> print them ascending, a LIST
+  output + exact formatting, unlike the scalar read tasks) and gen_grep_count (read words -> count those
+  containing a letter, a text-processing domain). Both read a per-instance input file -> non-hardcodable.
+  Registered in the battery (now 23 generators) + the procedural gym. Broadens Lever-1 coverage (aggregate /
+  filter / sort / search / text) with real-code tasks for cleaner fine-tune data. Verifier test extended.

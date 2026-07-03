@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from harness.icarus.distill import is_trivial_hardcode, write_jsonl  # noqa: E402
 from harness.icarus.eval.capability import (  # noqa: E402
     gen_sum, gen_reverse, gen_json, gen_fizzbuzz, gen_fix_bug, gen_fix_range_bug, gen_read_sum,
-    gen_read_max, gen_read_evens, gen_find_secret, gen_economy, gen_placement, gen_pond_tick,
+    gen_read_max, gen_read_evens, gen_read_sorted, gen_grep_count, gen_find_secret, gen_economy, gen_placement, gen_pond_tick,
     gen_water_access, gen_predator_safety, gen_granary, gen_pond_score, gen_pond_outcome,
 )
 
@@ -31,7 +31,7 @@ from harness.icarus.eval.capability import (  # noqa: E402
 # (unlike arithmetic-in-the-prompt tasks the agent can shortcut to print(<literal>); see is_trivial_hardcode).
 LOGIC_GENERATORS = [
     gen_sum, gen_reverse, gen_json, gen_fizzbuzz, gen_fix_bug, gen_fix_range_bug, gen_read_sum,
-    gen_read_max, gen_read_evens, gen_find_secret, gen_economy, gen_placement, gen_pond_tick,
+    gen_read_max, gen_read_evens, gen_read_sorted, gen_grep_count, gen_find_secret, gen_economy, gen_placement, gen_pond_tick,
     gen_water_access, gen_predator_safety, gen_granary, gen_pond_score, gen_pond_outcome,
 ]
 
