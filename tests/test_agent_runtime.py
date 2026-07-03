@@ -36,6 +36,26 @@ def test_parse_none_when_no_block():
     assert parse_tool_call("no tool here") is None
 
 
+def test_trim_context_keeps_setup_and_recent_bounds_growth():
+    from harness.icarus.agent.runtime import _CONTEXT_KEEP_RECENT, _trim_context
+    msgs = [{"role": "system", "content": "sys"}, {"role": "user", "content": "TASK: do X"}]
+    for i in range(10):
+        msgs.append({"role": "assistant", "content": f"reply {i}"})
+        msgs.append({"role": "user", "content": f"obs {i}"})
+    trimmed = _trim_context(msgs, "my plan")
+    assert trimmed[0]["content"] == "sys" and "do X" in trimmed[1]["content"]   # setup kept
+    assert any("trimmed to save context" in m["content"] for m in trimmed)      # marker present
+    assert trimmed[-1]["content"] == "obs 9"                                    # recent kept verbatim
+    assert len(trimmed) <= 2 + 1 + _CONTEXT_KEEP_RECENT                          # growth bounded
+
+
+def test_trim_context_leaves_short_runs_untouched():
+    from harness.icarus.agent.runtime import _trim_context
+    short = [{"role": "system", "content": "s"}, {"role": "user", "content": "t"},
+             {"role": "assistant", "content": "a"}, {"role": "user", "content": "o"}]
+    assert _trim_context(short, "p") == short
+
+
 def test_parse_recovers_unclosed_block():
     # model dropped the closing fence / output was truncated -> recover instead of wasting the turn
     txt = "I'll write it.\n```tool\nname: write_file\npath: a.py\nbody:\nprint(1)\n"

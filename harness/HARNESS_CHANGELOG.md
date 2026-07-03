@@ -390,3 +390,12 @@ without a matching entry. Reverts are one command via the token in `harness/reve
 - harness/icarus/agent_builder.py: visual_router now also routes debug/fix-it keywords (_DEBUG_KEYWORDS)
   to the big model, so AgentBuilder / default_icarus_builder send debugging tickets to the 30B. Kept per
   the plan (unaided debugging 2/4 -> 4/4 when routed). Test covers debug routing. 231 tests.
+
+## harness-mod-36 - Speed: context trimming + keep_alive (bound per-turn cost on long runs)
+- The agent loop never trimmed history, so a long/reworking run reprocessed an ever-growing context each
+  turn -- the main cost of the ~20-min offloaded-30B scene builds (prompt reprocessing on the offloaded
+  model). harness/icarus/agent/runtime.py: _trim_context keeps the setup (system + task/notebook) + the
+  most-recent 8 exchanges, collapsing older middle turns to a one-line marker carrying the plan; the full
+  transcript is untouched, only the model INPUT is bounded (the plan's "trim raw tool output after use").
+- harness/icarus/agent/ollama.py: keep_alive="30m" (model stays resident -> no per-turn reload of the
+  offloaded 30B) + optional num_predict cap. Tests cover trimming behaviour. 238 tests.
