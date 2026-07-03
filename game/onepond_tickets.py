@@ -224,6 +224,30 @@ def one_pond_tickets() -> "list[Ticket]":
                 {"module": "pond_outcome.py", "call": "pond_outcome({'bread': 5, 'buildings': []}, 2)",
                  "expect": "thriving"},
             ]),
+        Ticket(
+            id="OP-11",
+            title=("water_access.py: bakeries need water. has_water(buildings, reach) returns True iff "
+                   "EVERY building of kind 'bakery' is within Manhattan distance `reach` "
+                   "(abs(dx)+abs(dy) <= reach) of at least one building of kind 'well'. No bakeries means "
+                   "True. Buildings are dicts with 'kind','x','y'. Pure Python returning a bool."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="True only when every bakery is within reach of a well",
+                                    stage=Stage.B, rubric_ref="onepond/water"),
+            ],
+            behavior=[
+                {"module": "water_access.py",
+                 "call": "has_water([{'kind':'bakery','x':0,'y':0},{'kind':'well','x':1,'y':0}], 2)",
+                 "expect": True},
+                {"module": "water_access.py",
+                 "call": "has_water([{'kind':'bakery','x':9,'y':9},{'kind':'well','x':0,'y':0}], 2)",
+                 "expect": False},
+                {"module": "water_access.py", "call": "has_water([], 2)", "expect": True},
+                {"module": "water_access.py",
+                 "call": "has_water([{'kind':'well','x':0,'y':0}], 2)", "expect": True},
+            ]),
     ]
     for t in tickets:
         t.freeze()
