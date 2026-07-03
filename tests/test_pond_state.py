@@ -23,3 +23,11 @@ def test_add_building_validates_bounds_and_occupancy():
     assert len(s["buildings"]) == 1                        # out-of-bounds -> unchanged
     s = add_building(s, "nest", 1, 1, 4)
     assert len(s["buildings"]) == 1                        # occupied cell -> unchanged
+
+
+def test_step_applies_granary_synergy():
+    # each granary boosts every bakery: 2 bakeries * (3 + 1 granary) = 8
+    state = {"bread": 0, "buildings": [{"kind": "bakery", "x": 0, "y": 0},
+                                       {"kind": "bakery", "x": 1, "y": 0},
+                                       {"kind": "granary", "x": 2, "y": 0}]}
+    assert step(state)["bread"] == 8
