@@ -145,6 +145,40 @@ def generate_reference(out_png: Path, key: str, *, model: "str | None" = None, t
     return True
 
 
+def make_contact_sheet(out_png: Path, names: "list[str] | None" = None) -> "Path | None":
+    """Tile the generated gemini_<name> assets (+ reference if present) into ONE labelled review image, so I
+    can grade them against the reference on the rubric in a single view (visual-review-discipline). Returns
+    the path, or None if no assets exist yet."""
+    from PIL import Image, ImageDraw
+    names = names or list(ASSETS)
+    tiles = []
+    for n in names:
+        p = ART_DIR / f"gemini_{n}.png"
+        if p.is_file():
+            tiles.append((n, p))
+    ref = ART_DIR / "reference_game.png"
+    if ref.is_file():
+        tiles.append(("REFERENCE", ref))
+    if not tiles:
+        return None
+    cell, cols = 240, 4
+    rows = (len(tiles) + cols - 1) // cols
+    sheet = Image.new("RGBA", (cols * cell, rows * cell), (235, 235, 235, 255))
+    d = ImageDraw.Draw(sheet)
+    for i, (label, p) in enumerate(tiles):
+        try:
+            im = Image.open(p).convert("RGBA")
+        except Exception:  # noqa: BLE001
+            continue
+        im.thumbnail((cell - 16, cell - 32))
+        x, y = (i % cols) * cell, (i // cols) * cell
+        sheet.alpha_composite(im, (x + (cell - im.width) // 2, y + 20))
+        d.text((x + 6, y + 4), label, fill=(20, 20, 20, 255))
+    out_png.parent.mkdir(parents=True, exist_ok=True)
+    sheet.convert("RGB").save(out_png)
+    return out_png
+
+
 def main(argv: "list[str] | None" = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--only", nargs="*", default=None)
@@ -179,6 +213,9 @@ def main(argv: "list[str] | None" = None) -> int:
         except Exception as e:  # noqa: BLE001
             print(f"{name}: FAILED {type(e).__name__}: {e}")
     print(f"generated {ok}/{len(names)}")
+    sheet = make_contact_sheet(ART_DIR / "review_sheet.png", names)
+    if sheet:
+        print(f"review sheet -> {sheet} (grade these vs the reference on the rubric before committing)")
     return 0 if ok == len(names) else 1
 
 
