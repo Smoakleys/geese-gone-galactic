@@ -6,6 +6,7 @@ bridge). Every function was produced by the agent under the full gate.
 """
 
 from game.pond.bread_tick import tick
+from game.pond.build_cost import total_cost
 from game.pond.granary import production
 from game.pond.placement import is_valid
 from game.pond.pond_economy import tick_bread
@@ -22,5 +23,5 @@ from game.pond.water_access import has_water
 __all__ = [
     "tick", "production", "is_valid", "tick_bread", "pond_outcome",
     "build_body", "pond_score", "pond_advice", "add_building", "step",
-    "pond_status", "is_safe", "predator_loss", "has_water",
+    "pond_status", "is_safe", "predator_loss", "has_water", "total_cost",
 ]

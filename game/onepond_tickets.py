@@ -336,6 +336,27 @@ def one_pond_tickets() -> "list[Ticket]":
                  "expect": 2},
                 {"module": "predator_loss.py", "call": "predator_loss({'buildings': []}, 2)", "expect": 0},
             ]),
+        Ticket(
+            id="OP-15",
+            title=("build_cost.py: buildings cost bread. total_cost(buildings) returns the int total bread "
+                   "cost to place them, summing per building by kind: 'bakery' 5, 'granary' 4, 'well' 3, "
+                   "'fence' 2, 'nest' 1, and 0 for any unknown kind. Buildings are dicts with a 'kind'. "
+                   "Pure Python returning an int."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="sums per-kind costs (bakery 5/granary 4/well 3/fence "
+                                    "2/nest 1/else 0)", stage=Stage.B, rubric_ref="onepond/cost"),
+            ],
+            behavior=[
+                {"module": "build_cost.py",
+                 "call": "total_cost([{'kind':'bakery'},{'kind':'nest'}])", "expect": 6},
+                {"module": "build_cost.py", "call": "total_cost([{'kind':'well'},{'kind':'well'}])",
+                 "expect": 6},
+                {"module": "build_cost.py", "call": "total_cost([])", "expect": 0},
+                {"module": "build_cost.py", "call": "total_cost([{'kind':'rocket'}])", "expect": 0},
+            ]),
     ]
     for t in tickets:
         t.freeze()
