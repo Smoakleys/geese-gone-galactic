@@ -214,3 +214,30 @@ def test_no_certified_check_is_kind_skipped(tmp_path):
         for kind in TicketKind:
             t = Ticket(id="x", title="x", kind=kind, acceptance_criteria=[])
             assert _applies(check, t), (check.id, kind.name)   # certified but kind-skipped == a dead gate
+
+
+def test_no_stub_content_check_certifies():
+    from harness.checks.code import NoStubContentCheck
+    assert certify(NoStubContentCheck()).certified
+
+
+def test_no_stub_content_fails_compiling_stubs_passes_real(tmp_path):
+    # the new gate lever (harness-mod-66): a stub that COMPILES (python_syntax passes it) must still FAIL,
+    # while real code -- incl. `<`/`>` comparisons and real classes -- must PASS (no false positives).
+    from harness.checks.code import NoStubContentCheck
+    chk = NoStubContentCheck()
+    real = tmp_path / 'real'; real.mkdir()
+    (real / 'm.py').write_text('def f(x):' + chr(10) + '    return x + 1' + chr(10))
+    assert chk.run(real, make_ticket()).result == Result.PASS
+    stubs = [
+        'def f():' + chr(10) + '    # YOUR CODE HERE' + chr(10) + '    pass' + chr(10),
+        'x = 1' + chr(10) + '<code>' + chr(10),
+        'def f():' + chr(10) + '    # TODO: implement' + chr(10) + '    pass' + chr(10),
+    ]
+    for i, stub in enumerate(stubs):
+        d = tmp_path / ('stub%d' % i); d.mkdir()
+        (d / 'm.py').write_text(stub)
+        assert chk.run(d, make_ticket()).result == Result.FAIL, stub
+    ok = tmp_path / 'ok'; ok.mkdir()
+    (ok / 'm.py').write_text('y = a < b > c' + chr(10) + 'class K:' + chr(10) + '    def m(self):' + chr(10) + '        return 5' + chr(10))
+    assert chk.run(ok, make_ticket()).result == Result.PASS

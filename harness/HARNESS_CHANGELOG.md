@@ -622,3 +622,13 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   at most once, then the next finish is accepted so it can't loop). Pairs with mod-64 (reject placeholder
   bodies). Regression test: an immediate finish is nudged once then DONE. Found by probe-why-it-fails on the
   north-star measurement.
+
+## harness-mod-66 - New certified Stage-A check: no_stub_content (plan Lever 2, verifier breadth)
+- harness/checks/code.py: NoStubContentCheck FAILs any *.py that is a placeholder/template stub which still
+  COMPILES -- a lone `<code>`/`<file contents>` line, or a template marker (YOUR CODE HERE / TODO: implement
+  / REPLACE THIS). These pass python_syntax yet are non-solutions (the exact class the unaided measurement
+  exposed). Conservative regex (whole-line `<...>` or explicit phrases) so real code -- incl. `a < b > c`
+  comparisons and real classes -- is never failed. Certified against good/bad fixtures
+  (fixtures/no_stub_content/*), registered in default_registry after python_syntax. Complements agent-side
+  mod-64 (which rejects a `<...>` WRITE body) by catching the class -- incl. placeholder PHRASES -- at the
+  final gate too. Tested through run_stage_a (registry path, per ggg-test-checks-through-registry).

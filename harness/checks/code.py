@@ -14,12 +14,21 @@ from __future__ import annotations
 
 import ast
 import json
+import re
 from pathlib import Path
 
 from harness.checks.base import Check, CheckCost
 from harness.models import CheckResult, Result, Ticket
 
 _FIXTURES = Path(__file__).parent / "fixtures"
+
+# Unambiguous placeholder/template markers that COMPILE but are non-solutions -- a model sometimes emits the
+# tool protocol's `body:` example literally (`<code>`), or a template stub ("YOUR CODE HERE"). These never
+# appear in real solved code, so flagging them has near-zero false-positive risk. Complements agent-side
+# harness-mod-64 (which rejects a `<...>` WRITE body) by catching the class at the final gate too, incl.
+# placeholder PHRASES the write-check doesn't see.
+_STUB_LINE = re.compile(r"^\s*<[^>\n]{1,60}>\s*$", re.MULTILINE)          # a lone `<code>` / `<file contents>`
+_STUB_PHRASE = re.compile(r"YOUR CODE HERE|TODO:\s*implement|REPLACE THIS|IMPLEMENT ME HERE", re.IGNORECASE)
 
 # The decision log is builder-private and never a judged artifact.
 _IGNORE = {"decision_log.jsonl"}
@@ -73,6 +82,47 @@ class PythonSyntaxCheck(Check):
         return CheckResult(
             self.id, Result.PASS, f"{len(py)} Python file(s) parse cleanly",
             artifacts=[str(p) for p in py[:5]], metrics={"python_files": float(len(py))},
+        )
+
+
+class NoStubContentCheck(Check):
+    """Every ``*.py`` file must be a real solution, not a placeholder/template stub.
+
+    Catches the "compiles but does nothing" submission: a lone ``<code>``/``<file contents>`` placeholder
+    line, or a template marker (``YOUR CODE HERE``, ``TODO: implement``). These pass ``python_syntax`` yet
+    are non-solutions. Conservative by design (only unambiguous markers) so real code is never failed.
+    SKIPs when the artifact ships no Python.
+    """
+
+    id = "no_stub_content"
+    targets: list[str] = ["*"]
+    cost = CheckCost.STATIC
+
+    def __init__(self) -> None:
+        base = _FIXTURES / "no_stub_content"
+        self.good_fixtures = [base / "good"]
+        self.bad_fixtures = [base / "bad"]
+
+    def run(self, artifact_dir: Path, ticket: Ticket) -> CheckResult:
+        artifact_dir = Path(artifact_dir)
+        py = _files(artifact_dir, ".py")
+        if not py:
+            return CheckResult(self.id, Result.SKIP, "no Python files in artifact")
+        for f in py:
+            try:
+                src = f.read_text()
+            except (UnicodeDecodeError, OSError):
+                continue  # python_syntax owns unreadable files; don't double-fail here
+            m = _STUB_LINE.search(src) or _STUB_PHRASE.search(src)
+            if m:
+                return CheckResult(
+                    self.id, Result.FAIL,
+                    f"{f.name}: placeholder/stub content, not a real solution: {m.group(0).strip()!r}",
+                    artifacts=[str(f)],
+                )
+        return CheckResult(
+            self.id, Result.PASS, f"{len(py)} Python file(s) are real (no placeholder stubs)",
+            artifacts=[str(p) for p in py[:5]],
         )
 
 
