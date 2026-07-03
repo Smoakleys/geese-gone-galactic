@@ -21,6 +21,14 @@ capability moves. Generators + deterministic verifiers live in `harness/icarus/e
 **Visuals (routed to qwen3:30b): 3/3** on render — Icarus builds land+water+building scenes that clear
 the certified `godot_parse` + `godot_render` gates (see `game/godot/scenes/one_pond.gd`).
 
+## Full-backlog capstone (2026-07-03)
+The **entire authored One Pond backlog (OP-1..OP-9)** run through the FULL hardened gate — certified
+deterministic checks (`python_syntax`, `godot_parse`, `godot_render`, `python_behavior`) + a real local
+Stage-B reviewer (`default_reviewer`, gpt-oss:20b) — committed **9/9 at autonomy 1.0 in 491s** (~8 min),
+unattended. A Godot scene (OP-1, templated/fast) + eight logic modules, each gated by its pinned criteria
++ behavioural examples, one passing only after a gate-forced rework. The whole game backlog builds and
+commits cleanly under the complete gate — the culminating end-to-end proof.
+
 ## Honest reading
 Icarus writes fresh logic well — all four One Pond mechanics unaided — and, via model routing, builds
 the game's visuals. Its **standing weakness is debugging existing broken code**.
