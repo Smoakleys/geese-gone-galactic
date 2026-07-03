@@ -283,3 +283,12 @@ without a matching entry. Reverts are one command via the token in `harness/reve
 - Lesson (the harness's core thesis): a bad verifier corrupts the whole improvement loop; LOOKING at the
   actual artifact (Reading the PNG) is what caught it - I nearly pulled 50GB of models chasing a phantom
   limit. 196 tests.
+
+## harness-mod-21 - AgentBuilder: Icarus's agent runtime behind the Builder seam
+- harness/icarus/agent_builder.py: AgentBuilder wraps the plan->act->reflect loop as a Builder, so the
+  gatekeeper-fronted loop can build real tickets with the AGENT (tools/perception/memory) instead of a
+  one-shot generator. task_from_packet turns a ticket (+ rework defects) into the agent's task; writes
+  only into staging (no commit path); COMPLETED iff it produced files, else GAVE_UP (triggers the escape
+  hatch). Connects the two harnesses (agent runtime <-> gate) - the prerequisite for the first committed
+  Godot artifact built by Icarus.
+- Gate untouched. Tested offline (scripted): completes+logs, gave-up-when-no-files, task construction.
