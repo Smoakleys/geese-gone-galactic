@@ -64,3 +64,12 @@ def test_committed_sft_dataset_is_wellformed():
         assert {"instruction", "input", "output"} <= set(r)    # standard QLoRA shape
         assert len(r["instruction"]) > 20 and r["output"].strip()
         ast.parse(r["output"])                                 # every solution is valid Python
+
+
+def test_generate_training_data_plumbing(tmp_path):
+    # offline: the solution-picker reads the agent's produced file (the live agent path is smoke-tested
+    # separately -- it kept 2/2 gate-passing gen_sum solutions).
+    from ops.generate_training_data import _solution_source
+    (tmp_path / "solution.py").write_text("print(42)\n")
+    assert _solution_source(tmp_path) == "print(42)\n"
+    assert _solution_source(tmp_path / "does_not_exist") is None
