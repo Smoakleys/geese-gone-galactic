@@ -62,3 +62,15 @@ def test_played_state_renders_through_the_gate(tmp_path):
     t = Ticket(id="t", title="t", kind=TicketKind.SYSTEM, acceptance_criteria=[])
     assert GodotParseCheck().run(tmp_path, t).result == Result.PASS
     assert GodotRenderCheck().run(tmp_path, t).result == Result.PASS
+
+
+def test_high_coord_state_is_centered_not_off_land():
+    # build_body maps grid x -> world x*2 (0..14 for an 8-grid); the fixed camera frames the origin, so a
+    # played state with high-coord buildings MUST be footprint-centered or it floats off the land (real bug).
+    from game.godot.pond_view import pond_state_to_scene_gd
+    import re
+    state = {"bread": 0, "buildings": [{"kind": "bakery", "x": 7, "y": 7}, {"kind": "nest", "x": 6, "y": 5}]}
+    gd = pond_state_to_scene_gd(state)
+    xs = [float(a) for a, b in re.findall(r"add_box\(root, Vector3\(1, 1, 1\).*?Vector3\(([-\d.]+), 0\.5, ([-\d.]+)\)", gd)]
+    assert xs, "no building boxes found"
+    assert all(abs(x) <= 9 for x in xs), f"building X off the +-8 land: {xs}"   # centered, within land+view
