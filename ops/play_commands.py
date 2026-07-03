@@ -67,10 +67,13 @@ def run_command(state: dict, text: str) -> "tuple[dict, str]":
     if verb == "load":
         from game.pond import deserialize_pond
         path = Path(target or "pond.save")
-        if path.is_file():
-            state = deserialize_pond(path.read_text(encoding="utf-8").strip())
-            return state, f"loaded <- {path} ({state['bread']} bread, {len(state['buildings'])} buildings)"
-        return state, f"no save file: {path}"
+        if not path.is_file():
+            return state, f"no save file: {path}"
+        try:
+            loaded = deserialize_pond(path.read_text(encoding="utf-8").strip())
+        except Exception:  # a corrupt save must not crash the game -- keep the current pond
+            return state, f"couldn't load {path} — the save looks corrupt"
+        return loaded, f"loaded <- {path} ({loaded['bread']} bread, {len(loaded['buildings'])} buildings)"
     return state, f"unknown command: {text!r}"
 
 
