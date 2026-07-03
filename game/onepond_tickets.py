@@ -92,8 +92,10 @@ def one_pond_tickets() -> "list[Ticket]":
             acceptance_criteria=[
                 AcceptanceCriterion(id="AC1", text="valid python (parses)",
                                     stage=Stage.A, check_hint="python_syntax"),
-                AcceptanceCriterion(id="AC2", text="returns an add_box GDScript line per building with the "
-                                    "right colour + grid position", stage=Stage.B, rubric_ref="onepond/scene"),
+                AcceptanceCriterion(id="AC2", text="returns the add_box statements joined by REAL newlines "
+                                    "(chr 10) so each add_box is on its OWN line -- a literal backslash-n "
+                                    "string is a BUG -- one statement per building with the right colour + "
+                                    "grid position", stage=Stage.B, rubric_ref="onepond/scene"),
             ]),
     ]
     for t in tickets:
