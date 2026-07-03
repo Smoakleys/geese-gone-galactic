@@ -286,6 +286,35 @@ def gen_pond_tick(rng: Random) -> TaskInstance:
         verify)
 
 
+def gen_water_access(rng: Random) -> TaskInstance:
+    """A spatial One Pond rule (Icarus's logic strength): every nest must be near the pond's water."""
+    n = rng.randint(5, 8)
+    px, py = rng.randint(0, n - 1), rng.randint(0, n - 1)
+    reach = rng.randint(2, 4)
+    nests: "list[tuple[int, int]]" = []
+    while len(nests) < rng.randint(2, 4):
+        p = (rng.randint(0, n - 1), rng.randint(0, n - 1))
+        if p != (px, py) and p not in nests:
+            nests.append(p)
+    safe = all(abs(x - px) + abs(y - py) <= reach for x, y in nests)
+    expected = "SAFE" if safe else "UNSAFE"
+    nest_str = "; ".join(f"({x},{y})" for x, y in nests)
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        try:
+            rc, out, err = _run_py(ws, "water.py")
+        except Exception as e:
+            return False, f"could not run water.py: {e}"
+        return out.strip() == expected, f"expected {expected}, got {out.strip()!r}"
+
+    return TaskInstance(
+        f"wateraccess_{rng.randint(1000, 9999)}_{expected}", "game-logic",
+        f"A goose pond sits at cell ({px},{py}) on an {n}x{n} grid. Nests are at: {nest_str}. A nest has "
+        f"water access if its Manhattan distance to the pond (|dx|+|dy|) is at most {reach}. Print ONLY "
+        f"'SAFE' if EVERY nest has water access, otherwise 'UNSAFE'. Write water.py and run it to verify.",
+        verify)
+
+
 def gen_economy(rng: Random) -> TaskInstance:
     """The real game's LOGIC domain (Icarus's strength): a pond bread-economy simulation."""
     bakeries = rng.randint(1, 4)
@@ -440,7 +469,7 @@ def gen_pond_scene(rng: Random) -> TaskInstance:
 def default_generators() -> "list[Callable[[Random], TaskInstance]]":
     return [gen_sum, gen_reverse, gen_json, gen_fizzbuzz,
             gen_fix_bug, gen_read_sum, gen_find_secret, gen_economy, gen_placement,
-            gen_pond_tick, gen_gdscript, gen_render, gen_bakery_scene]
+            gen_pond_tick, gen_water_access, gen_gdscript, gen_render, gen_bakery_scene]
 
 
 def sample_battery(seed: int = 0, per_generator: int = 1,
