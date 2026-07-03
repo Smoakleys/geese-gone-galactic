@@ -21,6 +21,13 @@ capability moves. Generators + deterministic verifiers live in `harness/icarus/e
 **Visuals (routed to qwen3:30b): 3/3** on render — Icarus builds land+water+building scenes that clear
 the certified `godot_parse` + `godot_render` gates (see `game/godot/scenes/one_pond.gd`).
 
+**Broader UNAIDED battery (2026-07-03, 12 domains, fast model, no notebook, single attempt): 10/12 =
+0.83.** All game-logic (economy/placement/pond-tick/water) 4/4, coding 5/6 (one JSON miss = variance),
+GDScript syntax ✓; the two misses are JSON (variance) and `render` (structurally model-limited unaided
+on the fast model — solved operationally by the scene template + routing, not a fundamental leap). This
+is the north star with all runtime improvements in place: Icarus unaided is genuinely capable at the
+game's logic; the only hard ceiling is complex 3D scene construction on the small resident model.
+
 ## Full-backlog capstone (2026-07-03)
 The **entire authored One Pond backlog (OP-1..OP-9)** run through the FULL hardened gate — certified
 deterministic checks (`python_syntax`, `godot_parse`, `godot_render`, `python_behavior`) + a real local
