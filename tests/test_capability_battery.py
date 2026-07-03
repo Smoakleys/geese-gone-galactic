@@ -344,6 +344,21 @@ def test_gdscript_verifier(tmp_path):
     assert not broke
 
 
+def test_fix_range_bug_setup_and_verify(tmp_path):
+    from harness.icarus.eval.capability import gen_fix_range_bug
+    inst = gen_fix_range_bug(Random(0))
+    n = int(inst.id.split("_")[1])
+    expected = n * (n + 1) // 2
+    ws = tmp_path / inst.id
+    ws.mkdir()
+    inst.setup(ws)
+    broke, _ = inst.verify(ws)              # as-seeded it drops the last term
+    assert not broke
+    (ws / "solution.py").write_text(f"print({expected})\n")   # fixed
+    ok, _ = inst.verify(ws)
+    assert ok
+
+
 def test_find_secret_setup_and_verify(tmp_path):
     inst = gen_find_secret(Random(0))
     token = inst.id.split("_")[1]

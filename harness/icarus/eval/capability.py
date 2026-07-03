@@ -166,6 +166,32 @@ def gen_fix_bug(rng: Random) -> TaskInstance:
         verify, setup=setup)
 
 
+def gen_fix_range_bug(rng: Random) -> TaskInstance:
+    """A DIFFERENT debugging task (off-by-one, not a wrong operator) — to test if the weakness is
+    general debugging or one bug-type."""
+    n = rng.randint(6, 15)
+    expected = n * (n + 1) // 2
+
+    def setup(ws: Path) -> None:
+        # should sum 1..n INCLUSIVE, but range(1, n) drops the last term (off-by-one).
+        (ws / "solution.py").write_text(
+            f"# should print the sum of 1..{n} inclusive\n"
+            f"total = 0\nfor i in range(1, {n}):\n    total += i\nprint(total)\n")
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        try:
+            rc, out, err = _run_py(ws, "solution.py")
+        except Exception as e:
+            return False, f"could not run solution.py: {e}"
+        return out == str(expected), f"expected {expected}, got {out!r}"
+
+    return TaskInstance(
+        f"fixrange_{n}", "debugging",
+        f"solution.py should print the sum of 1..{n} inclusive (which is {expected}) but has an "
+        f"off-by-one bug and prints the wrong value. Read it, fix the bug, and run it to verify it "
+        f"prints {expected}.", verify, setup=setup)
+
+
 def gen_read_sum(rng: Random) -> TaskInstance:
     nums = [rng.randint(1, 50) for _ in range(rng.randint(4, 7))]
 
@@ -468,7 +494,7 @@ def gen_pond_scene(rng: Random) -> TaskInstance:
 
 def default_generators() -> "list[Callable[[Random], TaskInstance]]":
     return [gen_sum, gen_reverse, gen_json, gen_fizzbuzz,
-            gen_fix_bug, gen_read_sum, gen_find_secret, gen_economy, gen_placement,
+            gen_fix_bug, gen_fix_range_bug, gen_read_sum, gen_find_secret, gen_economy, gen_placement,
             gen_pond_tick, gen_water_access, gen_gdscript, gen_render, gen_bakery_scene]
 
 
