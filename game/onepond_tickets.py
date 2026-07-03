@@ -671,6 +671,30 @@ def one_pond_tickets() -> "list[Ticket]":
                  "call": "serialize_pond({'bread': 0, 'buildings': [{'kind':'nest','x':2,'y':3},{'kind':'well','x':1,'y':0}]})",
                  "expect": "bread=0;nest@2,3;well@1,0"},
             ]),
+        Ticket(
+            id="OP-31",
+            title=("deserialize_pond.py: load a pond from a string (the inverse of serialize_pond). "
+                   "deserialize_pond(text) parses \"bread={N}\" optionally followed by \";{kind}@{x},{y}\" "
+                   "parts (semicolon-separated) and returns the state dict {'bread': int, 'buildings': "
+                   "[{'kind': str, 'x': int, 'y': int}, ...]} in order. 'bread=5' gives an empty buildings "
+                   "list. x and y are ints. Pure Python returning a dict."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="parses 'bread=N;kind@x,y' back into the state dict",
+                                    stage=Stage.B, rubric_ref="onepond/deserialize"),
+            ],
+            behavior=[
+                {"module": "deserialize_pond.py",
+                 "call": "deserialize_pond('bread=10;bakery@0,0')",
+                 "expect": {"bread": 10, "buildings": [{"kind": "bakery", "x": 0, "y": 0}]}},
+                {"module": "deserialize_pond.py", "call": "deserialize_pond('bread=5')",
+                 "expect": {"bread": 5, "buildings": []}},
+                {"module": "deserialize_pond.py",
+                 "call": "deserialize_pond('bread=0;nest@2,3;well@1,0')['buildings'][1]",
+                 "expect": {"kind": "well", "x": 1, "y": 0}},
+            ]),
     ]
     for t in tickets:
         t.freeze()
