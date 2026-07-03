@@ -48,7 +48,7 @@ def test_godot_render_passes_good_fails_bad():
     chk = GodotRenderCheck()
     good = chk.run(chk.good_fixtures[0], _ticket())
     assert good.result == Result.PASS, good.evidence
-    assert good.metrics.get("green_dominance", 0) >= 15.0
+    assert good.metrics.get("green_fraction", 0) >= 0.08   # visible green land (region-based, not mean)
     bad = chk.run(chk.bad_fixtures[0], _ticket())   # parses, but renders nothing
     assert bad.result == Result.FAIL, bad.evidence
 
@@ -89,7 +89,7 @@ def test_godot_render_fails_on_runtime_script_error(tmp_path):
 
 def test_godot_render_fails_degenerate_land_only_scene(tmp_path):
     # A scene that renders ONLY green land (no pond/building/goose) is degenerate and must FAIL, even
-    # though it clears the green-dominance floor -- the distinct-scene-colours bar catches it.
+    # though it clears the green-fraction floor -- the distinct-scene-colours bar catches it.
     from game.godot.scene_template import compose_scene
     scene = compose_scene("func build(root):\n\tadd_plane(root, Vector2(16, 16), Color.GREEN)\n")
     (tmp_path / "scene.gd").write_text(scene)
