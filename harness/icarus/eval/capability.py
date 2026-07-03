@@ -346,11 +346,14 @@ def sample_battery(seed: int = 0, per_generator: int = 1,
 
 # ---------------------------------------------------------------- the runner
 
-def run_battery(model: AgentModel, instances: "list[TaskInstance]", workspace_root: Path, *,
-                max_steps: int = 10, run_timeout: float = 20.0, use_notebook: bool = False,
+def run_battery(model: "Optional[AgentModel]", instances: "list[TaskInstance]", workspace_root: Path, *,
+                router=None, max_steps: int = 10, run_timeout: float = 20.0, use_notebook: bool = False,
                 notebook: "Optional[Notebook]" = None, vision=None, render_fn=None) -> ScoreReport:
     """Drive the agent loop on each instance, verify the workspace, and score. Default is UNAIDED
-    (no notebook) — the north-star capability measure."""
+    (no notebook) — the north-star capability measure. Pass a ``router`` (ModelRouter) to measure the
+    ASSEMBLED Icarus: each task goes to its best model (visual→30B, logic→fast)."""
+    if model is None and router is None:
+        raise ValueError("run_battery needs a model or a router")
     report = ScoreReport()
     root = Path(workspace_root)
     for inst in instances:
@@ -358,8 +361,9 @@ def run_battery(model: AgentModel, instances: "list[TaskInstance]", workspace_ro
         ws.mkdir(parents=True, exist_ok=True)
         if inst.setup is not None:
             inst.setup(ws)  # seed a broken file / data file the task refers to
+        task_model = router.for_task(inst.prompt) if router is not None else model
         try:
-            res = run_agent(model, inst.prompt, ws, max_steps=max_steps, run_timeout=run_timeout,
+            res = run_agent(task_model, inst.prompt, ws, max_steps=max_steps, run_timeout=run_timeout,
                             use_notebook=use_notebook, notebook=notebook, vision=vision,
                             render_fn=render_fn)
         except Exception as e:  # one task crashing must not kill the whole battery

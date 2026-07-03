@@ -97,6 +97,26 @@ def test_run_battery_scores_scripted_solve(tmp_path):
     assert report.results[0].passed and report.results[0].finished
 
 
+def test_run_battery_with_router_scores(tmp_path):
+    from harness.icarus.agent_builder import visual_router
+    inst = gen_sum(Random(0))
+    a, b = (int(x) for x in inst.id.split("_")[1:])
+    solver = ScriptedAgentModel([f'```tool\nname: write_file\npath: solution.py\nbody:\nprint({a + b})\n```',
+                                 '```tool\nname: finish\nsummary: done\n```'])
+    solver.model_id = "solver"
+    other = ScriptedAgentModel([])
+    other.model_id = "other"
+    # a logic task routes to the default (solver), which solves it
+    report = run_battery(None, [inst], tmp_path, router=visual_router(fast=solver, big=other), max_steps=6)
+    assert report.pass_rate == 1.0
+
+
+def test_run_battery_requires_model_or_router(tmp_path):
+    import pytest
+    with pytest.raises(ValueError):
+        run_battery(None, [], tmp_path)
+
+
 def test_run_battery_scores_wrong_answer_as_fail(tmp_path):
     inst = gen_sum(Random(0))
     replies = [
