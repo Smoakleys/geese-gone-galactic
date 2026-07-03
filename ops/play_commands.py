@@ -5,6 +5,7 @@ Each command is parsed by the Icarus-built `parse_command` and dispatched to the
   event <name>   -- apply a pond event (harvest / fox / flood)
   tick           -- advance the economy one tick
   status         -- print a one-line status (bread, rank, safety)
+  render <file>  -- render the CURRENT pond to a lit 3D PNG (needs Godot; skips gracefully without)
 Commands here are scripted (this environment is non-interactive); the same loop takes live input.
 Run: `python ops/play_commands.py`.
 """
@@ -45,6 +46,12 @@ def play(commands: "list[str]", verbose: bool = True) -> dict:
         elif verb == "status":
             st = pond_status(state, REACH)
             msg = report(state["bread"], pond_rank(pond_score(state)), st["safe"])
+        elif verb == "render":
+            # "see it": render the CURRENT pond to a lit 3D image (the command interface -> the renderer)
+            from game.godot.pond_view import render_pond_state
+            png = target or "pond.png"
+            ok, detail = render_pond_state(state, png)
+            msg = f"rendered -> {png}" if ok else f"render skipped: {detail}"
         else:
             msg = f"unknown command: {text!r}"
         if verbose:
