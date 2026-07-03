@@ -81,6 +81,32 @@ def test_full_one_pond_playthrough_with_synergy_and_status():
     assert pond_status(far, 2)["safe"] is False
 
 
+def test_a_well_built_pond_is_watered_safe_and_thriving():
+    # exercises ALL the composed mechanics: placement + water + synergy economy + predator + status + outcome
+    from game.pond.water_access import has_water
+    from game.pond.pond_status import pond_status
+    from game.pond.pond_outcome import pond_outcome
+    state = {"bread": 5, "buildings": []}
+    state = add_building(state, "bakery", 0, 0, 8)
+    state = add_building(state, "well", 1, 0, 8)          # water for the bakery
+    state = add_building(state, "granary", 0, 1, 8)        # boosts the bakery
+    state = add_building(state, "nest", 4, 4, 8)
+    state = add_building(state, "fence", 4, 5, 8)          # protect the nest
+    assert has_water(state["buildings"], 2) is True
+
+    for _ in range(3):
+        state = step(state)                                # 1 bakery * (3 + 1 granary) - 1 nest = +3/tick
+    assert state["bread"] == 14
+
+    assert pond_status(state, 2)["safe"] is True
+    assert pond_outcome(state, 2) == "thriving"
+
+
+def test_a_bakery_without_a_well_is_not_watered():
+    from game.pond.water_access import has_water
+    assert has_water([{"kind": "bakery", "x": 0, "y": 0}], 2) is False
+
+
 def _nests_and_fences(state):
     nests = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "nest"]
     fences = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "fence"]
