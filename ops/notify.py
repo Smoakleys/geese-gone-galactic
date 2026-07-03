@@ -16,6 +16,7 @@ CLI:
     python ops/notify.py digest        # build + send the session digest, then advance the marker
     python ops/notify.py iter "s" "b"  # send a per-iteration update email (Owner wants one each iteration)
     python ops/notify.py alert "text"  # send an immediate one-off alert (blocked run / STOP)
+    python ops/notify.py shot pond.png "subject" "body"  # email a game screenshot (attachment)
     python ops/notify.py test          # send a tiny "it works" email to verify setup
     python ops/notify.py preview       # print the digest without sending or advancing the marker
 """
@@ -23,6 +24,7 @@ CLI:
 from __future__ import annotations
 
 import json
+import mimetypes
 import re
 import smtplib
 import ssl
@@ -73,16 +75,20 @@ class NotifyConfig:
 # -- delivery --------------------------------------------------------------------------
 
 
-def send_email(subject: str, body: str, config: Optional[NotifyConfig] = None) -> bool:
-    """Send one email. Returns True if actually sent; False (console dry-run) if unconfigured.
+def send_email(subject: str, body: str, config: Optional[NotifyConfig] = None,
+               attachments: "Optional[list]" = None) -> bool:
+    """Send one email, optionally with file ``attachments`` (e.g. a game screenshot). Returns True if
+    actually sent; False (console dry-run) if unconfigured.
 
     Never raises on a missing config — an unconfigured harness must still run. A real SMTP error
     (bad password, no network) propagates so a genuine misconfiguration is loud, not silent.
     """
     config = config or NotifyConfig.load()
+    paths = [Path(a) for a in (attachments or [])]
     if config is None:
         print("[notify] (dry-run — no ops/notify_config.local.json; not sent)")
-        print(f"[notify] To: {DEFAULT_TO}\n[notify] Subject: {subject}\n{body}")
+        note = f" (+{len(paths)} attachment{'s' if len(paths) != 1 else ''})" if paths else ""
+        print(f"[notify] To: {DEFAULT_TO}\n[notify] Subject: {subject}{note}\n{body}")
         return False
 
     msg = EmailMessage()
@@ -90,6 +96,10 @@ def send_email(subject: str, body: str, config: Optional[NotifyConfig] = None) -
     msg["From"] = config.sender
     msg["To"] = config.to
     msg.set_content(body)
+    for p in paths:
+        ctype, _ = mimetypes.guess_type(p.name)
+        maintype, subtype = (ctype.split("/", 1) if ctype else ("application", "octet-stream"))
+        msg.add_attachment(p.read_bytes(), maintype=maintype, subtype=subtype, filename=p.name)
 
     if config.smtp_port == 465:
         with smtplib.SMTP_SSL(config.smtp_host, config.smtp_port,
@@ -209,6 +219,14 @@ def main(argv: Optional[list[str]] = None) -> int:
             head = "?"
         full = f"{body}\n\nHEAD: {head}\nRepo: {_repo_slug(_REPO)}\n\n— GGG harness (per-iteration update)"
         send_email(f"GGG iteration: {msg[:70]}", full)
+    elif cmd == "shot":
+        # Email a game screenshot: python ops/notify.py shot <png> ["subject"] ["body"]
+        if len(argv) < 2:
+            print("usage: notify.py shot <png> [subject] [body]"); return 2
+        png = argv[1]
+        subject = argv[2] if len(argv) > 2 else "GGG: a screenshot from the game"
+        body = argv[3] if len(argv) > 3 else "A screenshot from Geese Gone Galactic is attached."
+        send_email(subject, body, attachments=[png])
     elif cmd == "test":
         send_email("GGG harness: notifier test",
                    "If you're reading this in your inbox, SMTP delivery works.")

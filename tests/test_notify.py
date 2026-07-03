@@ -44,6 +44,36 @@ def test_send_email_uses_smtp_ssl_when_configured(monkeypatch):
     assert sent["to"] == "owner@example.com" and sent["subject"] == "hello"
 
 
+def test_send_email_attaches_files(monkeypatch, tmp_path):
+    # the Owner asked for screenshots by email -> attachments must ride along on the message.
+    png = tmp_path / "pond.png"
+    png.write_bytes(b"\x89PNG\r\n\x1a\n fake image bytes")
+    cfg = notify.NotifyConfig(smtp_host="h", smtp_port=465, username="u", app_password="p",
+                              sender="u", to="owner@example.com")
+    captured = {}
+
+    class _FakeSMTP:
+        def __init__(self, *a, **k): pass
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def login(self, *a): pass
+        def send_message(self, msg): captured["msg"] = msg
+
+    monkeypatch.setattr(notify.smtplib, "SMTP_SSL", _FakeSMTP)
+    assert notify.send_email("shot", "see attached", cfg, attachments=[png]) is True
+    names = [part.get_filename() for part in captured["msg"].iter_attachments()]
+    assert names == ["pond.png"]                                   # the screenshot rode along
+    att = next(captured["msg"].iter_attachments())
+    assert att.get_content_type() == "image/png"                  # typed correctly for inline preview
+
+
+def test_send_email_dry_run_notes_attachments(capsys, monkeypatch):
+    # unconfigured: still no crash, and the dry-run mentions the attachment count.
+    monkeypatch.setattr(notify.NotifyConfig, "load", staticmethod(lambda: None))
+    assert notify.send_email("s", "b", attachments=["/tmp/whatever.png"]) is False
+    assert "1 attachment" in capsys.readouterr().out
+
+
 def test_build_digest_summarizes_recent_changes():
     subject, body, head = build = notify.build_digest()
     assert subject.startswith("GGG harness:")
