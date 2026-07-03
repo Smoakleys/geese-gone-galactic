@@ -40,14 +40,19 @@ per-cycle increment — it needs a deliberate setup (most reliably a **cloud/CUD
 data (ready: 81 pairs), and the measure-keep-or-revert gate below. The data pipeline is done and waiting;
 the compute is the gap.
 
-First assemble the training file: `python ops/merge_sft.py` combines every `data/*_sft.jsonl` (authored +
-all generated batches) into a deduped `data/training_all.jsonl` — the fine-tune input.
-Ollama serves GGUF; QLoRA needs the base HF weights. Practical path:
-- Pick a QLoRA-able base that matches the runtime brain family (e.g. the Qwen3-14B base behind the
-  Hermes profile, or an HF build of the resident model). Keep it small enough to fine-tune + serve in 16 GB.
-- Train a LoRA adapter on `data/training_all.jsonl` with a standard stack (e.g. `unsloth`/`peft` +
-  `trl SFTTrainer`), short (1–3 epochs, low LR), penalising reasoning-length bloat (PLAN Lever 4).
-- Merge/convert to GGUF and `ollama create icarus-sft -f Modelfile`.
+The training SCRIPT is already written + TURNKEY: **`ops/train_qlora.py`** (its data-loading half is
+unit-tested in `tests/test_train_qlora.py`; the GPU `train()` is the external part). On a cloud/CUDA box:
+```
+pip install torch transformers peft trl datasets bitsandbytes accelerate
+python ops/merge_sft.py                                          # assemble data/training_all.jsonl
+python ops/train_qlora.py --base <hf-model> --data data/training_all.jsonl --out out/icarus-sft
+```
+It applies a standard QLoRA recipe (4-bit + peft LoRA on all attn+MLP projections + trl SFTTrainer, 2
+epochs, low LR) with a train==serve prompt template. Notes: pick a QLoRA-able base matching the runtime
+brain family (small enough to fine-tune + serve in 16 GB); then merge/convert the adapter to GGUF and
+`ollama create icarus-sft -f Modelfile`. **The corpus grows via CLEAN procedural batches** (23
+non-hardcodable generators now; `ops/generate_training_data.py` — run with NO concurrent load, the
+contamination lesson).
 
 ## 4. Measure — the ONLY thing that decides keep/revert
 Re-run the sealed unaided battery with the new model:
