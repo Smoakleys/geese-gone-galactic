@@ -79,3 +79,12 @@ def test_generate_training_data_plumbing(tmp_path):
     (tmp_path / "solution.py").write_text("print(42)\n")
     assert _solution_source(tmp_path) == "print(42)\n"
     assert _solution_source(tmp_path / "does_not_exist") is None
+
+
+def test_generate_zero_instances_is_graceful(tmp_path):
+    # n=0 must not crash or need a model: empty loop -> empty dataset.
+    from ops.generate_training_data import generate
+    out = tmp_path / "empty_sft.jsonl"
+    n = generate(None, 0, 0, out)
+    assert n == 0
+    assert out.read_text(encoding="utf-8") == ""
