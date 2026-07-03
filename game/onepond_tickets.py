@@ -282,6 +282,34 @@ def one_pond_tickets() -> "list[Ticket]":
                 {"module": "pond_score.py",
                  "call": "pond_score({'bread': 1, 'buildings': [{'kind':'well'}]})", "expect": 3},
             ]),
+        Ticket(
+            id="OP-13",
+            title=("pond_advice.py: a hint system. pond_advice(state, reach) inspects state['buildings'] "
+                   "(dicts with 'kind','x','y') and returns a SHORT advice STRING for the weakest point, "
+                   "checked IN THIS ORDER: 'build a bakery' if there is no 'bakery' at all; otherwise "
+                   "'build a well' if any 'bakery' is NOT within Manhattan distance `reach` of a 'well'; "
+                   "otherwise 'build a fence' if any 'nest' is NOT within `reach` of a 'fence'; otherwise "
+                   "'looking good'. Pure Python returning a str."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="suggests bakery -> well -> fence -> 'looking good' by "
+                                    "the pond's weakest point", stage=Stage.B, rubric_ref="onepond/advice"),
+            ],
+            behavior=[
+                {"module": "pond_advice.py", "call": "pond_advice({'buildings': []}, 2)",
+                 "expect": "build a bakery"},
+                {"module": "pond_advice.py",
+                 "call": "pond_advice({'buildings': [{'kind':'bakery','x':0,'y':0}]}, 2)",
+                 "expect": "build a well"},
+                {"module": "pond_advice.py",
+                 "call": "pond_advice({'buildings': [{'kind':'bakery','x':0,'y':0},{'kind':'well','x':1,'y':0},{'kind':'nest','x':5,'y':5}]}, 2)",
+                 "expect": "build a fence"},
+                {"module": "pond_advice.py",
+                 "call": "pond_advice({'buildings': [{'kind':'bakery','x':0,'y':0},{'kind':'well','x':1,'y':0}]}, 2)",
+                 "expect": "looking good"},
+            ]),
     ]
     for t in tickets:
         t.freeze()
