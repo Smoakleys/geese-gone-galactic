@@ -1,0 +1,57 @@
+"""Self-distillation data pipeline (PLAN Part 5, Levers 3 & 5).
+
+Turn gate-passing (ticket -> committed module) pairs into supervised fine-tuning (SFT) records, so
+Icarus's own verified successes become free QLoRA training data. This is the plan's real lever for raising
+*unaided* capability beyond the base model's ceiling: train the local model on instruction->solution pairs
+that ALREADY cleared the strict gate (behavioural check + reviewer), never on unverified output.
+
+This module only PREPARES the data (stdlib-only, offline). The actual QLoRA run is an external GPU step
+(out of scope here); the JSONL it writes is the standard `{"instruction", "input", "output"}` shape most
+QLoRA trainers accept. A future extension can capture full agent *trajectories* (plan->act->observe) rather
+than just final solutions; the (task -> solution) pairs here are the minimal useful foundation.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Iterable
+
+
+def build_sft_records(tickets: Iterable, module_dir: Path) -> "list[dict]":
+    """One SFT record per gate-passing (ticket, committed module) pair.
+
+    A ticket's `behavior` examples name the module(s) it produced; if that module exists in `module_dir`
+    (i.e. it was verified + committed), emit `{instruction: ticket.title, input: "", output: source}`.
+    Skips tickets whose module isn't present (not yet built) so the set is exactly the verified successes.
+    """
+    module_dir = Path(module_dir)
+    records: "list[dict]" = []
+    seen: "set[str]" = set()
+    for t in tickets:
+        for ex in getattr(t, "behavior", []) or []:
+            name = ex.get("module")
+            if not name or name in seen:
+                continue
+            src = module_dir / name
+            if src.exists():
+                seen.add(name)
+                records.append({
+                    "instruction": t.title.strip(),
+                    "input": "",
+                    "output": src.read_text(encoding="utf-8"),
+                    "meta": {"ticket": t.id, "module": name, "gate": "python_behavior+reviewer"},
+                })
+    return records
+
+
+def write_jsonl(records: "Iterable[dict]", path: Path) -> int:
+    """Write records as one JSON object per line (QLoRA-ready). Returns the count."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    n = 0
+    with path.open("w", encoding="utf-8") as f:
+        for r in records:
+            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+            n += 1
+    return n

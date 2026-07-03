@@ -490,3 +490,10 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   Added a regression test that runs the check THROUGH registry.run_stage_a (prior tests only called
   check.run() directly and missed the _applies filter). The reviewer had been the actual enforcer; now the
   deterministic behavioural gate is too, as originally intended. 309 tests.
+
+## harness-mod-51 - Self-distillation SFT data pipeline (PLAN Levers 3 & 5)
+- harness/icarus/distill.py: `build_sft_records(tickets, module_dir)` + `write_jsonl` turn gate-passing
+  (ticket -> committed module) pairs into standard `{instruction, input, output}` QLoRA training records --
+  Icarus's OWN verified successes as free fine-tuning data (the plan's real lever for raising *unaided*
+  capability beyond the base-model ceiling). Only distills modules that cleared the gate. Generated
+  data/onepond_sft.jsonl (the One Pond solutions). The QLoRA run itself is an external GPU step. 328 tests.
