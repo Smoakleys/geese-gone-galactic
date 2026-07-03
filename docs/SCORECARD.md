@@ -32,10 +32,15 @@ is not *mis*-fixing — it's **finishing without applying the fix at all**: Icar
 "understands" it, and calls `finish` without ever writing the corrected file or running to confirm.
 
 **The lever this points at:** a *verify-before-finish* discipline — Icarus should not `finish` a fix-it
-task without having made an edit and run the file to confirm the output changed. Candidate implementations
-(each needs a measured before→after per the plan): a short "run to confirm before finishing" nudge; or a
-runtime guard that questions a `finish` when no `write_file`/`run` happened this task. Deferred to a
-focused measured cycle so a prompt change isn't kept unless the unaided score actually rises.
+task without having made an edit and run the file to confirm the output changed.
+
+**Measured attempt (2026-07-03) — TRIED AND REVERTED.** Implemented exactly that: a runtime guard that
+pushes back once on a `finish` when no `write_file`/`run` happened this task. Measured on the same 4
+debugging seeds: **2/4 → 2/4 — no rise**, and it caused a *regression* (a previously-passing off-by-one
+flipped to FAIL — the nudge made Icarus over-edit into a new bug). Per the plan's rule (keep only if the
+unaided score rises), it was **reverted**. Honest conclusion: a simple nudge does not lift gpt-oss:20b's
+debugging. The likelier real lever is **routing debug-heavy tickets to the 30B** (the same model-size win
+that fixed visuals) or a genuine trace/diff step — a bigger change for a focused cycle, not a prompt tweak.
 
 ## Caveat
 An earlier routed full-battery run measured 4/6, but it was the victim of GPU contention (two 30B tasks
