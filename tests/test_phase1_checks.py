@@ -196,3 +196,21 @@ def test_image_accept_then_shrink_regresses(git_repo, registry, gatekeeper, tmp_
     _draw(accepted, blank=True)  # reintroduce "blank art" defect in the committed tree
     regressions = run_regression_suite(gatekeeper, registry)
     assert any("T-0001" in r for r in regressions)
+
+
+def test_no_certified_check_is_kind_skipped(tmp_path):
+    # REGRESSION (harness-mod-50): a check's `targets` are matched against ticket.KIND (registry._applies),
+    # NOT filenames. A check with kind-mismatched targets (e.g. ["*.py"]) is silently SKIPPED for EVERY
+    # ticket -> its gate never fires live. Every certified check must apply to every real ticket kind.
+    from harness.checks.builtin import default_registry
+    from harness.checks.registry import _applies
+    from harness.models import Ticket, TicketKind
+    from game.godot.checks import GodotParseCheck, GodotRenderCheck
+    reg = default_registry(tmp_path / "lock")
+    reg.register(GodotParseCheck())
+    reg.register(GodotRenderCheck())
+    reg.certify_all()
+    for check in reg.certified_checks():
+        for kind in TicketKind:
+            t = Ticket(id="x", title="x", kind=kind, acceptance_criteria=[])
+            assert _applies(check, t), (check.id, kind.name)   # certified but kind-skipped == a dead gate
