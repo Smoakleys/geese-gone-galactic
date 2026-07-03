@@ -580,6 +580,27 @@ def one_pond_tickets() -> "list[Ticket]":
                 AcceptanceCriterion(id="AC3", text="reads as a pond with buildings and geese",
                                     stage=Stage.B, rubric_ref="onepond/world"),
             ]),
+        Ticket(
+            id="OP-27",
+            title=("affordable_buildings.py: what can I build? affordable_buildings(bread) returns the "
+                   "SORTED (alphabetical) list of building kinds whose bread cost is <= `bread`, where the "
+                   "costs are bakery 5, granary 4, well 3, fence 2, nest 1. An empty result is []. Pure "
+                   "Python returning a list of strings."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="sorted kinds affordable at `bread` (bakery 5/granary "
+                                    "4/well 3/fence 2/nest 1)", stage=Stage.B, rubric_ref="onepond/afford"),
+            ],
+            behavior=[
+                {"module": "affordable_buildings.py", "call": "affordable_buildings(4)",
+                 "expect": ["fence", "granary", "nest", "well"]},
+                {"module": "affordable_buildings.py", "call": "affordable_buildings(1)", "expect": ["nest"]},
+                {"module": "affordable_buildings.py", "call": "affordable_buildings(0)", "expect": []},
+                {"module": "affordable_buildings.py", "call": "affordable_buildings(5)",
+                 "expect": ["bakery", "fence", "granary", "nest", "well"]},
+            ]),
     ]
     for t in tickets:
         t.freeze()
