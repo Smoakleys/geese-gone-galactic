@@ -437,3 +437,11 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   redefs all blanked the render). Verified on two real live failures (both now render green ~78).
 - harness/icarus/eval/capability.py: gen_pond_from_template verify skips its own _composed_scene.gd when
   finding the agent's content (was picking up stale output across calls). 243 tests.
+
+## harness-mod-43 - Local Ollama Stage-B reviewer client (close the StubReviewer gap)
+- harness/review/model_client.py: OllamaChatClient -- a LOCAL, no-cloud-key Stage-B reviewer behind the
+  same ChatClient seam, reusing the tested _render_prompt/_parse_answers (so the default-FAIL contract
+  holds: a criterion not clearly PASSed is a FAIL). Fails CLOSED on any transport/parse error (all FAIL) --
+  a reviewer that can't answer never waves work through. Lets LLMReviewer run a real subjective review
+  unattended (the gap OP-6's \n bug exposed). Point it at a model different from the builder for an
+  independent critic. Test covers the fail-closed contract. 257 tests.

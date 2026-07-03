@@ -138,6 +138,48 @@ class AnthropicChatClient(ChatClient):
         return ModelReply(self.model_id, _parse_answers(text, request))
 
 
+class OllamaChatClient(ChatClient):
+    """A LOCAL Stage-B reviewer backed by Ollama — a fresh zero-context review each call, no cloud key.
+
+    Reuses the same prompt/parse helpers as the Anthropic path, so the default-FAIL contract holds: a
+    criterion the model does not clearly PASS (with evidence) is a FAIL, and any transport/parse failure
+    fails CLOSED (all FAIL) — a reviewer that can't answer never waves work through. Point it at a model
+    DIFFERENT from the builder where possible, to keep the critic independent.
+    """
+
+    def __init__(self, model_id: str = "qwen3:30b", endpoint: str = "http://localhost:11434",
+                 timeout: float = 180.0, num_ctx: int = 8192):
+        self.model_id = model_id
+        self.endpoint = endpoint.rstrip("/")
+        self.timeout = timeout
+        self.num_ctx = num_ctx
+
+    def complete(self, request: ModelRequest) -> ModelReply:
+        import json
+        import urllib.request
+
+        system = request.system or "You are a strict, adversarial reviewer."
+        payload = {
+            "model": self.model_id,
+            "messages": [{"role": "system", "content": system},
+                         {"role": "user", "content": _render_prompt(request)}],
+            "stream": False, "keep_alive": "10m",
+            "options": {"temperature": 0.1, "num_ctx": self.num_ctx},
+        }
+        text = ""
+        try:
+            req = urllib.request.Request(self.endpoint + "/api/chat",
+                                         data=json.dumps(payload).encode("utf-8"),
+                                         headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
+                body = json.loads(resp.read())
+            msg = body.get("message", {})
+            text = (msg.get("content") or msg.get("thinking") or "")
+        except Exception:
+            text = ""  # transport failure -> empty -> _parse_answers returns all FAIL (fail-closed)
+        return ModelReply(self.model_id, _parse_answers(text, request))
+
+
 # -- prompt rendering / parsing (production path; kept tiny + testable) ------------------
 
 
