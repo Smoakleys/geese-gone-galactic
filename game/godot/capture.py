@@ -41,8 +41,11 @@ def render_gdscript(scene_gd: Path, out_png: Path, *, size: str = "1024x1024",
         else:
             shutil.copyfile(scene_gd, probe)
         try:
+            # --position launches the window OFF-SCREEN from the start (not just moved in _ready), so the
+            # render window doesn't briefly flash on the desktop each render. Not headless (headless can't
+            # render); this is the least-visible way to spawn a real render window.
             proc = subprocess.run(
-                [godot, "--path", str(_RIG), "--",
+                [godot, "--position", "-4000,-4000", "--path", str(_RIG), "--",
                  "--script=res://_probe.gd", f"--out={out_png}", f"--size={size}"],
                 capture_output=True, text=True, timeout=timeout)
         except Exception as e:  # subprocess/timeout — an observation, not a crash
