@@ -149,6 +149,16 @@ def test_compose_scene_avoids_duplicate_helper_defs():
     assert "func _ready" in scene                 # camera template always present
 
 
+def test_compose_scene_sanitizes_preload_and_prefixed_helper_calls():
+    from game.godot.scene_template import compose_scene
+    content = ('func build(root):\n\tvar h = preload("res://helpers.gd").new()\n'
+               '\th.add_plane(root, Vector2(4, 4), Color.GREEN)\n'
+               '\tadd_box(root, 1.0, Color.RED, Vector3(0, 0, 0))\n')
+    scene = compose_scene(content)
+    assert "preload(" not in scene                 # bogus helper preload dropped
+    assert "h.add_plane" not in scene and "add_plane(root" in scene   # prefix stripped to a direct call
+
+
 def test_agentbuilder_requires_model_or_router():
     import pytest
     with pytest.raises(ValueError):
