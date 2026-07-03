@@ -4,21 +4,24 @@ The Stop hook points the agent here every turn. Keep it current: when you finish
 increment, tick it and add the next. This is guidance, not the stop condition — the
 ONLY stop condition is the `ops/STOP` kill switch (or Bridger saying stop).
 
-## Now — the pivot: use the harness for its real job (see docs/HANDOFF.md §5)
-**Icarus is real (PR #58). Stop extending the python toy. Build the real Godot One Pond via Icarus.**
-- [ ] **Install Godot** (headless) — download Godot 4 win64 to gitignored `ops/bin/` (like
-      `cloudflared`), confirm `--headless --version`, prove a headless scene-load + screenshot.
-- [ ] **First real Icarus→Godot ticket:** author a bounded ticket (a Godot 4 project opening a
-      fixed 2.5-iso scene = empty grassy pond ground; headless run exits 0), route it THROUGH
-      `LLMBuilder(OllamaGenerationClient("qwen3-coder:30b"))`, add the deterministic godot
-      compile/scene-load check, drive to acceptance. First non-toy, Icarus-built, gated commit.
-- [ ] **Visual gate on the LOCAL vision model** `qwen2.5vl:7b` (Ollama images): decomposed,
-      default-NO reviewer scoring an iso screenshot vs the design bar; keep the CV floor beneath.
-- [ ] **Build "One Pond" for real,** one Icarus ticket at a time: Nest/Bakery/Pond low-poly assets
-      (free/local text/image→3D first, curated fallback) → Godot → iso-screenshot → gated; bread
-      tick; place-a-building. Each cycle: 1 ticket THROUGH Icarus + 1 Icarus improvement.
-- [ ] **Retire the python economy toy** (`game/onepond` soldiers/campaigns/eras/launchpad/tiers)
-      as the Godot slice takes over, keeping tests green.
+## FOUNDATION COMPLETE (PRs #60-81) — now build BREADTH. See docs/HANDOFF.md.
+The agent runtime, AgentBuilder+ModelRouter (visual→qwen3:30b, logic→gpt-oss:20b), Godot rig +
+`godot_parse` + `green_dominance` render check, the honest procedural scorecard, and the full
+Icarus→gate→committed+rendered pipeline are all built. Use `game/icarus_builder.py:
+default_icarus_builder(workdir)` + the full Loop. Each cycle: **1 Icarus ticket + 1 measured harness/
+Icarus improvement** (keep only if the unaided battery score rises).
+
+## Now — build One Pond, one Icarus ticket per cycle
+- [ ] **Bakery scene** via Icarus (routed to the 30B): green ground + a distinct-coloured building box
+      on it. New gate: render shows STRUCTURE (green_dominance for ground AND variance for the building,
+      not a flat fill). Drive through the full loop to a committed scene.
+- [ ] **Nest scene** likewise; then a place-a-building interaction (reuse the placement mechanic).
+- [ ] **Bread tick wired to placement**: a small One Pond model (buildings on a grid → bread/tick),
+      built by Icarus (logic → fast model), gated by the economy + placement checks.
+- [ ] **Retire the python economy toy** (`game/onepond` soldiers/campaigns/eras/launchpad/tiers) as the
+      real Godot slice takes over its role, keeping tests green (quarantine floors via baseline_reset).
+- [ ] **Promote proven notebook lessons** into the curated seed (`game/godot/godot_lessons.md`); grow
+      the procedural battery with each new mechanic.
 
 ## Candidate increments (pick by value, not order)
 - [ ] Improve Icarus each cycle (prompt/packet/tooling/**model**-swap or ensemble) toward higher
