@@ -329,6 +329,54 @@ def test_significant_colors_counts_regions(tmp_path):
     assert significant_colors(ps) == 3
 
 
+_GOOD_BUILD = """func build(root: Node3D) -> void:
+\tvar land := MeshInstance3D.new()
+\tland.mesh = PlaneMesh.new()
+\tland.mesh.size = Vector2(16, 16)
+\tvar lm := StandardMaterial3D.new()
+\tlm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+\tlm.albedo_color = Color.GREEN
+\tland.material_override = lm
+\troot.add_child(land)
+\tvar water := MeshInstance3D.new()
+\twater.mesh = PlaneMesh.new()
+\twater.mesh.size = Vector2(6, 6)
+\twater.position = Vector3(0, 0, 0.1)
+\tvar wm := StandardMaterial3D.new()
+\twm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+\twm.albedo_color = Color.BLUE
+\twater.material_override = wm
+\troot.add_child(water)
+\tvar b := MeshInstance3D.new()
+\tb.mesh = BoxMesh.new()
+\tb.position = Vector3(4, 0, 0.1)
+\tvar bm := StandardMaterial3D.new()
+\tbm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+\tbm.albedo_color = Color(0.5, 0.3, 0.1)
+\tb.material_override = bm
+\troot.add_child(b)
+"""
+
+
+@pytest.mark.skipif(godot_path() is None, reason="Godot not installed")
+def test_pond_template_composes_and_gates(tmp_path):
+    # the SPEED path: Icarus writes only build(root); the verify composes it with the camera template.
+    from harness.icarus.eval.capability import gen_pond_from_template
+    inst = gen_pond_from_template(Random(0))
+    ws = tmp_path / inst.id
+    ws.mkdir()
+    (ws / "content.gd").write_text(_GOOD_BUILD)
+    ok, detail = inst.verify(ws)
+    assert ok, detail                                     # full content -> passes via the template
+    # a build missing the water pond must fail (the gate still judges the composed render)
+    (ws / "content.gd").write_text(
+        "func build(root: Node3D) -> void:\n\tvar g := MeshInstance3D.new()\n\tg.mesh = PlaneMesh.new()\n"
+        "\tvar m := StandardMaterial3D.new()\n\tm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED\n"
+        "\tm.albedo_color = Color.GREEN\n\tg.material_override = m\n\troot.add_child(g)\n")
+    bad, _ = inst.verify(ws)
+    assert not bad
+
+
 @pytest.mark.skipif(godot_path() is None, reason="Godot not installed")
 def test_gdscript_verifier(tmp_path):
     inst = gen_gdscript(Random(0))

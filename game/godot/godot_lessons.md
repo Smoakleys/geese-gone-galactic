@@ -23,5 +23,8 @@ lessons are promoted back here (so it never fills with a struggling model's conf
   built, and the render is empty gray. (Diagnosed from a real blank OP-1 scene.)
 - Godot 4 uses `BoxMesh` for a cube — there is NO `CubeMesh` (that was Godot 3). `CubeMesh.new()` errors
   at runtime and blanks the render. Use `var m := BoxMesh.new(); m.size = Vector3(...)`.
+- A `PlaneMesh` is ALREADY flat in the horizontal XZ plane. Do NOT `rotate_x(-90°)` it — that stands it
+  up VERTICAL, so a top-down/iso camera sees it edge-on (an invisible thin line) and the ground/pond
+  vanish. Add planes with no rotation; only raise the pond slightly on Y to layer it over the grass.
 - Verify by rendering: if the render is a uniform gray (the default background) the camera saw nothing —
   re-check the camera is current, added to the tree before `look_at`, and framing the object.
