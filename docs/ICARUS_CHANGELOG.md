@@ -35,13 +35,18 @@ notebook, single attempt) was strong on logic, weak on 3D visuals and multi-step
 - **Result:** measured, unaided did NOT rise. Reverted per the rule (the real fix was routing). Logged as a
   negative result so it isn't re-tried blindly.
 
-## Deterministic behavioural check (python_behavior, harness-mod-44/45) — a gate lever
+## Deterministic behavioural check (python_behavior, harness-mod-44/45; genuinely wired harness-mod-50)
 - **Why:** a right-formula-wrong-string typo (`'baker'`, `"\n"`) kept PASSING both `python_syntax` and the
   subjective reviewer (OP-6, OP-8). Per the table, "a flaw keeps passing the gate" → add a *checker*.
 - **Change:** `PythonBehaviorCheck` runs a ticket's `{module, call, expect}` examples for exact output;
-  certified, wired into `default_registry`, carried by every logic ticket.
-- **Before→after:** the exact-output whack-a-mole ended — the `'baker'` typo now FAILs Stage A mechanically;
-  live-confirmed guaranteeing OP-8 correctness. Kept.
+  certified, registered in `default_registry`, carried by every logic ticket.
+- **Before→after + HONEST CORRECTION:** the check works and is certified, BUT it declared `targets=["*.py"]`
+  while `registry._applies` matches `targets` against `ticket.kind` — so it was SILENTLY SKIPPED in every
+  live Stage-A run from harness-mod-45 until **harness-mod-50** fixed it to `["*"]`. My earlier "FAILs Stage
+  A mechanically; live-confirmed guaranteeing OP-8" was WRONG for that window: the **reviewer** was the real
+  enforcer. Post-fix it genuinely gates (regression-tested through `run_stage_a`). Lesson: test a check
+  through the registry path, not just `check.run()` directly. Found via an OP-14 build that committed a
+  module raising `AttributeError` on its own examples.
 
 ## Real local Stage-B reviewer (OllamaChatClient + default_reviewer)
 - **Why:** the offline StubReviewer couldn't catch subjective/structural defects.
