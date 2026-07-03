@@ -113,8 +113,8 @@ def generate(names: "list[str]", *, force: bool = False, make_cutout: bool = Fal
             big = name in ("ground", "pond")
             data = fetch(ASSETS[name], seed=42 + i, w=(768 if big else 640), h=(512 if big else 640))
             dst.write_bytes(data)
-            if make_cutout and name not in ("ground", "pond"):
-                (ART_DIR / f"{name}_cutout.png").write_bytes(cutout(data))
+            if make_cutout and name != "ground":     # ground is the full background; every other prop
+                (ART_DIR / f"{name}_cutout.png").write_bytes(cutout(data))   # needs a transparent cutout
             print(f"{name}: {len(data)} bytes OK")
             done.append(name)
         except Exception as e:  # noqa: BLE001
