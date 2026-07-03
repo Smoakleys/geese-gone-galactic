@@ -14,9 +14,9 @@ Icarus's gate-passing solutions are also captured as self-distillation training 
 see `docs/DISTILL.md`) to raise its unaided capability.
 
 **Play it:** `python ops/play_commands.py --interactive` — a live text game: type `build bakery`, `event
-harvest`, `tick`, `status`, `art pond.png` (renders your pond as **real painterly art** — a cozy island of
-cottages, geese and trees, composited from generated sprites by `game/art_view.py`), `render pond.png` (the
-older lit 3D view), `save`/`load`, `quit`. Or `python ops/play_onepond.py` for a scripted guided pond.
+harvest`, `tick`, `status`, `render pond.png` (renders your pond as **real painterly art** — a cozy island
+of cottages, geese and trees, composited from generated sprites by `game/art_view.py`; `render3d` is the
+older 3D view), `save`/`load`, `quit`. Or `python ops/play_onepond.py` for a scripted guided pond.
 
 **The art** is generated free by an image model (`ops/generate_art.py` → `assets/art/`) — the game's look is
 real cozy-game illustration, not primitive shapes.

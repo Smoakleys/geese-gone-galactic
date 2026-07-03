@@ -5,8 +5,8 @@ Each command is parsed by the Icarus-built `parse_command` and dispatched to the
   event <name>   -- apply a pond event (harvest / fox / flood)
   tick           -- advance the economy one tick
   status         -- print a one-line status (bread, rank, safety)
-  render <file>  -- render the CURRENT pond to a lit 3D PNG (needs Godot; skips gracefully without)
-  art <file>     -- render the CURRENT pond as painterly ART (composited generated sprites)
+  render <file>  -- render the CURRENT pond as painterly ART (the default look; `art` is an alias)
+  render3d <file>-- the older lit 3D primitive view (needs Godot; superseded by the art look)
   save <file>    -- serialize the pond to a save string / load <file> -- restore it
   load <file>    -- restore a saved pond and keep playing
 Commands here are scripted (this environment is non-interactive); the same loop takes live input.
@@ -48,16 +48,17 @@ def run_command(state: dict, text: str) -> "tuple[dict, str]":
     if verb == "status":
         st = pond_status(state, REACH)
         return state, report(state["bread"], pond_rank(pond_score(state)), st["safe"])
-    if verb == "render":
-        from game.godot.pond_view import render_pond_state
-        png = target or "pond.png"
-        ok, detail = render_pond_state(state, png)
-        return state, (f"rendered -> {png}" if ok else f"render skipped: {detail}")
-    if verb == "art":
-        # "see it as ART": composite the generated painterly sprites for the current pond (the real look)
+    if verb in ("render", "art"):
+        # "see it": the DEFAULT look is now real painterly ART (composited generated sprites), per the pivot
         from game.art_view import compose_pond_art
-        out = compose_pond_art(state, target or "pond_art.png")
-        return state, f"art rendered -> {out}"
+        out = compose_pond_art(state, target or "pond.png")
+        return state, f"rendered art -> {out}"
+    if verb == "render3d":
+        # the older lit 3D primitive view (superseded by the art look; kept for reference)
+        from game.godot.pond_view import render_pond_state
+        png = target or "pond3d.png"
+        ok, detail = render_pond_state(state, png)
+        return state, (f"rendered 3d -> {png}" if ok else f"render3d skipped: {detail}")
     if verb == "save":
         from game.pond import serialize_pond
         path = Path(target or "pond.save")

@@ -11,14 +11,22 @@ def test_commands_drive_the_pond():
     assert state["bread"] == 46                          # 30 +10 harvest, then +3 +3 (1 bakery)
 
 
-def test_render_command_is_handled(tmp_path):
-    # the "see it" command connects the command interface to the renderer; handled with or without Godot.
-    from game.godot.binary import godot_path
+def test_render_command_produces_art_by_default(tmp_path):
+    # the "see it" command's DEFAULT look is now real painterly ART (compose_pond_art), no Godot needed.
     png = tmp_path / "pond.png"
     state = play(["build bakery", f"render {png}"], verbose=False)
     assert len(state["buildings"]) == 1                  # the game still advanced normally
+    assert png.exists()                                  # render -> art (always produces the PNG)
+
+
+def test_render3d_command_is_handled(tmp_path):
+    # the older 3D primitive view is still reachable as `render3d` (skips gracefully without Godot).
+    from game.godot.binary import godot_path
+    png = tmp_path / "pond3d.png"
+    state = play(["build bakery", f"render3d {png}"], verbose=False)
+    assert len(state["buildings"]) == 1
     if godot_path() is not None:
-        assert png.exists()                              # with Godot, the current pond was rendered
+        assert png.exists()
 
 
 def test_command_demo_runs_as_a_script():
