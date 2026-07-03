@@ -208,6 +208,43 @@ def gen_find_secret(rng: Random) -> TaskInstance:
         "ONLY the <value> (the token after SECRET=) into a file named answer.txt.", verify, setup=setup)
 
 
+def gen_placement(rng: Random) -> TaskInstance:
+    """A real pond mechanic (Icarus's strength): validate building placement on the grid."""
+    n = rng.randint(4, 8)
+    positions: "list[tuple[int, int]]" = []
+    while len(positions) < rng.randint(2, 4):
+        p = (rng.randint(0, n - 1), rng.randint(0, n - 1))
+        if p not in positions:
+            positions.append(p)
+    if rng.random() > 0.5:  # inject a violation -> INVALID
+        positions.append(positions[0] if rng.random() > 0.5 else (n + 1, 0))
+
+    def _valid(cells: "list[tuple[int, int]]") -> bool:
+        seen = set()
+        for x, y in cells:
+            if not (0 <= x < n and 0 <= y < n) or (x, y) in seen:
+                return False
+            seen.add((x, y))
+        return True
+
+    expected = "VALID" if _valid(positions) else "INVALID"
+    pos_str = "; ".join(f"({x},{y})" for x, y in positions)
+    id_pos = "_".join(f"{x}x{y}" for x, y in positions)
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        try:
+            rc, out, err = _run_py(ws, "place.py")
+        except Exception as e:
+            return False, f"could not run place.py: {e}"
+        return out.strip() == expected, f"expected {expected}, got {out.strip()!r}"
+
+    return TaskInstance(
+        f"place_n{n}_{id_pos}", "game-logic",
+        f"A goose pond has an {n}x{n} grid (valid cells 0..{n - 1}). Buildings occupy these cells: "
+        f"{pos_str}. Write place.py that prints ONLY 'VALID' if every building is in-bounds AND no two "
+        f"share a cell, otherwise 'INVALID'. Run it to verify.", verify)
+
+
 def gen_economy(rng: Random) -> TaskInstance:
     """The real game's LOGIC domain (Icarus's strength): a pond bread-economy simulation."""
     bakeries = rng.randint(1, 4)
@@ -295,7 +332,8 @@ def gen_render(rng: Random) -> TaskInstance:
 
 def default_generators() -> "list[Callable[[Random], TaskInstance]]":
     return [gen_sum, gen_reverse, gen_json, gen_fizzbuzz,
-            gen_fix_bug, gen_read_sum, gen_find_secret, gen_economy, gen_gdscript, gen_render]
+            gen_fix_bug, gen_read_sum, gen_find_secret, gen_economy, gen_placement,
+            gen_gdscript, gen_render]
 
 
 def sample_battery(seed: int = 0, per_generator: int = 1,
