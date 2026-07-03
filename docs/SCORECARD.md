@@ -37,6 +37,11 @@ true unaided-logic rate sits in a ~0.73–0.85 band run-to-run (stochastic model
 self-repair would lift it). The signal that matters: **the game's own mechanics are solidly in Icarus's
 unaided reach** — every One Pond logic generator (economy/water/predator/granary/score) passed this run.
 
+**Corroborated by the data-gen batch (2026-07-03):** `ops/generate_training_data.py` ran 24 FRESH
+procedurally-generated logic instances unaided (no notebook) and kept the passing ones — **17/24 = 0.71**,
+a different sample landing in the same band. (Those 17 verified solutions are now `data/generated_sft.jsonl`
+training data; the 7 failures are just discarded, not hidden.)
+
 ## HONEST behaviourally-gated capstone (2026-07-03, post-harness-mod-50): 14/14 @ autonomy 1.0 in 626s
 The FIRST full-backlog run where the deterministic `python_behavior` gate actually participated (it was
 silently skipped in the earlier 9/9 and 11/11 capstones — see the harness-mod-50 correction below). The
