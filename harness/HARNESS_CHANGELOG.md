@@ -613,3 +613,12 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   real retry instead of silently accepting a do-nothing file. Real one-line code (`print(1)`) is unaffected.
   Regression test: `<code>`/`<file contents>` rejected, real code accepted. Found by the probe-why-it-fails
   method applied to the north-star measurement.
+
+## harness-mod-65 - Nudge when the agent FINISHES with no solution written (measurement fail class)
+- harness/icarus/agent/runtime.py: the clean 12/20 measurement had 5 fails where the agent finished / ran
+  out having written NO solution file (fizzbuzz, secret, readsum, readsorted, pondtick). The finish handler
+  previously accepted a finish with nothing written. Now, finishing with `not wrote_files` fires a one-time
+  "[NO SOLUTION] ... write_file a real solution, run it, THEN finish" nudge before accepting (advisory, fires
+  at most once, then the next finish is accepted so it can't loop). Pairs with mod-64 (reject placeholder
+  bodies). Regression test: an immediate finish is nudged once then DONE. Found by probe-why-it-fails on the
+  north-star measurement.

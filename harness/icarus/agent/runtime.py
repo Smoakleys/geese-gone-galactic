@@ -391,6 +391,7 @@ def run_agent(model: AgentModel, task: str, workspace: Path, *,
     wrote_files = False          # did it produce an artifact...
     verified = False             # ...and actually run/render/see it before finishing?
     nudged_verify = False        # the verify reminder fires at most once (never blocks finishing outright)
+    nudged_nosolution = False    # the "you finished without writing anything" reminder fires at most once
     hinted_finish = False        # the "you've verified -> finish if satisfied" cue fires at most once
     steps = 0
     for steps in range(1, max_steps + 1):
@@ -425,9 +426,19 @@ def run_agent(model: AgentModel, task: str, workspace: Path, *,
         consecutive_bad = 0
 
         if call.name == "finish":
+            # Finishing with NOTHING written is a real failure mode (measurement: fizzbuzz/secret/readsum/
+            # readsorted/pondtick finished with no solution file). Nudge ONCE to actually write a solution
+            # before accepting the finish. (harness-mod-65)
+            if not wrote_files and not nudged_nosolution:
+                nudged_nosolution = True
+                messages.append({"role": "user", "content":
+                    "[NO SOLUTION] You are finishing without having written any file. This task needs a "
+                    "solution: use `write_file` to create it (real code, not a placeholder), `run` it to "
+                    "check the output, THEN finish."})
+                continue
             # Self-verify before submitting (plan Part 2A): if it wrote an artifact but never ran/rendered/
             # saw it, nudge ONCE to verify. Advisory, not a hard block -- if it insists (or already
-            # verified, or wrote nothing), the next finish is accepted.
+            # verified), the next finish is accepted.
             if wrote_files and not verified and not nudged_verify:
                 nudged_verify = True
                 messages.append({"role": "user", "content":
