@@ -84,3 +84,18 @@ def test_contact_sheet_none_when_no_assets(tmp_path, monkeypatch):
     import ops.gemini_art as g
     monkeypatch.setattr(g, "ART_DIR", tmp_path)
     assert g.make_contact_sheet(tmp_path / "sheet.png", ["goose"]) is None    # nothing generated yet
+
+
+def test_bad_key_4xx_fails_fast_without_retrying(monkeypatch):
+    # a typo'd key returns 4xx -> should fail immediately with a clear message, not retry 3x per asset.
+    import ops.gemini_art as g
+    calls = {"n": 0}
+    def http403(*a, **k):
+        calls["n"] += 1
+        raise g.urllib.error.HTTPError("url", 403, "Forbidden", {}, None)
+    monkeypatch.setattr(g.urllib.request, "urlopen", http403)
+    import pytest as _pt
+    with _pt.raises(RuntimeError) as ei:
+        g._image_request("p", "badkey", "model", timeout=1, retries=3)
+    assert calls["n"] == 1                                   # ONE call, no wasteful retries
+    assert "check the key" in str(ei.value)

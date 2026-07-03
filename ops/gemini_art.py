@@ -23,6 +23,7 @@ import argparse
 import base64
 import json
 import sys
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -114,7 +115,15 @@ def _image_request(prompt: str, key: str, model: str, timeout: float, retries: i
                 if inline and inline.get("data"):
                     return base64.b64decode(inline["data"])
             raise ValueError("no image in response")
-        except Exception as e:  # noqa: BLE001 -- flaky endpoint; back off + retry
+        except urllib.error.HTTPError as e:
+            # a 4xx (bad/typo'd key, bad request, quota) won't recover on retry -> fail FAST + clear
+            if 400 <= e.code < 500:
+                detail = f"HTTP {e.code} — check the key/quota (a 4xx won't succeed on retry)"
+                raise RuntimeError(detail) from e
+            last = e                                          # 5xx is transient -> retry
+            if attempt < retries - 1:
+                time.sleep(2 * (attempt + 1))
+        except Exception as e:  # noqa: BLE001 -- network/parse hiccup; back off + retry
             last = e
             if attempt < retries - 1:
                 time.sleep(2 * (attempt + 1))
