@@ -96,3 +96,17 @@ def test_goal_and_win_banner():
     if g.won():                                         # a full pond reaches City
         assert "City" in g.goal() and "🎉" in g.goal()
         assert "🎉" in _page(g).decode("utf-8")
+
+
+def test_load_of_a_corrupt_save_does_not_crash(tmp_path, monkeypatch):
+    # a corrupt/empty save file must not crash the game (found by probing) -- keep the pond, report it.
+    import ops.play_web as pw
+    save = tmp_path / "corrupt.save"
+    monkeypatch.setattr(pw, "_SAVE", save)
+    g = pw.GameSession()
+    g.act("build_bakery")
+    for junk in ("not a pond @@@", "", "bread=oops;stuff"):
+        save.write_text(junk, encoding="utf-8")
+        msg = g.act("load")                               # must return, not raise
+        assert "corrupt" in msg
+        assert len(g.state["buildings"]) == 1             # current pond preserved

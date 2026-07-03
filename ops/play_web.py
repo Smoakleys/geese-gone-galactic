@@ -57,7 +57,10 @@ class GameSession:
         if action == "load":
             if not _SAVE.is_file():
                 return "no saved pond yet"
-            self.state = deserialize_pond(_SAVE.read_text(encoding="utf-8").strip())
+            try:
+                self.state = deserialize_pond(_SAVE.read_text(encoding="utf-8").strip())
+            except Exception:  # a corrupt/empty save must not crash the server -- keep the current pond
+                return "couldn't load — the save looks corrupt"
             return "pond loaded"
         if action.startswith("event_"):
             name = action[len("event_"):]
