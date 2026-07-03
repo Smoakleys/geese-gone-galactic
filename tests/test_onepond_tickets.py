@@ -10,7 +10,7 @@ def test_one_pond_tickets_well_formed_and_reference_real_gates():
     tickets = one_pond_tickets()
     assert [t.id for t in tickets] == ["OP-1", "OP-2", "OP-3", "OP-4", "OP-5", "OP-6", "OP-7", "OP-8",
                                        "OP-9", "OP-10", "OP-11", "OP-12", "OP-13", "OP-14", "OP-15",
-                                       "OP-16", "OP-17", "OP-18", "OP-19"]
+                                       "OP-16", "OP-17", "OP-18", "OP-19", "OP-20"]
     # Stage-A hints must name checks that actually exist and are certified elsewhere in the suite.
     real_stage_a_checks = {"godot_parse", "godot_render", "python_syntax", "json_valid"}
     for t in tickets:

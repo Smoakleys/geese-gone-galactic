@@ -440,6 +440,27 @@ def one_pond_tickets() -> "list[Ticket]":
                  "expect": (1, 0)},
                 {"module": "nearest_fence.py", "call": "nearest_fence((0, 0), [])", "expect": None},
             ]),
+        Ticket(
+            id="OP-20",
+            title=("count_by_kind.py: a building inventory. count_by_kind(buildings) takes a list of dicts "
+                   "each with a 'kind' and returns a DICT mapping each kind present to how many there are. "
+                   "Kinds with zero are absent from the dict; an empty list returns an empty dict {}. "
+                   "Pure Python returning a dict."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="dict of kind -> count; empty list -> {}",
+                                    stage=Stage.B, rubric_ref="onepond/inventory"),
+            ],
+            behavior=[
+                {"module": "count_by_kind.py",
+                 "call": "count_by_kind([{'kind':'bakery'},{'kind':'bakery'},{'kind':'nest'}])",
+                 "expect": {"bakery": 2, "nest": 1}},
+                {"module": "count_by_kind.py", "call": "count_by_kind([])", "expect": {}},
+                {"module": "count_by_kind.py", "call": "count_by_kind([{'kind':'well'}])",
+                 "expect": {"well": 1}},
+            ]),
     ]
     for t in tickets:
         t.freeze()
