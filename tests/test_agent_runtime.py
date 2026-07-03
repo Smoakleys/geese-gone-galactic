@@ -49,6 +49,26 @@ def test_run_tool_shows_the_error_at_the_end_of_long_output(tmp_path):
     assert "head truncated" in res.output            # and it was the head, not the error, that was dropped
 
 
+def test_run_agent_injects_late_notebook_lessons(tmp_path):
+    # harness-mod-53 proof: the WHOLE curated notebook reaches Icarus. Capture what the model receives and
+    # assert a LATE lesson (the Godot-4 `.translation` rule, past the old 2000-char cap) is in the prompt.
+    from harness.icarus.agent.runtime import run_agent, ScriptedAgentModel
+    from game.godot.lessons import godot_notebook
+
+    seen = {}
+
+    class Capturing(ScriptedAgentModel):
+        def complete(self, messages):
+            seen.setdefault("messages", [dict(m) for m in messages])
+            return super().complete(messages)
+
+    model = Capturing(["```tool\nname: finish\nsummary: done\n```"])
+    run_agent(model, "build a scene", tmp_path, notebook=godot_notebook(), use_notebook=True, max_steps=1)
+    joined = "\n".join(m["content"] for m in seen["messages"])
+    assert "NOTEBOOK" in joined                      # the notebook was injected
+    assert "translation" in joined                   # ...including the late lesson the old cap dropped
+
+
 def test_curated_notebook_fits_the_injection_cap():
     # run_agent injects nb[:_NOTEBOOK_CHAR_CAP]; if the curated seed exceeds it, later lessons are silently
     # cut from Icarus's prompt (that dropped the Godot-4 `.translation` rule -> the OP-35 bug). Guard it.
