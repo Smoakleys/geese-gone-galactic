@@ -98,6 +98,24 @@ def test_godot_render_fails_degenerate_land_only_scene(tmp_path):
     assert "degenerate" in res.evidence
 
 
+def test_one_call_prop_helpers_compose_parse_and_render(tmp_path):
+    # Teaching Icarus: a scene written with the high-level add_building/add_goose helpers must compose into a
+    # valid, RENDERABLE village (this is how a small model builds good scenes cheaply). Uses tabs like a
+    # local model would; compose_scene normalises them.
+    from game.godot.scene_template import compose_scene
+    content = ("func build(root):\n"
+               "\tadd_plane(root, Vector2(20, 20), Color(0.42, 0.62, 0.32))\n"
+               "\tadd_plane(root, Vector2(7, 7), Color(0.28, 0.52, 0.72), 0.02)\n"
+               "\tadd_building(root, \"bakery\", Vector3(-3, 0, -2))\n"
+               "\tadd_building(root, \"granary\", Vector3(-3, 0, 1))\n"
+               "\tadd_goose(root, Vector3(2.5, 0, 1.5), 0.5, -1.0)\n")
+    scene = compose_scene(content)
+    assert "func add_goose" in scene and "func add_building" in scene   # helpers injected
+    (tmp_path / "scene.gd").write_text(scene)
+    assert GodotParseCheck().run(tmp_path, _ticket()).result == Result.PASS
+    assert GodotRenderCheck().run(tmp_path, _ticket()).result == Result.PASS
+
+
 def test_canonical_one_pond_scene_parses_and_renders(tmp_path):
     # The repo's canonical Icarus-built One Pond scene must always clear both certified gates.
     from pathlib import Path
