@@ -18,6 +18,14 @@ def test_building_lines_cover_every_pond_kind():
         assert all(not ln.startswith("\t") for ln in lines)           # spaces, never tabs (mixed = parse err)
 
 
+def test_tree_is_scenery_with_trunk_and_leaves():
+    lines = M.tree_lines((0, 0, 0))
+    body = "\n".join(lines)
+    assert "_cyl(" in body                                            # a trunk
+    assert body.count("_ball(") >= 2                                  # leaf blobs
+    assert M.building_lines("tree", (0, 0, 0))                        # reachable via the dispatcher too
+
+
 def test_unknown_building_kind_falls_back_to_a_hut():
     lines = M.building_lines("mystery-hall", (1, 0, 2))
     assert lines and any("_prism" in ln for ln in lines)              # still a roofed prop, not a crash

@@ -187,6 +187,13 @@ func add_fence(root, pos):
         _part(root, _boxm(Vector3(0.12, 0.7, 0.12)), Color(0.55, 0.36, 0.22), pos + Vector3(dx, 0.35, 0))
     _part(root, _boxm(Vector3(1.4, 0.12, 0.08)), Color(0.55, 0.36, 0.22), pos + Vector3(0, 0.5, 0))
 
+# A round bushy tree (scenery) at `pos`, scaled by `s`.
+func add_tree(root, pos, s = 1.0):
+    _part(root, _cyl(0.16, 1.1), Color(0.45, 0.31, 0.19), pos + Vector3(0, 0.55, 0) * s, Vector3.ONE * s)
+    _part(root, _ball(0.85), Color(0.30, 0.52, 0.26), pos + Vector3(0, 1.5, 0) * s, Vector3.ONE * s)
+    _part(root, _ball(0.62), Color(0.34, 0.57, 0.29), pos + Vector3(0.28, 2.05, 0.1) * s, Vector3.ONE * s)
+    _part(root, _ball(0.6), Color(0.34, 0.57, 0.29), pos + Vector3(-0.3, 1.95, -0.1) * s, Vector3.ONE * s)
+
 func add_building(root, kind, pos):
     match kind:
         "bakery": add_bakery(root, pos)
@@ -194,6 +201,7 @@ func add_building(root, kind, pos):
         "nest": add_nest(root, pos)
         "well": add_well(root, pos)
         "fence": add_fence(root, pos)
+        "tree": add_tree(root, pos)
         _: add_bakery(root, pos)
 
 '''
@@ -244,7 +252,7 @@ def _sanitize(build_fn: str) -> str:
     (``helpers.add_plane`` / ``self.add_box`` -> ``add_plane`` / ``add_box``)."""
     fn = re.sub(r"(?m)^\s*var\s+\w+\s*=\s*(?:preload|load)\([^\n]*\n", "", build_fn)
     fn = re.sub(r"\b[A-Za-z_]\w*\.(add_plane|add_box|add_sphere|add_goose|add_building|"
-                r"add_bakery|add_granary|add_nest|add_well|add_fence)\b", r"\1", fn)
+                r"add_bakery|add_granary|add_nest|add_well|add_fence|add_tree)\b", r"\1", fn)
     # GDScript has NO keyword arguments -- a small model writes Python-isms like add_plane(..., y=0.1)
     # or pos=Vector3(...), which are parse errors. Strip a `name=` that appears as a call argument.
     fn = re.sub(r"([(,]\s*)[A-Za-z_]\w*\s*=\s*(?!=)", r"\1", fn)
