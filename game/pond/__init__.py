@@ -9,6 +9,7 @@ from game.pond.bread_tick import tick
 from game.pond.granary import production
 from game.pond.placement import is_valid
 from game.pond.pond_economy import tick_bread
+from game.pond.pond_advice import pond_advice
 from game.pond.pond_outcome import pond_outcome
 from game.pond.pond_scene import build_body
 from game.pond.pond_score import pond_score
@@ -19,6 +20,6 @@ from game.pond.water_access import has_water
 
 __all__ = [
     "tick", "production", "is_valid", "tick_bread", "pond_outcome",
-    "build_body", "pond_score", "add_building", "step", "pond_status",
-    "is_safe", "has_water",
+    "build_body", "pond_score", "pond_advice", "add_building", "step",
+    "pond_status", "is_safe", "has_water",
 ]
