@@ -58,6 +58,22 @@ def test_godot_render_skips_when_no_scene(tmp_path):
     assert res.result == Result.SKIP
 
 
+def test_godot_render_fails_on_runtime_script_error(tmp_path):
+    # A scene that crashes mid-_ready() (here: treating add_plane's void return as a node) still emits a
+    # PARTIAL png at rc=0; the gate must FAIL it on the logged SCRIPT ERROR, not pass the half-built frame.
+    from game.godot.scene_template import compose_scene
+    scene = compose_scene(
+        "func build(root):\n"
+        "\tadd_plane(root, Vector2(16, 16), Color.GREEN)\n"
+        "\tvar p = add_plane(root, Vector2(6, 6), Color.BLUE, 0.1)\n"
+        "\tp.translation = Vector3(1, 0, 0)\n"        # p is null (add_plane returns void) -> runtime error
+    )
+    (tmp_path / "scene.gd").write_text(scene)
+    res = GodotRenderCheck().run(tmp_path, _ticket())
+    assert res.result == Result.FAIL, res.evidence
+    assert "runtime error" in res.evidence
+
+
 def test_godot_render_fails_degenerate_land_only_scene(tmp_path):
     # A scene that renders ONLY green land (no pond/building/goose) is degenerate and must FAIL, even
     # though it clears the green-dominance floor -- the distinct-scene-colours bar catches it.
