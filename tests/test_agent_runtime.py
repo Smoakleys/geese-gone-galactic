@@ -403,3 +403,17 @@ def test_tool_sandbox_rejects_path_traversal(tmp_path):
         assert not res.ok, call.args                         # rejected, never OK
         assert ("escapes the workspace" in res.output or "no such" in res.output), res.output
     assert not (tmp_path.parent.parent / "escaped.txt").exists()   # nothing written outside
+
+
+def test_placeholder_write_body_is_rejected(tmp_path):
+    # gpt-oss sometimes writes the protocol's `body:` placeholder literally -> a do-nothing file (a real
+    # class of empty-output battery failures). exec_tool must reject it so it writes real code.
+    from harness.icarus.agent.runtime import exec_tool, ToolCall, _is_placeholder_body
+    for junk in ('<code>', '<file contents>', '  <your code here>  '):
+        r = exec_tool(ToolCall('write_file', {'path': 'a.py'}, junk), tmp_path)
+        assert not r.ok and 'PLACEHOLDER' in r.output
+        assert not (tmp_path / 'a.py').exists()
+    # real code is accepted
+    r = exec_tool(ToolCall('write_file', {'path': 'a.py'}, 'print(1)'), tmp_path)
+    assert r.ok and (tmp_path / 'a.py').read_text() == 'print(1)'
+    assert not _is_placeholder_body('print(1)') and _is_placeholder_body('<code>')
