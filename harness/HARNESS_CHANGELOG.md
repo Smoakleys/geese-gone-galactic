@@ -497,3 +497,12 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   Icarus's OWN verified successes as free fine-tuning data (the plan's real lever for raising *unaided*
   capability beyond the base-model ceiling). Only distills modules that cleared the gate. Generated
   data/onepond_sft.jsonl (the One Pond solutions). The QLoRA run itself is an external GPU step. 328 tests.
+
+## harness-mod-52 - Reviewer sees the full artifact (raise per-file cap 2000 -> 6000)
+- harness/review/model_client.py: `_render_prompt` capped each artifact at 2000 chars. A templated Godot
+  scene is camera + helpers (~1815 chars) + `build()`, so the cap cut off the actual scene logic and the
+  Stage-B reviewer judged scenes nearly blind (found while debugging why OP-33's goose kept escalating).
+  Raised to a named `_ARTIFACT_CHAR_CAP = 6000` so a full scene / long module is visible, still well inside
+  num_ctx 8192. HONEST SCOPE: this removes the truncation blindfold only; for abstract low-poly scenes even
+  a fully-fed TEXT reviewer is an unreliable visual judge (see memory ggg-abstract-visuals-fail-judges) --
+  the real lever for goose-recognizability is art or a vision gate, not this. 367 tests.
