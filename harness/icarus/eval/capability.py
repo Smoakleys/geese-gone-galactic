@@ -420,6 +420,30 @@ def gen_granary(rng: Random) -> TaskInstance:
         verify)
 
 
+def gen_pond_score(rng: Random) -> TaskInstance:
+    """The pond net-worth score (a One Pond mechanic): bread plus weighted building values."""
+    bread = rng.randint(0, 30)
+    counts = {k: rng.randint(0, 3) for k in ("bakery", "granary", "nest", "well")}
+    weights = {"bakery": 10, "granary": 5, "nest": 3}
+    total = bread + sum(counts[k] * weights.get(k, 2) for k in counts)
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        try:
+            rc, out, err = _run_py(ws, "score.py")
+        except Exception as e:
+            return False, f"could not run score.py: {e}"
+        return out.strip() == str(total), f"expected {total}, got {out.strip()!r}"
+
+    cs = ", ".join(f"{counts[k]} {k}" for k in ("bakery", "granary", "nest", "well"))
+    return TaskInstance(
+        f"pondscore_{bread}br_{counts['bakery']}{counts['granary']}{counts['nest']}{counts['well']}",
+        "game-logic",
+        f"Score a goose pond. It has {bread} bread and these buildings: {cs}. The score is the bread plus, "
+        f"per building, 10 for a bakery, 5 for a granary, 3 for a nest, and 2 for anything else (a well). "
+        f"Print ONLY the integer score. Write score.py and run it to verify.",
+        verify)
+
+
 def gen_gdscript(rng: Random) -> TaskInstance:
     """The real domain: write valid Godot 4 GDScript, self-verifiable via godot --check-only."""
     n = rng.randint(2, 4)
@@ -601,8 +625,8 @@ def gen_pond_from_template(rng: Random) -> TaskInstance:
 def default_generators() -> "list[Callable[[Random], TaskInstance]]":
     return [gen_sum, gen_reverse, gen_json, gen_fizzbuzz,
             gen_fix_bug, gen_fix_range_bug, gen_read_sum, gen_find_secret, gen_economy, gen_placement,
-            gen_pond_tick, gen_water_access, gen_predator_safety, gen_granary, gen_gdscript, gen_render,
-            gen_bakery_scene]
+            gen_pond_tick, gen_water_access, gen_predator_safety, gen_granary, gen_pond_score,
+            gen_gdscript, gen_render, gen_bakery_scene]
 
 
 def sample_battery(seed: int = 0, per_generator: int = 1,

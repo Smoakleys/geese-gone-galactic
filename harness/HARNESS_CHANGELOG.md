@@ -471,3 +471,8 @@ without a matching entry. Reverts are one command via the token in `harness/reve
 - harness/icarus/eval/capability.py: added `gen_granary` (bakeries*(3+granaries) synergy formula,
   deterministic checker) + registered in `default_generators()`. Covers the granary-synergy mechanic in
   the sealed unaided battery. Verifier tested pass+fail. 298 tests.
+
+## harness-mod-48 - Grow the capability battery: gen_pond_score
+- harness/icarus/eval/capability.py: added `gen_pond_score` (bread + weighted building values, deterministic
+  checker) + registered in `default_generators()`. The sealed unaided battery now covers the game-logic
+  breadth: economy, placement, pond-tick, water, predator, granary, score. Verifier tested. 299 tests.

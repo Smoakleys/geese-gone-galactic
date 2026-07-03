@@ -65,6 +65,23 @@ def test_granary_verifier_pass_and_fail(tmp_path):
     assert not bad
 
 
+def test_pond_score_verifier_pass_and_fail(tmp_path):
+    from harness.icarus.eval.capability import gen_pond_score
+    inst = gen_pond_score(Random(5))
+    parts = inst.id.split("_")                        # pondscore_{bread}br_{b}{g}{n}{w}
+    bread = int(parts[1][:-2])
+    b, g, n, w = (int(c) for c in parts[2])
+    total = bread + b * 10 + g * 5 + n * 3 + w * 2
+    ws = tmp_path / inst.id
+    ws.mkdir()
+    (ws / "score.py").write_text(f"print({total})\n")
+    ok, _ = inst.verify(ws)
+    assert ok
+    (ws / "score.py").write_text(f"print({total + 1})\n")
+    bad, _ = inst.verify(ws)
+    assert not bad
+
+
 def test_bakery_scene_verifier_needs_a_building(tmp_path, monkeypatch):
     # verify passes only when the render shows ground + a building (>=3 colour regions), not a bare plane.
     import game.godot.capture as cap
