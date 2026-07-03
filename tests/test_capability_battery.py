@@ -80,17 +80,21 @@ def test_fixbug_setup_seeds_broken_file(tmp_path):
     assert ok2
 
 
-def test_brightest_mean_blank_is_black_not_uniform(tmp_path):
-    # Regression: a solid bright fill (a plane filling the frame) is a VALID render, not "blank".
-    # Only a near-black render is blank. (The old variance-based check wrongly failed uniform fills.)
+def test_green_dominance_distinguishes_green_from_gray_and_black(tmp_path):
+    # Regression for TWO gate bugs found by looking at real renders: a green plane that fills the
+    # frame (uniform, ~0 variance) IS valid, and a uniform GRAY background (camera saw nothing) is
+    # NOT valid even though it's bright. green_dominance passes only a real green scene.
     from PIL import Image
-    from game.godot.capture import BLANK_FLOOR, brightest_mean
-    green = tmp_path / "green.png"
-    Image.new("RGB", (32, 32), (0, 255, 0)).save(green)
-    black = tmp_path / "black.png"
-    Image.new("RGB", (32, 32), (0, 0, 0)).save(black)
-    assert brightest_mean(green) >= BLANK_FLOOR   # solid green fill is NOT blank
-    assert brightest_mean(black) < BLANK_FLOOR    # black IS blank
+    from game.godot.capture import green_dominance
+
+    def mk(name, rgb):
+        p = tmp_path / name
+        Image.new("RGB", (32, 32), rgb).save(p)
+        return p
+
+    assert green_dominance(mk("green.png", (0, 255, 0))) >= 15   # a green scene rendered
+    assert green_dominance(mk("gray.png", (77, 77, 77))) < 15    # gray background == empty (the miss)
+    assert green_dominance(mk("black.png", (0, 0, 0))) < 15      # black == blank
 
 
 @pytest.mark.skipif(godot_path() is None, reason="Godot not installed")

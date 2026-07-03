@@ -41,12 +41,15 @@ def render_gdscript(scene_gd: Path, out_png: Path, *, size: str = "512x512",
         if not out_png.exists():
             tail = (proc.stderr or proc.stdout or "").strip()[-200:]
             return False, f"no PNG produced (rc={proc.returncode}): {tail}"
-        # Surface a reliable "is it blank?" signal. BLANK means near-BLACK (the camera saw nothing) -
-        # NOT "uniform colour": a plane that fills the frame is a solid bright colour with ~0 variance
-        # yet is a perfectly good render. So the blank-detector is brightness, not variance.
+        # Surface an honest "did the scene actually render content?" signal. Two failure modes:
+        #   * near-BLACK  (camera saw nothing)                     -> brightest channel ~0
+        #   * uniform GRAY (only the default background, no scene) -> R~=G~=B (no colour)
+        # A real render has a coloured region, so it is neither near-black nor near-uniform.
         try:
-            b = brightest_mean(out_png)
-            note = f"rendered; brightness {b:.0f}" + (" - BLANK/black!" if b < BLANK_FLOOR else " (not blank)")
+            r, g, b = channel_means(out_png)
+            empty = max(r, g, b) < BLANK_FLOOR or (abs(r - g) < 8 and abs(g - b) < 8 and abs(r - b) < 8)
+            note = (f"rendered; mean RGB=({r:.0f},{g:.0f},{b:.0f})"
+                    + (" - looks EMPTY (uniform background; no scene content visible)" if empty else ""))
         except Exception:
             note = f"rendered (rc={proc.returncode})"
         return True, note
@@ -57,11 +60,18 @@ def render_gdscript(scene_gd: Path, out_png: Path, *, size: str = "512x512",
 BLANK_FLOOR = 20.0  # brightest-channel mean below this == a near-black (failed) render
 
 
-def brightest_mean(png: Path) -> float:
-    """Mean of the brightest RGB channel (0 == pure black). A solid bright colour scores high, so a
-    valid full-frame render passes; only a near-black/empty render fails. Requires Pillow."""
+def channel_means(png: Path) -> "tuple[float, float, float]":
+    """Per-channel (R,G,B) pixel means. Requires Pillow."""
     from PIL import Image, ImageStat
-    return max(ImageStat.Stat(Image.open(png).convert("RGB")).mean)
+    m = ImageStat.Stat(Image.open(png).convert("RGB")).mean
+    return m[0], m[1], m[2]
+
+
+def green_dominance(png: Path) -> float:
+    """How much greener than red/blue the render is. ~0 for gray/empty or black; high for a green
+    scene. The honest 'the green plane actually rendered' signal (a gray background scores ~0)."""
+    r, g, b = channel_means(png)
+    return g - max(r, b)
 
 
 def image_variance(png: Path) -> float:
