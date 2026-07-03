@@ -51,3 +51,13 @@ def test_run_command_dispatches_one_command():
     assert state["bread"] == 13 and "ticked" in msg          # +3 bakery
     _, msg = run_command(state, "wobble")                     # unknown verb -> graceful message
     assert "unknown command" in msg
+
+
+def test_interactive_loop_processes_commands_and_quits(monkeypatch, capsys):
+    # cover the actual playable-game loop: fed commands via stdin, it processes each and exits on 'quit'.
+    from ops import play_commands
+    feed = iter(["build bakery", "tick", "status", "quit"])
+    monkeypatch.setattr("builtins.input", lambda prompt="": next(feed))
+    play_commands.interactive()
+    out = capsys.readouterr().out
+    assert "built bakery" in out and "ticked" in out and "Pond:" in out   # each command ran + printed
