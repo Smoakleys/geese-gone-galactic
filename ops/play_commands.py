@@ -17,7 +17,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from game.pond import (  # noqa: E402
-    add_building, apply_event, parse_command, pond_rank, pond_report, pond_score, pond_status, step,
+    add_building, apply_event, parse_command, pond_rank, pond_score, pond_status, report, step,
 )
 
 GRID = 8
@@ -44,7 +44,7 @@ def play(commands: "list[str]", verbose: bool = True) -> dict:
             msg = f"ticked -> {state['bread']} bread"
         elif verb == "status":
             st = pond_status(state, REACH)
-            msg = pond_report(state["bread"], pond_rank(pond_score(state)), st["safe"])
+            msg = report(state["bread"], pond_rank(pond_score(state)), st["safe"])
         else:
             msg = f"unknown command: {text!r}"
         if verbose:
