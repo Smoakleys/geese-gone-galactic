@@ -1,67 +1,59 @@
 """Render an actual pond STATE to a lit 3D image — the logic→visual bridge, packaged.
 
 The two halves of the game were built separately: `game/pond` is the simulation (a state = bread +
-buildings), and `game/godot` renders hand-authored scenes. This connects them: `build_body` turns a
-state's buildings into `add_box` statements, the lit scene template wraps them with land + pond + camera +
-lighting, and we render a PNG. So a PLAYED game — the state you actually reached — can be SEEN as a 3D
-scene, not just the static authored scenes. Every produced scene still clears the same `godot_render` gate.
+buildings). This connects them to the shared low-poly MODEL library (`game/godot/models.py`): each placed
+building becomes its modelled prop (a roofed bakery, a silo granary, a nest with eggs, a well, a fence),
+each nest gets a goose beside it, and it's composed on grass + a pond with a lit iso camera. So a PLAYED
+game — the state you actually reached — is SEEN with the same cozy look as the authored scenes, not as
+coloured cubes. The footprint is centred so the fixed camera frames ANY played state.
 """
 
 from __future__ import annotations
 
-import re
 import tempfile
 from pathlib import Path
 
 from game.godot.capture import render_gdscript
-from game.godot.scene_template import compose_scene
-from game.pond.pond_scene import build_body
+from game.godot import models as M
+
+
+# World units per grid cell: wide enough that props (~1.6) sit apart, tight enough that the framed pond +
+# buildings each stay a visible fraction of the render (the gate needs >= 3 distinct colours).
+_SPACING = 2.2
 
 
 def _footprint_center(buildings: "list[dict]") -> "tuple[float, float]":
-    """World-coord centre of the buildings' footprint. build_body maps grid x -> world x*2, so an 8-grid
-    spans world 0..14; the fixed template camera frames the ORIGIN, so we centre the footprint there
-    (otherwise high-coordinate buildings float off the land — a real bug on a played state)."""
+    """World-coord centre of the buildings' footprint (grid x -> world x*_SPACING). The fixed camera frames
+    the ORIGIN, so centring the footprint there keeps buildings on the land, not floating off."""
     if not buildings:
         return 0.0, 0.0
-    xs = [b["x"] * 2 for b in buildings]
-    zs = [b["y"] * 2 for b in buildings]
+    xs = [b["x"] * _SPACING for b in buildings]
+    zs = [b["y"] * _SPACING for b in buildings]
     return (min(xs) + max(xs)) / 2.0, (min(zs) + max(zs)) / 2.0
 
 
-def _geese_lines(buildings: "list[dict]", ox: float, oz: float) -> "list[str]":
-    """A little white goose (body + head + orange beak) beside each nest -- geese live by their nests, so a
-    rendered state shows the flock. One per nest (goose_count is 4/nest, too many to draw legibly).
-    Uses the same (ox, oz) footprint offset as the buildings so goose + nest stay together + on the land."""
-    lines: "list[str]" = []
-    for b in buildings:
-        if b.get("kind") == "nest":
-            bx, bz = b["x"] * 2 + 1.2 - ox, b["y"] * 2 - oz    # beside the nest, footprint-centred
-            lines.append(f"\tadd_sphere(root, 0.35, Color.WHITE, Vector3({bx:g}, 0.35, {bz:g}))")
-            lines.append(f"\tadd_sphere(root, 0.2, Color.WHITE, Vector3({bx:g}, 0.75, {bz - 0.25:g}))")
-            lines.append(f"\tadd_box(root, Vector3(0.16, 0.1, 0.1), Color(1, 0.5, 0), "
-                         f"Vector3({bx:g}, 0.75, {bz - 0.5:g}))")
-    return lines
-
-
 def pond_state_to_scene_gd(state: dict) -> str:
-    """Compose a full lit ``scene.gd`` that renders ``state``'s buildings + geese on land + a pond,
-    with the footprint centred so the fixed camera frames it for ANY played state."""
+    """Compose a full lit ``scene.gd`` that renders ``state``'s buildings (as modelled props) + a goose by
+    each nest on grass + a pond, footprint-centred + framed so the camera fits ANY played state."""
     buildings = state.get("buildings", [])
     ox, oz = _footprint_center(buildings)
-    # build_body emits "Vector3(<x> * 2, 0.5, <y> * 2)"; shift each by the footprint centre so the buildings
-    # sit on the centred land + in the camera's view instead of floating off toward world (14, 14).
-    body = re.sub(r"Vector3\((\d+) \* 2, 0\.5, (\d+) \* 2\)",
-                  lambda m: f"Vector3({int(m.group(1)) * 2 - ox:g}, 0.5, {int(m.group(2)) * 2 - oz:g})",
-                  build_body(buildings))
-    content = [
-        "func build(root: Node3D) -> void:",
-        "\tadd_plane(root, Vector2(16, 16), Color.GREEN)",   # land
-        "\tadd_plane(root, Vector2(6, 6), Color.BLUE, 0.1)",  # pond
+    span = 0.0
+    body = [
+        "    var grass := PlaneMesh.new()", "    grass.size = Vector2(40, 40)",
+        f"    _part(root, grass, {M.GRASS}, Vector3(0, 0, 0))",
+        "    var pond := PlaneMesh.new()", "    pond.size = Vector2(7, 7)",
+        f"    _part(root, pond, {M.POND}, Vector3(0, 0.02, 0))",
     ]
-    content += ["\t" + ln for ln in body.splitlines() if ln.strip()]
-    content += _geese_lines(buildings, ox, oz)                # a goose beside each nest, same offset
-    return compose_scene("\n".join(content))
+    for b in buildings:
+        wx, wz = b["x"] * _SPACING - ox, b["y"] * _SPACING - oz    # footprint-centred world position
+        span = max(span, abs(wx), abs(wz))
+        body += M.building_lines(b.get("kind", ""), (wx, 0.0, wz))
+    for b in buildings:                                       # a goose beside each nest (geese live there)
+        if b.get("kind") == "nest":
+            wx, wz = b["x"] * _SPACING - ox + 1.2, b["y"] * _SPACING - oz
+            body += M.goose_lines((wx, 0.0, wz), s=0.45, face=-1)
+    cam_size = max(9.0, span * 1.4 + 4.0)                     # tight frame: props stay a visible fraction
+    return M.compose_model_scene(body, cam_target=(0, 0.8, 0), cam_size=cam_size)
 
 
 def render_pond_state(state: dict, out_png: "str | Path") -> "tuple[bool, str]":
