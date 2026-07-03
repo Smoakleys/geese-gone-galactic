@@ -294,6 +294,11 @@ class AgentResult:
 
 _SYSTEM = """You are Icarus, a tool-driving coding agent. You act by emitting tool calls, one per turn.
 
+Be STUBBORN and RESOURCEFUL. When something fails, do NOT give up and do NOT repeat the same call: read the
+error, say in one line WHY it failed, then try a DIFFERENT approach (another method, tool, or angle) until
+it works. Verify your work (run it / render + see it) BEFORE you finish. Figuring a way around obstacles is
+the whole job.
+
 Respond with EXACTLY ONE fenced tool block and NOTHING ELSE (no prose outside the block):
 ```tool
 name: <write_file|read_file|list_files|search|run|see|render|note|finish>
@@ -366,6 +371,7 @@ def run_agent(model: AgentModel, task: str, workspace: Path, *,
     messages.append({"role": "user", "content": f"TASK:\n{task}\n\nEmit your first tool call now."})
     plan = ""
     consecutive_bad = 0
+    consecutive_errors = 0
     steps = 0
     for steps in range(1, max_steps + 1):
         try:
@@ -400,7 +406,20 @@ def run_agent(model: AgentModel, task: str, workspace: Path, *,
         except Exception as e:  # a tool raising (PermissionError, OSError, disk full, ...) is an
             # OBSERVATION, not a crash -- the whole agent run must not die because one file write failed.
             result = ToolResult(False, f"tool '{call.name}' errored: {type(e).__name__}: {e}")
-        status = "OK" if result.ok else "ERROR"
-        messages.append({"role": "user", "content": f"[{call.name}] {status}\n{result.output}"})
+        if result.ok:
+            consecutive_errors = 0
+            messages.append({"role": "user", "content": f"[{call.name}] OK\n{result.output}"})
+        else:
+            consecutive_errors += 1
+            content = f"[{call.name}] ERROR\n{result.output}"
+            if consecutive_errors >= 2:
+                # Stubborn-but-creative re-plan trigger: banging the same wall is not persistence. Force a
+                # diagnosis + a DIFFERENT approach instead of repeating the failing move or giving up.
+                content += (f"\n\n[REPLAN] That has failed {consecutive_errors} times in a row. Do NOT "
+                            "repeat the same call. In one line, state WHY it is failing; then take a "
+                            "DIFFERENT approach — a different tool, method, or angle (re-read the exact "
+                            "error, search the code/notebook, simplify, or verify a smaller piece). Keep "
+                            "going until it works; do not finish on a failing state.")
+            messages.append({"role": "user", "content": content})
 
     return AgentResult(State.MAX_STEPS, steps, plan, messages, str(workspace), False)

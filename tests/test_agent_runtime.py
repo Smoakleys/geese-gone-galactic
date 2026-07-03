@@ -81,6 +81,20 @@ def test_curated_notebook_fits_the_injection_cap():
         "out of the prompt — raise _NOTEBOOK_CHAR_CAP or split the seed")
 
 
+def test_repeated_failures_trigger_a_replan_nudge(tmp_path):
+    # Persistence (Bridger's feedback): banging the same wall is not acceptable. After >=2 consecutive tool
+    # ERRORs the loop must inject a [REPLAN] nudge forcing a different approach -- but not on the first miss.
+    from harness.icarus.agent.runtime import run_agent, ScriptedAgentModel
+    fail = "```tool\nname: read_file\npath: does_not_exist.txt\n```"
+    model = ScriptedAgentModel([fail, fail, "```tool\nname: finish\nsummary: done\n```"])
+    res = run_agent(model, "task", tmp_path, max_steps=5)
+    obs = [m["content"] for m in res.transcript
+           if m["role"] == "user" and m["content"].startswith("[read_file]")]
+    assert len(obs) >= 2, obs
+    assert "[REPLAN]" not in obs[0]          # first failure: just the error, no nagging
+    assert "[REPLAN]" in obs[1]              # second consecutive failure: forced to try a different approach
+
+
 def test_tool_exception_is_an_observation_not_a_crash(tmp_path, monkeypatch):
     # A tool raising (PermissionError from a locked file, disk full, any OSError) must NOT crash the whole
     # agent run -- it's an observation the agent reflects on. (A real place_n8 battery task crashed this way.)
