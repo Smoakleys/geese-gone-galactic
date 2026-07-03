@@ -28,14 +28,30 @@ Icarus improvement** (keep only if the unaided battery score rises).
 - [x] **One Pond core** — six Icarus-built modules `game/pond/{bread_tick,placement,pond_state,predator,
       pond_scene}.py` (+ `game/godot/scenes/one_pond.gd`), composed + tested; OP-1..OP-6 authored.
 
-## Now — keep building One Pond, one Icarus ticket per cycle
-- [ ] **Use `default_reviewer()` in the live pipeline by default** (not just demos); run the full backlog
-      under real review + precise criteria, and watch a bad build get reworked.
-- [ ] **More authored tickets**: building variety (granary/well), a scene that reflects placed buildings
-      (compose `pond_scene.build_body` from state), a playable tick loop.
-- [ ] **Retire the python economy toy** (`game/onepond` soldiers/campaigns/eras/launchpad/tiers) — the
-      real slice is `game/pond` + `game/godot`; quarantine the toy's floors (baseline_reset), keep green.
-- [ ] **Promote proven notebook lessons** into the curated seed; grow the battery with each mechanic.
+## DONE (PRs #146–174) — gate hardened, game deepened, mission proven
+- [x] **Deterministic behavioural check** (`python_behavior`, harness-mod-44/45): exact-output gating from
+      a ticket's `behavior` examples; wired into `default_registry`; on EVERY logic ticket. Ends the
+      exact-output whack-a-mole (OP-6 `\n`, OP-8 `'baker'`).
+- [x] **`default_reviewer()` is the live default** — the full backlog ran under real review; a bad build
+      was reworked (OP-5 in the capstone; the behavioural gate forces pinned criteria on rebuild).
+- [x] **CAPSTONE**: full authored backlog committed **9/9 @ autonomy 1.0** through the full gate, unattended.
+- [x] **Honest UNAIDED north star measured: 10/12 = 0.83** (all game-logic 4/4; only structural miss is
+      complex 3D render on the 16GB-resident model).
+- [x] **One Pond deepened to ELEVEN agent-built modules** under a clean `game/pond` API (economy w/ granary
+      synergy, placement, sim, predator safety, granary, composed economy, state→scene bridge, status,
+      win/lose outcome, water access) + `one_pond_full.gd` with 5 coloured building types.
+- [x] **Stale docs truthed-up**: CLAUDE.md (v1→v3), HANDOFF, SCORECARD, SPEED, memory, game/pond/README.
+- [x] **Process discipline hardened** after two red-mains: build module FIRST, commit ticket+module+test
+      TOGETHER, VERIFY GREEN before merge.
+
+## Now — optional; the mission is comprehensively proven. Pick by value.
+- [ ] **More authored One Pond tickets** — one Icarus ticket per cycle (population/capacity, a market,
+      richer outcome), each pinned + behaviour-gated + green-verified.
+- [ ] **Retire the python economy toy** (`game/onepond`) — DEFERRED, genuinely risky: 3 v1 governance
+      tests (flywheel×2, phase4) still use it as a sample artifact. Now clearly DOCUMENTED as dead
+      (CLAUDE.md, README) so it can't mislead; safe deletion needs migrating those tests first.
+- [ ] **Advance the UNAIDED battery number** (the true north star) — hard: it's now largely model-limited
+      on the 16GB card; any harness change kept ONLY if unaided rises.
 
 ## Candidate increments (pick by value, not order)
 - [ ] Improve Icarus each cycle (prompt/packet/tooling/**model**-swap or ensemble) toward higher
