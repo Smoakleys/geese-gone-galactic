@@ -394,9 +394,16 @@ def run_agent(model: AgentModel, task: str, workspace: Path, *,
         if call is None:
             consecutive_bad += 1
             if consecutive_bad >= 3:
+                # Observed with gpt-oss: after building + rendering a good scene it emits a prose summary
+                # instead of a `finish` tool call. If it already VERIFIED its work (ran/rendered), treat that
+                # as an implicit finish -> DONE, not STUCK -- the artifact is produced + verified, and the
+                # gate still decides quality regardless of this state. Only STUCK if it never got anywhere.
+                if verified:
+                    return AgentResult(State.DONE, steps, plan, messages, str(workspace), True)
                 return AgentResult(State.STUCK, steps, plan, messages, str(workspace), False)
             messages.append({"role": "user", "content":
-                "ERROR: no valid ```tool block found. Emit EXACTLY ONE tool call in a ```tool fence."})
+                "ERROR: no valid ```tool block found. Emit EXACTLY ONE tool call in a ```tool fence "
+                "(use `finish` if you have already verified your work)."})
             continue
         consecutive_bad = 0
 
