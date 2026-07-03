@@ -19,13 +19,15 @@ from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from game.pond import add_building, step, goose_count, pond_score, pond_rank, pond_status   # noqa: E402
+from game.pond import (add_building, step, goose_count, pond_score, pond_rank,   # noqa: E402
+                       pond_status, apply_event)
 from game.art_view import compose_pond_art                                                   # noqa: E402
 
 GRID = 8
 REACH = 2
 _SLOTS = [(x, y) for y in range(GRID) for x in range(GRID)]
 KINDS = ("bakery", "granary", "nest", "well", "fence")
+EVENTS = ("harvest", "fox", "flood")
 
 
 class GameSession:
@@ -33,12 +35,26 @@ class GameSession:
 
     def __init__(self) -> None:
         self.state: dict = {"bread": 30, "buildings": []}
+        self.last_msg: str = "Welcome! Build your pond."
 
     def act(self, action: str) -> str:
-        """Apply a button action ('build_<kind>' | 'tick'); return a short status message."""
+        """Apply a button action; store + return a short status message shown on the page."""
+        self.last_msg = self._do(action)
+        return self.last_msg
+
+    def _do(self, action: str) -> str:
         if action == "tick":
             self.state = step(self.state)
-            return f"ticked -> {self.state['bread']} bread"
+            return f"a day passes — {self.state['bread']} bread"
+        if action == "reset":
+            self.state = {"bread": 30, "buildings": []}
+            return "a fresh pond"
+        if action.startswith("event_"):
+            name = action[len("event_"):]
+            if name not in EVENTS:
+                return f"unknown event: {name}"
+            self.state = apply_event(self.state, name)
+            return f"{name}! — {self.state['bread']} bread"
         if action.startswith("build_"):
             kind = action[len("build_"):]
             if kind not in KINDS:
@@ -47,8 +63,8 @@ class GameSession:
                 nxt = add_building(self.state, kind, x, y, GRID)
                 if len(nxt["buildings"]) > len(self.state["buildings"]):
                     self.state = nxt
-                    return f"built {kind}"
-            return f"no room for {kind}"
+                    return f"built a {kind}"
+            return f"no room for a {kind}"
         return f"unknown action: {action}"
 
     def status(self) -> str:
@@ -71,25 +87,30 @@ def _tmp_png() -> str:
     return path
 
 
-def _page(session: GameSession, msg: str = "") -> bytes:
+def _page(session: GameSession, msg: "str | None" = None) -> bytes:
     import time
-    buttons = "".join(
-        f'<a class="btn" href="/act?do=build_{k}">Build {k.title()}</a>' for k in KINDS)
+    msg = session.last_msg if msg is None else msg
+    builds = "".join(f'<a class="btn" href="/act?do=build_{k}">Build {k.title()}</a>' for k in KINDS)
+    events = "".join(f'<a class="btn ev" href="/act?do=event_{e}">{e.title()}</a>' for e in EVENTS)
     html = f"""<!doctype html><html><head><meta charset="utf-8"><title>One Pond</title>
 <style>
- body{{background:#dce9f2;font-family:system-ui,sans-serif;text-align:center;margin:0;padding:18px}}
- h1{{color:#3a6b4f;margin:6px}} .status{{color:#456;margin:6px 0 12px}}
+ body{{background:linear-gradient(#bcd8ef,#e6d9e0);font-family:system-ui,sans-serif;text-align:center;
+   margin:0;padding:18px}}
+ h1{{color:#3a6b4f;margin:6px}} .status{{color:#456;margin:6px 0 4px;font-weight:600}}
+ .msg{{color:#6a7a88;font-size:14px;height:18px;margin-bottom:8px}}
  img{{max-width:96%;border-radius:16px;box-shadow:0 8px 30px #0003}}
- .bar{{margin:14px auto}}
+ .bar{{margin:12px auto}}
  .btn{{display:inline-block;margin:4px;padding:9px 15px;background:#7cc06a;color:#fff;border-radius:10px;
-   text-decoration:none;font-weight:600;box-shadow:0 3px 0 #5a9a4c}} .btn:hover{{background:#8fce7d}}
- .tick{{background:#e8a54c;box-shadow:0 3px 0 #c6842f}} .msg{{color:#789;font-size:13px;height:16px}}
+   text-decoration:none;font-weight:600;box-shadow:0 3px 0 #5a9a4c}} .btn:hover{{filter:brightness(1.07)}}
+ .tick{{background:#e8a54c;box-shadow:0 3px 0 #c6842f}} .ev{{background:#6aa9d0;box-shadow:0 3px 0 #4c86ad}}
+ .reset{{background:#b48; box-shadow:0 3px 0 #935}}
 </style></head><body>
 <h1>🪿 One Pond</h1>
 <div class="status">{session.status()}</div>
-<img src="/pond.png?t={int(time.time()*1000)}" alt="your pond">
-<div class="bar">{buttons}<a class="btn tick" href="/act?do=tick">Tick ⏱</a></div>
 <div class="msg">{msg}</div>
+<img src="/pond.png?t={int(time.time()*1000)}" alt="your pond">
+<div class="bar">{builds}<a class="btn tick" href="/act?do=tick">Tick ⏱</a></div>
+<div class="bar">{events}<a class="btn reset" href="/act?do=reset">Reset</a></div>
 </body></html>"""
     return html.encode("utf-8")
 
