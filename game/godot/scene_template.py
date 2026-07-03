@@ -125,4 +125,9 @@ def materialize_templated_scene(artifact_dir: "Path | str") -> None:
             continue
         if "func build" in text:
             (d / "scene.gd").write_text(compose_scene(text), encoding="utf-8")
+            # Remove the incomplete source: it CALLS add_plane/add_box without defining them, so
+            # godot_parse (which checks every .gd) would reject it and fail the whole artifact. Only the
+            # composed scene.gd should be gated.
+            if p.resolve() != (d / "scene.gd").resolve():
+                p.unlink(missing_ok=True)
             return

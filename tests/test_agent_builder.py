@@ -134,6 +134,7 @@ def test_materialize_templated_scene_composes_and_is_noop_when_present(tmp_path)
     materialize_templated_scene(tmp_path)
     scene = (tmp_path / "scene.gd").read_text()
     assert "extends Node3D" in scene and "Camera3D" in scene and "func build" in scene
+    assert not (tmp_path / "content.gd").exists()         # incomplete source removed (would fail parse)
     materialize_templated_scene(tmp_path)                 # no-op now that scene.gd exists
     assert (tmp_path / "scene.gd").read_text() == scene
 
