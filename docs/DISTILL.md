@@ -30,6 +30,16 @@ large, verified, non-memorisable SFT data with no hand-authoring.
 Python. Eyeball a few: instructions should read as real tasks, outputs as clean modules.
 
 ## 3. QLoRA fine-tune (EXTERNAL GPU job — not run here)
+
+**Local feasibility CHECKED 2026-07-03 — confirmed external.** None of the training stack is installed on
+this box (`torch`, `transformers`, `peft`, `trl`, `bitsandbytes`, `unsloth`, `datasets`, `accelerate` all
+missing). Beyond install, the blocker is hardware: the AMD RX 9070 XT is **RDNA4**, whose ROCm *training*
+support is bleeding-edge, and 4-bit QLoRA needs `bitsandbytes`, whose ROCm/RDNA4 support is minimal. Ollama
+*inference* works on this card; *training* is a different, uncertain path. So the fine-tune is not a
+per-cycle increment — it needs a deliberate setup (most reliably a **cloud/CUDA GPU** for a few hours), the
+data (ready: 81 pairs), and the measure-keep-or-revert gate below. The data pipeline is done and waiting;
+the compute is the gap.
+
 First assemble the training file: `python ops/merge_sft.py` combines every `data/*_sft.jsonl` (authored +
 all generated batches) into a deduped `data/training_all.jsonl` — the fine-tune input.
 Ollama serves GGUF; QLoRA needs the base HF weights. Practical path:
