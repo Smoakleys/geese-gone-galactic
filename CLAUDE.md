@@ -34,16 +34,20 @@ game with it. Where things stand:
   `json_valid`, `godot_parse`, `godot_render`, and **`python_behavior`** (exact-output gating from a
   ticket's `behavior` examples) — plus a **real local Stage-B reviewer** (`default_reviewer()` =
   `LLMReviewer(OllamaChatClient)`, fail-closed). Commit authority still ONLY in `harness/gatekeeper.py`.
-- **One Pond is a real, playable game core built BY Icarus**: ten agent-built modules under a clean
-  `game/pond` API (economy w/ granary synergy, placement, sim, predator safety, granary, composed
-  economy, state→scene bridge, status, win/lose outcome) + rendered Godot scenes (`game/godot/scenes/`).
-  Every module is behaviour-locked by a test; integration tests drive place→tick→status→outcome→render.
-- **CAPSTONE**: the entire authored backlog (`game/onepond_tickets.py` OP-1..OP-9) committed **9/9 at
-  autonomy 1.0 in ~8 min, unattended** through the full gate. Honest UNAIDED north star = **10/12 = 0.83**
-  (all game-logic 4/4; only structural miss is complex 3D render on the 16GB-resident model).
-- **Speed solved**: the scene TEMPLATE (`game/godot/scene_template.py`) lets the fast resident model build
-  scenes ~19s instead of the offloaded 30B ~200s (see docs/SPEED.md). One live model run at a time (16GB).
-- **~287 tests pass:** `pip install -r requirements.txt && python -m pytest tests/ -q`.
+- **One Pond is a real, playable game core built BY Icarus**: **28 agent-built modules** under a clean
+  `game/pond` API (economy w/ granary synergy, placement, sim, predator safety, dynamic events, progression
+  rank, score, hints, planning, a text-command interface, save/load, state→scene bridge) + a logic→visual
+  renderer (`game/godot/pond_view.py: render_pond_state`). Every module is behaviour-locked by a test.
+- **Visuals are 3D-LIT** (`game/godot/scenes/`): OP-1..OP-36 scenes incl. detailed geese, a flock, and the
+  complete lit world (`detail_world.gd`). The scene template now adds a sun + lit materials (3D depth); the
+  honest ceiling is real 3D art (see memory [[ggg-abstract-visuals-fail-judges]]).
+- **CAPSTONE + session hardening**: the authored backlog committed at autonomy 1.0 through the full gate.
+  Honest UNAIDED north star re-measured **13/16 = 0.81** (2026-07-03, no regression). This session found +
+  fixed ~11 real bugs by probing (2 render-gate gaps; 3 agent context-truncation blindfolds — reviewer,
+  notebook, run-tool output — harness-mod-52..54; helper-return; self-verify; 2 SFT data-quality fixes).
+- **Speed solved**: the scene TEMPLATE lets the fast resident model build scenes ~19s (see docs/SPEED.md).
+- **388 tests pass:** `pip install -r requirements.txt && python -m pytest tests/ -q`. **Run pytest as its
+  OWN step and confirm green BEFORE commit+merge** (never bundle them — see [[ggg-gate-merge-on-green]]).
 - **`game/onepond/` is the DEAD v1 python toy** (launchpad/military drift) — superseded by `game/pond`,
   kept only because a few v1 governance tests (flywheel/phase4) still use it as a sample artifact. Do NOT
   extend it. The v1 bullets that used to live here (Phases 0.5–4, 112 tests, 6 military building types)
