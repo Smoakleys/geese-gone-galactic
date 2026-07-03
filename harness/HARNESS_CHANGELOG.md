@@ -575,3 +575,12 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   letting it bang the same wall or finish on a failing state. consecutive_errors resets on any OK.
   Embodies the plan's "re-plan when stuck" (Part 2A). Regression test: two failing tool calls -> the 2nd
   observation carries [REPLAN]; a success resets it.
+
+## harness-mod-61 - Self-verify before finishing (persistence, cont. of mod-60)
+- harness/icarus/agent/runtime.py: the loop accepted `finish` even if Icarus never ran/rendered its work,
+  undercutting the "verify before finishing" rule mod-60 added to the prompt. Now: if it wrote an artifact
+  (write_file) but never used a verification tool (run/render/see), the FIRST finish gets a one-time
+  [VERIFY] nudge ("run or render it, read the result, fix errors, then finish") instead of returning DONE;
+  a second finish (or if it already verified, or wrote nothing) is accepted. Advisory, never a hard block
+  (won't trap a task that legitimately needs no run). Embodies the plan's "self-verifies before it submits"
+  (Part 2A). Regression test: write->finish gets nudged once then DONE; write->run->finish is not nudged.
