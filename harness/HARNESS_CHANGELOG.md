@@ -373,3 +373,8 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   returning None and wasting the turn. STRICT improvement: a properly closed block always wins, and the
   fallback only fires when parse would otherwise be None -- so it can never lower a score, only recover
   turns that were previously lost. Tests cover the unclosed recovery + closed-block-preference. 228 tests.
+
+## harness-mod-33 - Water-access task: a spatial One Pond rule (breadth)
+- harness/icarus/eval/capability.py: gen_water_access - every goose nest must be within a Manhattan
+  reach of the pond's water (SAFE/UNSAFE), a distinct SPATIAL mechanic (vs the count-based economy /
+  placement tasks). Icarus's logic strength; on the default battery. Regression test covers it. 229 tests.

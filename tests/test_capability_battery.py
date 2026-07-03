@@ -159,6 +159,20 @@ def test_placement_verifier(tmp_path):
     assert not bad
 
 
+def test_water_access_verifier(tmp_path):
+    from harness.icarus.eval.capability import gen_water_access
+    inst = gen_water_access(Random(0))
+    expected = inst.id.split("_")[-1]              # "SAFE" or "UNSAFE"
+    ws = tmp_path / inst.id
+    ws.mkdir()
+    (ws / "water.py").write_text(f"print('{expected}')\n")
+    ok, _ = inst.verify(ws)
+    assert ok
+    (ws / "water.py").write_text(f"print('{'UNSAFE' if expected == 'SAFE' else 'SAFE'}')\n")
+    bad, _ = inst.verify(ws)
+    assert not bad
+
+
 def test_pond_tick_verifier(tmp_path):
     from harness.icarus.eval.capability import gen_pond_tick
     inst = gen_pond_tick(Random(0))
