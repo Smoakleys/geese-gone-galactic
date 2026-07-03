@@ -35,6 +35,23 @@ def test_sum_verifier_pass_and_fail(tmp_path):
     assert not bad
 
 
+def test_economy_verifier(tmp_path):
+    import re
+
+    from harness.icarus.eval.capability import gen_economy
+    inst = gen_economy(Random(0))
+    b, g, t, s = map(int, re.match(r"economy_(\d+)b_(\d+)g_(\d+)t_(\d+)s", inst.id).groups())
+    final = s + t * (b * 3 - g)
+    ws = tmp_path / inst.id
+    ws.mkdir()
+    (ws / "economy.py").write_text(f"print({final})\n")
+    ok, _ = inst.verify(ws)
+    assert ok
+    (ws / "economy.py").write_text("print(0)\n")
+    bad, _ = inst.verify(ws)
+    assert not bad
+
+
 def test_missing_solution_is_fail(tmp_path):
     inst = gen_sum(Random(3))
     (tmp_path / inst.id).mkdir()
