@@ -259,3 +259,13 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   renders). Per the gym rule (keep only measured improvements), the prompt was reverted; the render tool
   stays for a future, more capable setup (the bake-off / a stronger vision judge).
 - Gate untouched. 195 tests. Render tool tested offline; render pipeline verified live.
+
+## harness-mod-19 - Render feedback made deterministic; the render limit is model knowledge, not scaffolding
+- game/godot/capture.py: render_gdscript now surfaces the pixel VARIANCE in its result (e.g.
+  "variance 0.0 - BLANK"), so the render tool gives Icarus a reliable blank-detector instead of relying
+  on the weak 7B vision model. gen_render prompt tightened to point at it.
+- Measured honestly: this did NOT lift the render score (still 1/3 unaided; the earlier see-based loop
+  had regressed it to 0/3). gpt-oss:20b renders 2/3 scenes blank even WITH a deterministic blank signal -
+  it cannot reliably fix a non-rendering 3D scene. The bottleneck is the model's 3D-scene knowledge, not
+  the feedback. Per the gym rule, scaffolding that doesn't move the score isn't the lever here: the real
+  lever is model capability (the brain bake-off) or learned 3D patterns. Gate untouched. 195 tests.
