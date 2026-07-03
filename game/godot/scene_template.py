@@ -108,6 +108,9 @@ def _sanitize(build_fn: str) -> str:
     (``helpers.add_plane`` / ``self.add_box`` -> ``add_plane`` / ``add_box``)."""
     fn = re.sub(r"(?m)^\s*var\s+\w+\s*=\s*(?:preload|load)\([^\n]*\n", "", build_fn)
     fn = re.sub(r"\b[A-Za-z_]\w*\.(add_plane|add_box)\b", r"\1", fn)
+    # GDScript has NO keyword arguments -- a small model writes Python-isms like add_plane(..., y=0.1)
+    # or pos=Vector3(...), which are parse errors. Strip a `name=` that appears as a call argument.
+    fn = re.sub(r"([(,]\s*)[A-Za-z_]\w*\s*=\s*(?!=)", r"\1", fn)
     return fn
 
 
