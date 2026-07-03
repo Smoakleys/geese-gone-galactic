@@ -31,8 +31,15 @@ toy (that's superseded).
 | `sorted_by_distance.py` | OP-21 | `sorted_by_distance(cells, point)` — cells sorted by nearness (stable) |
 | `simulate_bread.py` | OP-22 | `simulate_bread(start, bakeries, nests, ticks)` — project the economy (per-tick clamp) |
 | `unique_kinds.py` | OP-23 | `unique_kinds(buildings)` — sorted distinct kinds present |
+| `affordable_buildings.py` | OP-27 | `affordable_buildings(bread)` — kinds you can afford |
+| `pond_event.py` | OP-28 | `apply_event(state, event)` — harvest/fox/flood dynamic events (new state) |
+| `parse_command.py` | OP-29 | `parse_command(text)` — `(verb, target)` for the text-command interface |
+| `serialize_pond.py` | OP-30 | `serialize_pond(state)` — save to a compact string |
+| `deserialize_pond.py` | OP-31 | `deserialize_pond(text)` — load from a string (round-trips with OP-30) |
+| `optimal_bakeries.py` | OP-32 | `optimal_bakeries(target, granaries)` — min bakeries for a bread target |
 
-_(OP-18..23 are utility/algorithm helpers — string/search/dict/sort/iteration/set shapes — that also
+_(OP-1/24/25/26 are Godot SCENES, see game/godot/scenes/README. OP-18..32 include utility/algorithm/IO
+helpers — string/search/dict/sort/iteration/set/parse/serialize/reverse-calc shapes — that also
 diversify the self-distillation training data; see `docs/DISTILL.md`.)_
 
 ## How they compose — the full economic loop
