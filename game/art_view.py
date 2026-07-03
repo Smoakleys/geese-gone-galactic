@@ -78,9 +78,9 @@ def compose_pond_art(state: dict, out_png: "str | Path", *, size: "tuple[int, in
         return (int(cx0 + (gx - gy) * _TILE_W / 2), int(cy0 + (gx + gy) * _TILE_H / 2))
 
     # pond: a big art sprite (or a soft blue diamond) centred
-    pond = _scaled("pond", int(H * 0.34))
+    pond = _scaled("pond", int(H * 0.27))
     if pond is not None:
-        canvas.alpha_composite(pond, (cx0 - pond.width // 2, cy0 - pond.height // 3))
+        canvas.alpha_composite(pond, (cx0 - pond.width // 2, cy0 - pond.height // 2))
     else:
         # a hand-drawn cozy pond: grassy bank + water + ripple highlight + a few lily pads (reads as
         # intentional, not a placeholder; replaced by pond.png once it generates)
