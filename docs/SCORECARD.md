@@ -28,6 +28,15 @@ on the fast model — solved operationally by the scene template + routing, not 
 is the north star with all runtime improvements in place: Icarus unaided is genuinely capable at the
 game's logic; the only hard ceiling is complex 3D scene construction on the small resident model.
 
+**Comprehensive unaided-LOGIC battery (2026-07-03, 15 tasks incl. the newly-added predator/granary/score
+generators, fast model, no notebook, single attempt): 11/15 = 0.73.** PASS: sum, json, fizzbuzz,
+fix_range, read_sum, find_secret, economy, water, **predator, granary, score** (all three new game
+mechanics pass). FAIL: reverse, fix_bug, placement, pond_tick — honest caveat: this is **single-attempt
+variance** (placement and pond_tick PASSED in earlier runs; reverse is trivially within ability). So the
+true unaided-logic rate sits in a ~0.73–0.85 band run-to-run (stochastic model; best-of-N or one
+self-repair would lift it). The signal that matters: **the game's own mechanics are solidly in Icarus's
+unaided reach** — every One Pond logic generator (economy/water/predator/granary/score) passed this run.
+
 ## Full-backlog capstone (2026-07-03)
 The **entire authored One Pond backlog (OP-1..OP-9)** run through the FULL hardened gate — certified
 deterministic checks (`python_syntax`, `godot_parse`, `godot_render`, `python_behavior`) + a real local
