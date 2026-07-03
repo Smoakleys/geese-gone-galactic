@@ -108,6 +108,23 @@ def test_a_bakery_without_a_well_is_not_watered():
     assert has_water([{"kind": "bakery", "x": 0, "y": 0}], 2) is False
 
 
+def test_advice_guides_a_pond_to_thriving():
+    # follow pond_advice step by step; it should walk an empty pond to a thriving one.
+    from game.pond.pond_advice import pond_advice
+    from game.pond.pond_outcome import pond_outcome
+    state = {"bread": 20, "buildings": []}
+
+    assert pond_advice(state, 2) == "build a bakery"
+    state = add_building(state, "bakery", 0, 0, 8)
+
+    assert pond_advice(state, 2) == "build a well"          # bakery now needs water
+    state = add_building(state, "well", 1, 0, 8)
+
+    assert pond_advice(state, 2) == "looking good"          # no nests -> nothing exposed
+    state = step(state)
+    assert pond_outcome(state, 2) == "thriving"             # the guided pond thrives
+
+
 def _nests_and_fences(state):
     nests = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "nest"]
     fences = [(b["x"], b["y"]) for b in state["buildings"] if b["kind"] == "fence"]
