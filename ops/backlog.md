@@ -81,15 +81,12 @@ Icarus improvement** (keep only if the unaided battery score rises).
       inflation) is MOOT: the scorecard is now the separate unaided battery, not the toy. So retiring is
       net-negative (loses harness coverage, risky migration, zero benefit). It's clearly labelled dead in
       CLAUDE.md + README so it can't mislead; do NOT extend it, but leave it as governance-test scaffolding.
-- [ ] **Strengthen the OBJECTIVE render gate (plan Lever 2; pairs with visuals path 2).** MEASURED gap
-      (2026-07-03): `godot_render` only floors green-dominance, so a DEGENERATE all-green scene (bare land,
-      no pond/goose) PASSES. Fix: add a "distinct SCENE colours" bar = significant colours EXCLUDING the
-      grey background must be >= 2 (land + >=1 element). CAUTION: the degenerate scene AND the certified good
-      fixture both show significant_colors=2 *including* grey — so a naive count won't separate them; needs a
-      background-excluding metric in `game/godot/capture.py` AND re-anchoring the good fixture to a
-      land+pond scene, then re-certify. Low urgency (Icarus's real tickets always build full scenes, so this
-      hasn't caused a bad commit) but it's the honest objective replacement for the unreliable subjective
-      "looks like a goose" bar (see memory ggg-abstract-visuals-fail-judges). Do under visuals path 2.
+- [x] **Strengthen the OBJECTIVE render gate (plan Lever 2)** — DONE (PR #276). `godot_render` now requires
+      >= 3 distinct significant colours (background + land + >=1 element), so a degenerate all-green
+      bare-land render FAILS instead of passing on green-dominance alone. Re-anchored the certified good
+      fixture to land+pond; certification re-verified (green-on-good, red-on-bad); all 5 committed scenes
+      still pass; the e2e render-gate test's own bare-land fixture got a pond; degenerate-render regression
+      test added. The honest objective bar, path-independent of the visuals-art decision.
 - [ ] **Advance the UNAIDED battery number** (the true north star) — the base-runtime prompt/routing levers
       are largely exhausted (model-limited on the 16GB card). The plan's REAL lever is now BUILT: the
       **self-distillation pipeline** (`harness/icarus/distill.py` + `ops/build_sft.py`, harness-mod-51)
