@@ -63,8 +63,16 @@ committed.
 local Stage-B reviewer behind the ChatClient seam, default-FAIL + fail-closed. Ran it on the buggy
 `pond_scene.py`: **gpt-oss:20b FAILed it in 4s** (flagged the backslash-n join) and qwen3:30b agreed. A
 real subjective reviewer now runs LOCALLY, unattended, no cloud key, and catches subtle behavioural bugs
-the StubReviewer waved through. Next: wire `LLMReviewer(OllamaChatClient)` (a model different from the
-builder, for independence) as the default Stage B in the live pipeline.
+the StubReviewer waved through. Wired as `default_reviewer()`.
+
+**Recurring lesson (OP-6, then OP-8): a reviewer only enforces what the criterion PINS.** OP-8's
+`tick_bread` had the right formula but matched `'baker'` instead of `'bakery'` (counts 0 bakeries →
+wrong). The real reviewer, judging against "counts kinds and returns bakeries*(3+granaries) - nests",
+passed it — the formula matched; the exact-string typo wasn't in scope. Fix each time: PIN the criterion
+(exact strings + a concrete input→output example, e.g. `tick_bread([...]) == 7`). The durable lever for
+this class (exact-output logic) is a **deterministic behavioural check** that runs the function against
+examples — more reliable than subjective review for typos. Deferred as a focused harness cycle; buggy
+modules are NOT committed.
 
 ## Caveat
 An earlier routed full-battery run measured 4/6, but it was the victim of GPU contention (two 30B tasks

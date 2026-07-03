@@ -121,8 +121,11 @@ def one_pond_tickets() -> "list[Ticket]":
             acceptance_criteria=[
                 AcceptanceCriterion(id="AC1", text="valid python (parses)",
                                     stage=Stage.A, check_hint="python_syntax"),
-                AcceptanceCriterion(id="AC2", text="tick_bread counts kinds and returns "
-                                    "bakeries*(3+granaries) - nests", stage=Stage.B, rubric_ref="onepond/economy2"),
+                AcceptanceCriterion(id="AC2", text="tick_bread must match kinds by the EXACT strings "
+                                    "'bakery', 'granary', 'nest' (NOT 'baker') and return "
+                                    "bakeries*(3+granaries) - nests. Concrete example that MUST hold: "
+                                    "tick_bread([{'kind':'bakery'},{'kind':'bakery'},{'kind':'granary'},"
+                                    "{'kind':'nest'}]) == 7", stage=Stage.B, rubric_ref="onepond/economy2"),
             ]),
     ]
     for t in tickets:
