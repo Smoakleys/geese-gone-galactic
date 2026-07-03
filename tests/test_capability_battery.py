@@ -4,9 +4,12 @@ from __future__ import annotations
 
 from random import Random
 
+import pytest
+
+from game.godot.binary import godot_path
 from harness.icarus.agent import ScriptedAgentModel
 from harness.icarus.eval import run_battery, sample_battery
-from harness.icarus.eval.capability import gen_find_secret, gen_fix_bug, gen_sum
+from harness.icarus.eval.capability import gen_find_secret, gen_fix_bug, gen_gdscript, gen_sum
 
 
 def test_sample_battery_reproducible_and_varies():
@@ -75,6 +78,21 @@ def test_fixbug_setup_seeds_broken_file(tmp_path):
     (ws / "solution.py").write_text(f"print({a + b})\n")  # fix it
     ok2, _ = inst.verify(ws)
     assert ok2
+
+
+@pytest.mark.skipif(godot_path() is None, reason="Godot not installed")
+def test_gdscript_verifier(tmp_path):
+    inst = gen_gdscript(Random(0))
+    ws = tmp_path / inst.id
+    ws.mkdir()
+    missing, _ = inst.verify(ws)          # no scene.gd yet
+    assert not missing
+    (ws / "scene.gd").write_text("extends Node3D\nfunc _ready() -> void:\n\tadd_child(Camera3D.new())\n")
+    ok, detail = inst.verify(ws)          # valid GDScript
+    assert ok, detail
+    (ws / "scene.gd").write_text("extends Node3D\nfunc _ready() -> void\n\tpass\n")  # missing colon
+    broke, _ = inst.verify(ws)
+    assert not broke
 
 
 def test_find_secret_setup_and_verify(tmp_path):

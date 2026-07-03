@@ -236,3 +236,12 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   find_secret (search) - make the scorecard discriminating. run_battery guards run_agent so one task
   crashing never kills the run.
 - Gate untouched. Tested: retry-degrades-to-stuck, setup/verifiers, battery resilience.
+
+## harness-mod-17 - GDScript on the scorecard (the game domain enters the battery)
+- harness/icarus/eval/capability.py: gen_gdscript - Icarus writes a Godot 4 GDScript scene (Node3D
+  with a Camera3D + N BoxMesh children), verified by `godot --check-only` (the exact check command is
+  handed to Icarus so it can self-verify with the run tool). Added to default_generators, so the honest
+  battery now measures the REAL domain, not just Python.
+- Live: gpt-oss:20b scored 8/8 unaided incl. GDScript (3/3 GDScript-only) - it writes valid GDScript 4
+  and self-checks. The syntax bar is easy; semantic RENDER tasks (must draw the right thing) are next.
+- Gate untouched.

@@ -208,9 +208,40 @@ def gen_find_secret(rng: Random) -> TaskInstance:
         "ONLY the <value> (the token after SECRET=) into a file named answer.txt.", verify, setup=setup)
 
 
+def gen_gdscript(rng: Random) -> TaskInstance:
+    """The real domain: write valid Godot 4 GDScript, self-verifiable via godot --check-only."""
+    n = rng.randint(2, 4)
+
+    def verify(ws: Path) -> "tuple[bool, str]":
+        from game.godot.binary import godot_path
+        gd = ws / "scene.gd"
+        if not gd.exists():
+            return False, "scene.gd not found"
+        godot = godot_path()
+        if godot is None:
+            return False, "godot not installed (cannot verify)"
+        try:
+            proc = subprocess.run([godot, "--headless", "--check-only", "--script", "scene.gd"],
+                                  cwd=str(ws), capture_output=True, text=True, timeout=60)
+        except Exception as e:
+            return False, f"godot check crashed: {e}"
+        return proc.returncode == 0, ("parses clean" if proc.returncode == 0
+                                      else f"parse error: {(proc.stderr or proc.stdout).strip()[-140:]}")
+
+    from game.godot.binary import godot_path as _gp
+    godot = _gp() or "godot"
+    prompt = (
+        f"Write a valid Godot 4 GDScript file named scene.gd. It must `extends Node3D` and, in its "
+        f"_ready() function, add a Camera3D (set to orthogonal projection) and {n} MeshInstance3D nodes "
+        f"(each given a BoxMesh) as children. It must PASS Godot's syntax check. You can verify it "
+        f"yourself with the run tool:\n  {godot} --headless --check-only --script scene.gd\n"
+        f"Read any parse error and fix it before finishing.")
+    return TaskInstance(f"gdscript_{n}", "gdscript", prompt, verify)
+
+
 def default_generators() -> "list[Callable[[Random], TaskInstance]]":
     return [gen_sum, gen_reverse, gen_json, gen_fizzbuzz,
-            gen_fix_bug, gen_read_sum, gen_find_secret]
+            gen_fix_bug, gen_read_sum, gen_find_secret, gen_gdscript]
 
 
 def sample_battery(seed: int = 0, per_generator: int = 1,
