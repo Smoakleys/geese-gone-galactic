@@ -221,6 +221,19 @@ def test_significant_colors_counts_regions(tmp_path):
     three.save(p3)
     assert significant_colors(p3) >= 3
 
+    # a SMALL building (~3% of frame, like a real iso bakery box) must still count as a 3rd region --
+    # regression for a too-strict 0.04 threshold that failed a real render (looked at the pixels).
+    small = Image.new("RGB", (100, 100), (100, 100, 100))      # bg
+    for y in range(40, 100):
+        for x in range(100):
+            small.putpixel((x, y), (0, 255, 0))                # ground (60%)
+    for y in range(55, 73):
+        for x in range(41, 59):
+            small.putpixel((x, y), (139, 69, 19))              # building 18x18 = 3.24%
+    ps = tmp_path / "small.png"
+    small.save(ps)
+    assert significant_colors(ps) == 3
+
 
 @pytest.mark.skipif(godot_path() is None, reason="Godot not installed")
 def test_gdscript_verifier(tmp_path):
