@@ -25,7 +25,10 @@ class PythonBehaviorCheck(Check):
     """Run authored input->output examples against the produced Python module; require exact results."""
 
     id = "python_behavior"
-    targets: list[str] = ["*.py"]
+    # targets are matched against ticket.kind (registry._applies), NOT filenames -- so this must be "*"
+    # to apply to every ticket kind. It was mistakenly ["*.py"], which never matches a kind and made the
+    # check SKIP in the live pipeline (harness-mod-50). It SKIPs internally when the ticket has no behavior.
+    targets: list[str] = ["*"]
     cost = CheckCost.DYNAMIC  # imports + executes the produced module
 
     def __init__(self) -> None:
