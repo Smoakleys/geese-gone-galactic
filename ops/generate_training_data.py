@@ -22,15 +22,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from harness.icarus.distill import is_trivial_hardcode, write_jsonl  # noqa: E402
 from harness.icarus.eval.capability import (  # noqa: E402
     gen_sum, gen_reverse, gen_json, gen_fizzbuzz, gen_fix_bug, gen_fix_range_bug, gen_read_sum,
-    gen_find_secret, gen_economy, gen_placement, gen_pond_tick, gen_water_access, gen_predator_safety,
-    gen_granary, gen_pond_score, gen_pond_outcome,
+    gen_read_max, gen_read_evens, gen_find_secret, gen_economy, gen_placement, gen_pond_tick,
+    gen_water_access, gen_predator_safety, gen_granary, gen_pond_score, gen_pond_outcome,
 )
 
-# logic/coding generators only (scene/render need Godot + the 30B; keep this data pure-logic)
+# logic/coding generators only (scene/render need Godot + the 30B; keep this data pure-logic).
+# The gen_read_* family reads a per-instance input file -> non-hardcodable -> forces REAL general code
+# (unlike arithmetic-in-the-prompt tasks the agent can shortcut to print(<literal>); see is_trivial_hardcode).
 LOGIC_GENERATORS = [
     gen_sum, gen_reverse, gen_json, gen_fizzbuzz, gen_fix_bug, gen_fix_range_bug, gen_read_sum,
-    gen_find_secret, gen_economy, gen_placement, gen_pond_tick, gen_water_access, gen_predator_safety,
-    gen_granary, gen_pond_score, gen_pond_outcome,
+    gen_read_max, gen_read_evens, gen_find_secret, gen_economy, gen_placement, gen_pond_tick,
+    gen_water_access, gen_predator_safety, gen_granary, gen_pond_score, gen_pond_outcome,
 ]
 
 

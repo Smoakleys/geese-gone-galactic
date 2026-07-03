@@ -46,6 +46,27 @@ def test_sum_verifier_pass_and_fail(tmp_path):
     assert not bad
 
 
+def test_read_generators_verifiers_pass_general_code_and_fail_wrong(tmp_path):
+    # the input-reading generators are non-hardcodable: a general read-and-compute solution passes, a
+    # hardcoded/wrong one fails. Validates their checkers (which gate what enters the SFT corpus).
+    from harness.icarus.eval.capability import gen_read_max, gen_read_evens
+    cases = [
+        (gen_read_max, "print(max(int(l) for l in open('numbers.txt')))"),
+        (gen_read_evens, "print(sum(1 for l in open('numbers.txt') if int(l) % 2 == 0))"),
+    ]
+    for gen, correct in cases:
+        inst = gen(Random(1))
+        ws = tmp_path / inst.id
+        ws.mkdir()
+        inst.setup(ws)
+        (ws / "solution.py").write_text(correct)
+        ok, detail = inst.verify(ws)
+        assert ok, f"{inst.id}: {detail}"
+        (ws / "solution.py").write_text("print(-999)\n")     # wrong answer must fail
+        bad, _ = inst.verify(ws)
+        assert not bad
+
+
 def test_predator_safety_verifier_pass_and_fail(tmp_path):
     from harness.icarus.eval.capability import gen_predator_safety
     inst = gen_predator_safety(Random(3))
