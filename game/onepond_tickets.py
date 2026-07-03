@@ -396,6 +396,28 @@ def one_pond_tickets() -> "list[Ticket]":
                 {"module": "goose_count.py", "call": "goose_count([])", "expect": 0},
                 {"module": "goose_count.py", "call": "goose_count([{'kind':'bakery'}])", "expect": 0},
             ]),
+        Ticket(
+            id="OP-18",
+            title=("pond_report.py: a one-line status line. report(bread, rank, safe) returns EXACTLY the "
+                   "string \"Pond: {bread} bread, rank {rank}, {status}\" where {bread} is the int, {rank} "
+                   "is the rank string, and {status} is 'safe' when safe is True else 'in danger'. Example: "
+                   "report(14, 'village', True) -> 'Pond: 14 bread, rank village, safe'. Pure Python "
+                   "returning a str; match the format EXACTLY (spaces, commas, wording)."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="exact format 'Pond: {bread} bread, rank {rank}, "
+                                    "{safe|in danger}'", stage=Stage.B, rubric_ref="onepond/report"),
+            ],
+            behavior=[
+                {"module": "pond_report.py", "call": "report(14, 'village', True)",
+                 "expect": "Pond: 14 bread, rank village, safe"},
+                {"module": "pond_report.py", "call": "report(0, 'hamlet', False)",
+                 "expect": "Pond: 0 bread, rank hamlet, in danger"},
+                {"module": "pond_report.py", "call": "report(100, 'city', True)",
+                 "expect": "Pond: 100 bread, rank city, safe"},
+            ]),
     ]
     for t in tickets:
         t.freeze()
