@@ -57,3 +57,14 @@ notebook, single attempt) was strong on logic, weak on 3D visuals and multi-step
 - **Unaided battery: 10/12 = 0.83** (all game-logic 4/4; misses = one JSON variance + render, which is the
   16 GB model's real 3D ceiling, addressed operationally by the template + routing).
 - **Assisted throughput:** full authored backlog **9/9 @ autonomy 1.0** through the hardened gate (capstone).
+
+## Self-distillation data pipeline BUILT (harness-mod-51 + ops/, 2026-07-03) — Levers 1, 3, 5
+- **Why:** unaided capability (~0.73–0.85) is model-limited on the 16 GB card; base-runtime levers
+  (prompt/routing/step-cap) are exhausted. The plan's real lever to move it is TRAINING on gate-passing data.
+- **Built (both data paths):** `harness/icarus/distill.py` + `ops/build_sft.py` distil Icarus's authored-
+  ticket successes (22 diverse verified pairs, `data/onepond_sft.jsonl`); `ops/generate_training_data.py`
+  scales via the procedural gym (run generated instances through the agent, keep checker-passing solutions —
+  smoke-tested live 2/2). Data is verified by construction + quality-guarded (`tests/test_distill.py`).
+- **Before→after:** no capability number yet — the QLoRA fine-tune is an EXTERNAL GPU step (full runbook in
+  `docs/DISTILL.md`). This entry records the LEVER as built + operational; the before→after will be the
+  unaided-battery delta after the first fine-tune (keep the adapter ONLY if it rises). Kept (infrastructure).
