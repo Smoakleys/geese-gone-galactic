@@ -1,7 +1,8 @@
 # game/godot/scenes — the visual One Pond (built by Icarus)
 
 Godot 4 (GDScript) scenes, **built by the local agent** through the render path: for each scene ticket
-Icarus writes only `func build(root)` calling the tolerant `add_plane`/`add_box` helpers; the scene
+Icarus writes only `func build(root)` calling the tolerant `add_plane` / `add_box` / `add_sphere` helpers
+(sphere = rounded shapes, e.g. a less-blocky goose body/head); the scene
 template (`game/godot/scene_template.py`) wraps it with a fixed iso camera into a full `scene.gd`; and it
 must clear the certified `godot_parse` + `godot_render` gates plus the Stage-B reviewer before commit.
 Every scene here is regression-locked in `tests/test_godot_checks.py`. Render offscreen with
