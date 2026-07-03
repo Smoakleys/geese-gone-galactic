@@ -14,8 +14,12 @@ Icarus's gate-passing solutions are also captured as self-distillation training 
 see `docs/DISTILL.md`) to raise its unaided capability.
 
 **Play it:** `python ops/play_commands.py --interactive` — a live text game: type `build bakery`, `event
-harvest`, `tick`, `status`, `render pond.png` (a lit 3D image of your pond), `save`/`load`, `quit`. Or
-`python ops/play_onepond.py` for a scripted guided pond to a thriving outcome with the transcript.
+harvest`, `tick`, `status`, `art pond.png` (renders your pond as **real painterly art** — a cozy island of
+cottages, geese and trees, composited from generated sprites by `game/art_view.py`), `render pond.png` (the
+older lit 3D view), `save`/`load`, `quit`. Or `python ops/play_onepond.py` for a scripted guided pond.
+
+**The art** is generated free by an image model (`ops/generate_art.py` → `assets/art/`) — the game's look is
+real cozy-game illustration, not primitive shapes.
 
 - Honest capability: the full authored backlog commits **11/11 at autonomy 1.0** through the hardened gate,
   unattended; unaided-logic sits in a ~0.73–0.85 band (see `docs/SCORECARD.md`).
