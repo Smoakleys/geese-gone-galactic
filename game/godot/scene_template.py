@@ -60,6 +60,17 @@ func add_box(root, size, color, pos = Vector3.ZERO):
     mi.material_override = _unshaded(color)
     root.add_child(mi)
 
+# Helper: add a SPHERE (rounded shape -- a goose body/head, a berry) of radius `r` at `pos`.
+func add_sphere(root, r, color, pos = Vector3.ZERO):
+    var mi := MeshInstance3D.new()
+    var sm := SphereMesh.new()
+    sm.radius = float(r)
+    sm.height = float(r) * 2.0
+    mi.mesh = sm
+    mi.position = pos
+    mi.material_override = _unshaded(color)
+    root.add_child(mi)
+
 '''
 
 
@@ -107,7 +118,7 @@ def _sanitize(build_fn: str) -> str:
     ``var x = preload/load(...)`` line, and strip an object prefix on a helper call
     (``helpers.add_plane`` / ``self.add_box`` -> ``add_plane`` / ``add_box``)."""
     fn = re.sub(r"(?m)^\s*var\s+\w+\s*=\s*(?:preload|load)\([^\n]*\n", "", build_fn)
-    fn = re.sub(r"\b[A-Za-z_]\w*\.(add_plane|add_box)\b", r"\1", fn)
+    fn = re.sub(r"\b[A-Za-z_]\w*\.(add_plane|add_box|add_sphere)\b", r"\1", fn)
     # GDScript has NO keyword arguments -- a small model writes Python-isms like add_plane(..., y=0.1)
     # or pos=Vector3(...), which are parse errors. Strip a `name=` that appears as a call argument.
     fn = re.sub(r"([(,]\s*)[A-Za-z_]\w*\s*=\s*(?!=)", r"\1", fn)
