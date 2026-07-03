@@ -625,6 +625,28 @@ def one_pond_tickets() -> "list[Ticket]":
                 {"module": "pond_event.py",
                  "call": "apply_event({'bread': 8, 'buildings': []}, 'calm')['bread']", "expect": 8},
             ]),
+        Ticket(
+            id="OP-29",
+            title=("parse_command.py: parse a player text command. parse_command(text) splits `text` on "
+                   "whitespace and returns a 2-tuple (verb, target): the FIRST word lowercased as the verb "
+                   "and the SECOND word lowercased as the target (extra words ignored). If there is no "
+                   "second word the target is '' (empty string); an empty/blank string returns ('', ''). "
+                   "Pure Python returning a tuple of two strings."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="valid python (parses)",
+                                    stage=Stage.A, check_hint="python_syntax"),
+                AcceptanceCriterion(id="AC2", text="(verb, target) lowercased from the first two words, "
+                                    "'' for missing", stage=Stage.B, rubric_ref="onepond/parse"),
+            ],
+            behavior=[
+                {"module": "parse_command.py", "call": "parse_command('Build Bakery')",
+                 "expect": ("build", "bakery")},
+                {"module": "parse_command.py", "call": "parse_command('place well now')",
+                 "expect": ("place", "well")},
+                {"module": "parse_command.py", "call": "parse_command('quit')", "expect": ("quit", "")},
+                {"module": "parse_command.py", "call": "parse_command('   ')", "expect": ("", "")},
+            ]),
     ]
     for t in tickets:
         t.freeze()
