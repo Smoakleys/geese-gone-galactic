@@ -16,7 +16,7 @@ import urllib.request
 class OllamaAgentModel:
     def __init__(self, model_id: str = "gpt-oss:20b",
                  endpoint: str = "http://localhost:11434",
-                 timeout: float = 600.0, temperature: float = 0.3, num_ctx: int = 8192,
+                 timeout: float = 240.0, temperature: float = 0.3, num_ctx: int = 8192,
                  retries: int = 3) -> None:
         self.model_id = model_id
         self.endpoint = endpoint.rstrip("/")

@@ -47,6 +47,8 @@ Icarus is a **real, measured agent**, and the whole loop is proven end-to-end:
 - **The visual limit was model SIZE**, not a ceiling — routing to a 30B fixed it. Model is a free variable.
 - **Notebooks pollute if shared** — live runs append to a working COPY (`godot_working_notebook`), never
   the curated seed (`game/godot/godot_lessons.md`); promotion back is deliberate curation.
+- **One live model run at a time.** The GPU is 16GB — running two live-model tasks concurrently (esp.
+  both needing the 30B) thrashes/hangs. Never launch overlapping live probes; finish one before the next.
 
 ## 4. Next phase = BREADTH (the foundation is done; now build the game)
 Drive One Pond for real, **one Icarus ticket per cycle** via `default_icarus_builder` + the full loop:
