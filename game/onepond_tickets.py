@@ -715,6 +715,29 @@ def one_pond_tickets() -> "list[Ticket]":
                 {"module": "optimal_bakeries.py", "call": "optimal_bakeries(9, 0)", "expect": 3},
                 {"module": "optimal_bakeries.py", "call": "optimal_bakeries(0, 0)", "expect": 0},
             ]),
+        Ticket(
+            id="OP-34",
+            title=("Write content.gd with ONLY `func build(root: Node3D) -> void:` using the helpers "
+                   "add_plane(root, size, color, y=0.0), add_box(root, size, color, pos), and "
+                   "add_sphere(root, radius, color, pos). Build One Pond with a MORE DETAILED, recognisable "
+                   "low-poly goose (compose several primitives so it reads as a goose, not a blob): a GREEN "
+                   "land plane Vector2(16, 16); a BLUE pond Vector2(6, 6) at y=0.1; and a goose near the "
+                   "pond made of -- a large WHITE sphere BODY (radius ~0.9) at about y=0.9; a CURVED NECK of "
+                   "TWO smaller WHITE spheres (radius ~0.3) stepping UP and FORWARD from the front-top of "
+                   "the body; a WHITE sphere HEAD (radius ~0.4) on top of the neck; a small ORANGE beak box "
+                   "Color(1, 0.5, 0) at the FRONT of the head; and a WHITE box TAIL (about Vector3(0.5, "
+                   "0.3, 0.4)) at the BACK of the body, raised slightly. Keep the goose pieces close "
+                   "together so they connect. Use Color.GREEN/Color.BLUE/Color.WHITE (Godot 4). No "
+                   "Camera3D, no _ready(), don't redefine the helpers."),
+            kind=TicketKind.SYSTEM,
+            acceptance_criteria=[
+                AcceptanceCriterion(id="AC1", text="scene.gd parses under godot --check-only",
+                                    stage=Stage.A, check_hint="godot_parse"),
+                AcceptanceCriterion(id="AC2", text="renders a visible multi-element scene",
+                                    stage=Stage.A, check_hint="godot_render"),
+                AcceptanceCriterion(id="AC3", text="reads as a pond with a detailed white goose",
+                                    stage=Stage.B, rubric_ref="onepond/detailgoose"),
+            ]),
     ]
     for t in tickets:
         t.freeze()
