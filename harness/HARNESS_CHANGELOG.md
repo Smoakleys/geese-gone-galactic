@@ -532,3 +532,11 @@ without a matching entry. Reverts are one command via the token in `harness/reve
   starts with the provenance marker, so a module's real leading comments survive). Regenerated
   data/onepond_sft.jsonl -> outputs now start with real code (`def ...`). Guard: the wellformedness test
   now asserts no committed SFT output contains the provenance marker. A data-quality fix for the frontier.
+
+## harness-mod-56 - Exclude hardcoded-literal solutions from the SFT corpus
+- harness/icarus/distill.py: `is_trivial_hardcode(output)` flags a bare `print(<literal>)` (e.g. print(715),
+  print('cunsndc')). These pass the per-instance checker but are POISON as fine-tune data -- they teach a
+  coding model to guess/hardcode the answer instead of writing general code. 8 of 82 committed records were
+  such literals (incl. a `print(55)` pond-score). ops/generate_training_data.py now rejects them at
+  generation; the committed generated_*_sft.jsonl were cleaned (corpus 82 -> 73 higher-quality pairs);
+  the wellformedness test guards that none remain. A real data-quality fix for the one open frontier.

@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from harness.icarus.distill import build_sft_records, write_jsonl
+from harness.icarus.distill import build_sft_records, is_trivial_hardcode, write_jsonl
 from game.onepond_tickets import one_pond_tickets
 
 
@@ -69,8 +69,18 @@ def test_committed_sft_datasets_are_wellformed():
             assert len(r["instruction"]) > 20 and r["output"].strip(), p.name
             ast.parse(r["output"])                             # every solution is valid Python
             assert "BUILT BY ICARUS" not in r["output"], p.name  # no provenance header leaked into training
+            assert not is_trivial_hardcode(r["output"]), f"{p.name}: hardcoded literal {r['output']!r}"
         total += len(lines)
     assert total >= 15                                          # a real corpus
+
+
+def test_is_trivial_hardcode():
+    # hardcoded literal answers must be flagged (poison SFT data); real code must not be
+    assert is_trivial_hardcode("print(715)")
+    assert is_trivial_hardcode("print('cunsndc')")
+    assert not is_trivial_hardcode("print(362 + 353)")        # computes -> real code
+    assert not is_trivial_hardcode("def f(x):\n    return x\n")
+    assert not is_trivial_hardcode("total = sum(xs)\nprint(total)")
 
 
 def test_strip_provenance_removes_header_keeps_code():

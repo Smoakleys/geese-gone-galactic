@@ -19,7 +19,7 @@ from random import Random
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from harness.icarus.distill import write_jsonl  # noqa: E402
+from harness.icarus.distill import is_trivial_hardcode, write_jsonl  # noqa: E402
 from harness.icarus.eval.capability import (  # noqa: E402
     gen_sum, gen_reverse, gen_json, gen_fizzbuzz, gen_fix_bug, gen_fix_range_bug, gen_read_sum,
     gen_find_secret, gen_economy, gen_placement, gen_pond_tick, gen_water_access, gen_predator_safety,
@@ -56,7 +56,9 @@ def generate(model, n: int, seed: int, out: Path, *, run_timeout: float = 30.0) 
         rep = run_battery(model, [inst], ws_root, max_steps=10, run_timeout=run_timeout, use_notebook=False)
         if rep.results and rep.results[0].passed:
             src = _solution_source(ws_root / inst.id)
-            if src:
+            # Keep only REAL code: a checker-passing `print(<literal>)` hardcodes the answer and would
+            # teach a fine-tune to guess instead of compute -- poison as SFT data (see distill).
+            if src and not is_trivial_hardcode(src):
                 records.append({"instruction": inst.prompt.strip(), "input": "", "output": src,
                                 "meta": {"generator": gen.__name__, "id": inst.id, "gate": "checker"}})
     return write_jsonl(records, out)

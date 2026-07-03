@@ -32,6 +32,21 @@ def _instruction(ticket) -> str:
     return "\n".join(parts)
 
 
+def is_trivial_hardcode(output: str) -> bool:
+    """True if the solution just prints a bare literal (``print(715)``, ``print('abc')``) with no
+    computation. These pass the instance checker but are POISON as training data: a coding model learns
+    to guess/hardcode the answer instead of writing general code. Exclude them from the SFT corpus."""
+    import ast
+    body = output.strip()
+    if "\n" in body or not (body.startswith("print(") and body.endswith(")")):
+        return False
+    try:
+        node = ast.parse(body[6:-1], mode="eval").body
+    except Exception:
+        return False
+    return isinstance(node, ast.Constant)   # a bare constant, no expression/vars/calls
+
+
 def _strip_provenance(src: str) -> str:
     """Drop the leading ``# BUILT BY ICARUS ...`` provenance header so the training OUTPUT is the actual
     code. Otherwise a fine-tune learns to reproduce that meta-comment (autonomy/gate/ticket chatter) at the
