@@ -158,6 +158,16 @@ def test_detail_goose_pond_scene_parses_and_renders(tmp_path):
     assert render.result == Result.PASS, render.evidence
 
 
+def test_detail_flock_scene_parses_and_renders(tmp_path):
+    # OP-36: two detailed lit geese by the pond, built first-try through the fully-improved harness.
+    from pathlib import Path
+    asset = Path(__file__).resolve().parents[1] / "game" / "godot" / "scenes" / "detail_flock.gd"
+    (tmp_path / "scene.gd").write_text(asset.read_text())
+    assert GodotParseCheck().run(tmp_path, _ticket()).result == Result.PASS
+    render = GodotRenderCheck().run(tmp_path, _ticket())
+    assert render.result == Result.PASS, render.evidence
+
+
 def test_detail_world_scene_parses_and_renders(tmp_path):
     # OP-35: the complete world (pond + bakery + nest + a detailed goose), lit; must clear both gates
     # (and, post PR #283, the render check verifies it did not crash mid-_ready with a SCRIPT ERROR).
