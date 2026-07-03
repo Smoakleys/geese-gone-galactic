@@ -41,6 +41,11 @@ regression from mod-60-63**:
 - HONEST read: unaided pass@1 is genuinely **stochastic in a ~0.6–0.9 band** on the 16 GB card; this run
   landed low. mod-60-63's logic is validated by scripted tests; their aggregate effect is within this noise.
   The real capability lever remains the **fine-tune** (compute-blocked), not runtime tweaks (largely exhausted).
+- **PROBED the 8 failures (probe-why-it-fails):** 3 were the model writing a PLACEHOLDER body literally
+  (`granary.py`=`<code>`, `score.py`=`<file contents>`) → a do-nothing file → **fixed by harness-mod-64**
+  (exec_tool now rejects a `<...>` body, forcing real code). The other 5 (fizzbuzz/secret/readsum/readsorted/
+  pondtick) wrote **NO solution file at all** in the 10-step budget = a genuine small-model limit, not a
+  harness bug. So ~3/8 fails are now addressed by a real fix; the rest confirm the model ceiling → fine-tune.
 
 ## CLEAN re-measurement — 15/16 = 0.94, debugging improved (2026-07-03, Step D done right)
 Re-ran seed=7 UNAIDED with **zero concurrent load** (the contamination lesson applied): **15/16 = 0.94**,
