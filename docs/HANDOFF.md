@@ -14,7 +14,16 @@ You are a fresh Claude session on **Geese Gone Galactic (GGG)**. Read this top t
 - **DIRECTION (Bridger, 2026-07-03): VISUALS are the priority + PERSISTENCE is the rule.** Be creative +
   STUBBORN at hard problems; do NOT task-switch away to easy wins — that persistence IS the goal. See
   memory [[be-stubborn-not-avoidant]] + [[ggg-visuals-priority]] + ops/backlog.md "Now".
-- **VISUALS: NOW ON GEMINI + a LOCKED VIEWPOINT — BLOCKED on a free key (latest, PRs #391-396).** Bridger
+- **VISUALS: SHIPPED — real KEYLESS art (flux village), latest PRs #409-410.** Bridger's rule: never wait on
+  him for a key, route around it. FLUX via Pollinations is FREE + KEYLESS (patient spacing beats the 429/500
+  limits). `ops/flux_art.py` generates 9 props under ONE locked 3/4-iso viewpoint (rounded base tiles, Hay
+  Day / Cozy Grove look) -> `assets/art/flux_<name>.png` (art_view prefers them) -> a coherent professional
+  floating cozy island (`assets/art/village_render.png`). Run `python ops/flux_art.py`. READ
+  [[never-wait-route-around-approval]] + [[visual-review-discipline]] (grade harshly vs review_sheet.png; the
+  discipline caught + fixed the goose viewpoint, stale variants, cramping, floating trees). The Gemini
+  pipeline (`ops/gemini_art.py`) remains an optional higher-quality path if a key ever appears; NOT needed.
+  Local SD (torch-directml, AMD GPU) installed as a keyless backup. (Old Gemini-blocked note below is stale.)
+- **(stale) VISUALS: NOW ON GEMINI + a LOCKED VIEWPOINT — BLOCKED on a free key (PRs #391-396).** Bridger
   rejected the Pollinations art too: "utterly terrible — wrong viewpoints, cramped." ROOT CAUSE diagnosed:
   the assets were generated with NO shared camera (side-goose + 3/4-building + top-down-pond) so they can't
   composite coherently. Pollinations also gated its good models (anonymous = only "sana") + is unreliable.
