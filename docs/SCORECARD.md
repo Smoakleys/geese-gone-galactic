@@ -28,6 +28,14 @@ builds the game — now holds for visuals, not just logic. HONEST caveat: the lo
 gpt-oss emitted prose instead of a final tool call after rendering; the scene is still produced + gated
 (materialize_templated_scene harvests it regardless). Lead: harden the loop's prose-not-a-tool-call exit.
 
+## GENERALIZATION probe — new task types 3/3 (2026-07-03, scorecard #2)
+Added three NEW procedural task types the model had never seen (gen_fib/gen_gcd/gen_count_char) and ran them
+unaided: **3/3 = 1.00** (fib(23)=28657, gcd(547,463)=1, count 'z'=2). A positive GENERALIZATION signal — the
+model handles unseen *simple* task types cleanly. Honest caveat: these are trivial, so they DON'T discriminate
+(the plan's "keep it at the edge"); the discriminating gap remains debugging + complex multi-step (fixbug/
+fixrange/granary), which is the model ceiling → the fine-tune lever. So the gym now has broader coverage
+(anti-memorization) but the *hard* discriminating tasks are where capability headroom lives.
+
 ## VALIDATED mod-64/65: 0.60 → 0.80 on the SAME seed (2026-07-03, Step D — a real measured win)
 Re-ran the identical battery (seed 4242, 20 logic tasks, unaided) AFTER mod-64 (reject placeholder body) +
 mod-65 (nudge-if-no-solution): **16/20 = 0.80**, up from 12/20 = 0.60. Per-task diff vs the 0.60 baseline:
