@@ -154,18 +154,20 @@ def generate_reference(out_png: Path, key: str, *, model: "str | None" = None, t
     return True
 
 
-def make_contact_sheet(out_png: Path, names: "list[str] | None" = None) -> "Path | None":
-    """Tile the generated gemini_<name> assets (+ reference if present) into ONE labelled review image, so I
+def make_contact_sheet(out_png: Path, names: "list[str] | None" = None, prefix: str = "gemini_") -> "Path | None":
+    """Tile the generated <prefix><name> assets (+ reference if present) into ONE labelled review image, so I
     can grade them against the reference on the rubric in a single view (visual-review-discipline). Returns
     the path, or None if no assets exist yet."""
     from PIL import Image, ImageDraw
     names = names or list(ASSETS)
     tiles = []
     for n in names:
-        p = ART_DIR / f"gemini_{n}.png"
+        p = ART_DIR / f"{prefix}{n}.png"
         if p.is_file():
             tiles.append((n, p))
-    ref = ART_DIR / "reference_game.png"
+    ref = ART_DIR / f"{prefix}reference.png"
+    if not ref.is_file():
+        ref = ART_DIR / "reference_game.png"
     if ref.is_file():
         tiles.append(("REFERENCE", ref))
     if not tiles:
