@@ -30,7 +30,7 @@ def _load(name: str):
     present, then the transparent *_cutout.png, then the base .png -- so once Gemini art is generated the
     game uses it automatically with no other wiring."""
     from PIL import Image
-    for fn in (f"gemini_{name}.png", f"{name}_cutout.png", f"{name}.png"):
+    for fn in (f"flux_{name}.png", f"gemini_{name}.png", f"{name}_cutout.png", f"{name}.png"):
         p = ART_DIR / fn
         if p.is_file():
             try:
