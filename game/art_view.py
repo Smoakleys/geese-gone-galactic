@@ -21,8 +21,8 @@ _SIZES = {"bakery": 210, "granary": 200, "nest": 120, "well": 170, "fence": 130,
           "tree": 190, "goose": 120}
 _GRASS = (126, 189, 100)
 _POND = (86, 150, 196)
-_TILE_W = 150   # isometric tile footprint on screen
-_TILE_H = 86
+_TILE_W = 230   # isometric tile footprint on screen (wide enough that base-tiled assets don't overlap)
+_TILE_H = 132
 
 
 def _load(name: str):
@@ -45,8 +45,8 @@ def _variant(kind: str, gx: float, gy: float) -> str:
     buildings/trees don't all look identical. Deterministic by position; falls back to the base asset."""
     if int(abs(gx * 2.0 + gy * 3.0)) % 2:
         vb = f"{kind}_b"
-        if (ART_DIR / f"{vb}_cutout.png").is_file() or (ART_DIR / f"{vb}.png").is_file():
-            return vb
+        if (ART_DIR / f"flux_{vb}.png").is_file():    # only use a variant in the SAME (flux) art set --
+            return vb                                 # never mix in old mismatched _b art
     return kind
 
 
@@ -127,7 +127,7 @@ def compose_pond_art(state: dict, out_png: "str | Path", *, size: "tuple[int, in
     for b in buildings:                                   # a goose beside each nest
         if b.get("kind") == "nest":
             items.append((b.get("x", 0) - ox + 0.45, b.get("y", 0) - oy + 0.2, "goose"))
-    for gx, gy in [(-2.4, -2.4), (2.4, -2.4), (2.4, 2.4), (-2.4, 2.4)]:   # corner trees (on the island)
+    for gx, gy in [(-1.5, -1.5), (1.5, -1.5), (1.5, 1.5), (-1.5, 1.5)]:   # corner trees (kept ON the island)
         items.append((gx, gy, "tree"))
 
     for gx, gy, kind in sorted(items, key=lambda t: t[0] + t[1]):
